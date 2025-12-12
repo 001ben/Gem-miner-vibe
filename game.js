@@ -205,6 +205,24 @@ window.addEventListener('keyup', e => keys[e.code] = false);
 // Swipe / Virtual Joystick
 const joystick = { active: false, x: 0, y: 0, originX: 0, originY: 0 };
 const gameContainer = document.getElementById('game-container');
+const joystickZone = document.getElementById('joystick-zone');
+const joystickBase = document.getElementById('joystick-base');
+const joystickKnob = document.getElementById('joystick-knob');
+
+function showJoystick(x, y) {
+    joystickZone.style.display = 'block';
+    joystickBase.style.left = x + 'px';
+    joystickBase.style.top = y + 'px';
+    joystickKnob.style.transform = `translate(-50%, -50%) translate(0px, 0px)`;
+}
+
+function updateJoystickVisual(dx, dy) {
+    joystickKnob.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px)`;
+}
+
+function hideJoystick() {
+    joystickZone.style.display = 'none';
+}
 
 gameContainer.addEventListener('touchstart', e => {
     e.preventDefault();
@@ -214,6 +232,7 @@ gameContainer.addEventListener('touchstart', e => {
     joystick.originY = touch.clientY;
     joystick.x = 0;
     joystick.y = 0;
+    showJoystick(joystick.originX, joystick.originY);
 }, { passive: false });
 
 gameContainer.addEventListener('touchmove', e => {
@@ -229,8 +248,13 @@ gameContainer.addEventListener('touchmove', e => {
     const clampedDist = Math.min(dist, maxDist);
     const angle = Math.atan2(dy, dx);
 
-    joystick.x = (Math.cos(angle) * clampedDist) / maxDist;
-    joystick.y = (Math.sin(angle) * clampedDist) / maxDist;
+    const moveX = Math.cos(angle) * clampedDist;
+    const moveY = Math.sin(angle) * clampedDist;
+
+    joystick.x = moveX / maxDist; // Normalized
+    joystick.y = moveY / maxDist;
+
+    updateJoystickVisual(moveX, moveY);
 }, { passive: false });
 
 gameContainer.addEventListener('touchend', e => {
@@ -238,6 +262,7 @@ gameContainer.addEventListener('touchend', e => {
     joystick.active = false;
     joystick.x = 0;
     joystick.y = 0;
+    hideJoystick();
 }, { passive: false });
 
 // Mouse drag for testing on desktop
@@ -248,6 +273,7 @@ gameContainer.addEventListener('mousedown', e => {
     joystick.originY = e.clientY;
     joystick.x = 0;
     joystick.y = 0;
+    showJoystick(joystick.originX, joystick.originY);
 });
 window.addEventListener('mousemove', e => {
     if (!joystick.active) return;
@@ -257,13 +283,20 @@ window.addEventListener('mousemove', e => {
     const dist = Math.sqrt(dx*dx + dy*dy);
     const clampedDist = Math.min(dist, maxDist);
     const angle = Math.atan2(dy, dx);
-    joystick.x = (Math.cos(angle) * clampedDist) / maxDist;
-    joystick.y = (Math.sin(angle) * clampedDist) / maxDist;
+
+    const moveX = Math.cos(angle) * clampedDist;
+    const moveY = Math.sin(angle) * clampedDist;
+
+    joystick.x = moveX / maxDist;
+    joystick.y = moveY / maxDist;
+
+    updateJoystickVisual(moveX, moveY);
 });
 window.addEventListener('mouseup', () => {
     joystick.active = false;
     joystick.x = 0;
     joystick.y = 0;
+    hideJoystick();
 });
 
 
@@ -284,17 +317,59 @@ Events.on(engine, 'beforeUpdate', () => {
     if (keys['ArrowLeft'] || keys['KeyA']) turn -= 1;
     if (keys['ArrowRight'] || keys['KeyD']) turn += 1;
 
-    // Joystick override
-    if (joystick.active) {
-        // Joystick Up (Negative Y) -> Gas (Positive Throttle)
-        // Joystick Down (Positive Y) -> Reverse (Negative Throttle)
-        if (Math.abs(joystick.y) > 0.1) throttle = -joystick.y;
-        if (Math.abs(joystick.x) > 0.1) turn = joystick.x;
-    }
-
     // Tuning
-    const speed = 0.002 * (1 + dozerLevel * 0.1); // Acceleration force
-    const turnSpeed = 0.03; // Angular velocity change
+    const baseSpeed = 0.002 * (1 + dozerLevel * 0.1);
+    const turnSpeed = 0.03;
+
+    // Joystick override (Arcade Style / Directional)
+    if (joystick.active) {
+        // Calculate target angle from joystick
+        // Joystick Y is down positive, X is right positive.
+        // -PI/2 is Up.
+        const targetAngle = Math.atan2(joystick.y, joystick.x);
+        const magnitude = Math.sqrt(joystick.x*joystick.x + joystick.y*joystick.y);
+
+        if (magnitude > 0.1) {
+            // Current heading (Up is -PI/2)
+            // But Matter body angle 0 usually means "East" or "Right".
+            // We defined Forward as Up (-PI/2).
+            // So if body.angle = 0, "Forward" vector is Up.
+            // Wait, if body.angle = 0, sprite is drawn upright.
+            // If sprite is upright, it points Up.
+            // So "Forward" is relative to body.angle.
+            // Body "Forward" axis is -90 deg from body.angle axis (Right).
+
+            const currentHeading = bulldozer.angle - Math.PI/2;
+
+            // Difference
+            let delta = targetAngle - currentHeading;
+            // Normalize to [-PI, PI]
+            while (delta <= -Math.PI) delta += 2*Math.PI;
+            while (delta > Math.PI) delta -= 2*Math.PI;
+
+            // Turn towards target
+            // If delta is large, we might want to reverse?
+            // For now, "always forward" logic.
+            // But we can scale throttle if we are facing wrong way to avoid drifting sideways too much
+
+            const turnFactor = Math.max(-1, Math.min(1, delta * 2)); // Amplify small angles
+            turn = turnFactor;
+
+            // Throttle is magnitude
+            // Optionally reduce throttle if turning hard
+            throttle = magnitude;
+        }
+    } else {
+        // Keyboard: existing tank controls logic is fine, or map it to directional?
+        // Let's keep tank controls for keyboard for now as it's separate inputs
+        // Or we can convert to similar logic.
+        // But the previous code for keyboard was simple and worked.
+        // However, we need to apply forces.
+
+        // If we are using keyboard, we have 'turn' and 'throttle' from earlier block
+        // (throttle +/- 1, turn +/- 1)
+        // We can just use them directly as before.
+    }
 
     // Apply rotation
     if (turn !== 0) {
@@ -303,26 +378,7 @@ Events.on(engine, 'beforeUpdate', () => {
 
     // Apply drive force
     if (throttle !== 0) {
-        // Force vector based on body angle
-        // Body angle - PI/2 is "up" relative to body if body sprite faces up
-        // But our sprite faces up. Matter body angle 0 usually means right?
-        // Let's check.
-        // If we setAngle(0), sprite is drawn 0 rotation.
-        // If sprite is upright, it points Up.
-        // But Matter 0 is Right (1, 0).
-        // If sprite is drawn upright in SVG, and we render it, it usually aligns with 0 rotation?
-        // Wait, normally Render.sprite rotates the image by body.angle.
-        // If the SVG content points UP, and body.angle is 0.
-        // Usually 0 rad is East.
-        // So we might need to offset.
-        // Earlier code: Body.setAngle(bulldozer, angle + Math.PI/2);
-        // This implies visual Up needs +90deg to match movement angle.
-
-        // Let's assume Forward is -90deg (Up).
-        // So force vector should be calculated from (angle - PI/2).
-
-        const forceMagnitude = throttle * speed;
-        // Direction vector
+        const forceMagnitude = throttle * baseSpeed;
         const angle = bulldozer.angle - Math.PI/2;
         const force = {
             x: Math.cos(angle) * forceMagnitude,
@@ -382,6 +438,10 @@ function updateUI() {
     document.getElementById('btn-upgrade-plow').disabled = money < costs.plow;
     document.getElementById('btn-upgrade-collector').disabled = money < costs.collector;
     document.getElementById('btn-unlock-area').disabled = money < costs.area;
+
+    const speedVal = Math.round(100 * (1 + dozerLevel * 0.1));
+    const speedEl = document.getElementById('stats-speed');
+    if (speedEl) speedEl.innerText = `Speed: ${speedVal}%`;
 }
 
 window.toggleShop = function() {
