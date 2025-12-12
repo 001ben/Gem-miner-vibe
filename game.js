@@ -3,7 +3,7 @@ let money = 0;
 let dozerLevel = 1;
 let plowLevel = 1;
 let collectorLevel = 1;
-let areaLevel = 1;
+let areaLevel = 1; // 1: Zone 1, 2: Zone 1+2, 3: Zone 1+2+3
 
 const costs = {
     dozer: 100,
@@ -37,40 +37,71 @@ const render = Render.create({
         width: window.innerWidth,
         height: window.innerHeight,
         wireframes: false,
-        background: '#333'
+        background: '#333',
+        hasBounds: true
     }
 });
 
-// Walls
+// Map Configuration
+const mapWidth = 1200;
+const wallThickness = 100;
 const walls = [];
-const wallThickness = 50;
-let width = window.innerWidth;
-let height = window.innerHeight;
+const gates = [];
 
-function createWalls() {
+function createMap() {
     Composite.remove(world, walls);
+    Composite.remove(world, gates);
     walls.length = 0;
+    gates.length = 0;
 
-    const areaWidth = Math.min(width - 100, 800 + (areaLevel - 1) * 400);
-    const areaHeight = Math.min(height - 100, 600 + (areaLevel - 1) * 300);
+    // Define boundaries
+    // Zone 1: Y 600 to -600 (Center 0)
+    // Zone 2: Y -600 to -1800
+    // Zone 3: Y -1800 to -3000
+    // Total Y: 600 to -3000
 
-    const centerX = width / 2;
-    const centerY = height / 2;
+    const minY = -3000;
+    const maxY = 600;
+    const totalHeight = maxY - minY;
+    const centerY = minY + totalHeight / 2;
 
-    const top = Bodies.rectangle(centerX, centerY - areaHeight/2 - wallThickness/2, areaWidth + 2*wallThickness, wallThickness, { isStatic: true, render: { fillStyle: '#555' } });
-    const bottom = Bodies.rectangle(centerX, centerY + areaHeight/2 + wallThickness/2, areaWidth + 2*wallThickness, wallThickness, { isStatic: true, render: { fillStyle: '#555' } });
-    const left = Bodies.rectangle(centerX - areaWidth/2 - wallThickness/2, centerY, wallThickness, areaHeight, { isStatic: true, render: { fillStyle: '#555' } });
-    const right = Bodies.rectangle(centerX + areaWidth/2 + wallThickness/2, centerY, wallThickness, areaHeight, { isStatic: true, render: { fillStyle: '#555' } });
+    // Outer Walls
+    const left = Bodies.rectangle(-mapWidth/2 - wallThickness/2, centerY, wallThickness, totalHeight, { isStatic: true, render: { fillStyle: '#444' } });
+    const right = Bodies.rectangle(mapWidth/2 + wallThickness/2, centerY, wallThickness, totalHeight, { isStatic: true, render: { fillStyle: '#444' } });
+    const top = Bodies.rectangle(0, minY - wallThickness/2, mapWidth + 2*wallThickness, wallThickness, { isStatic: true, render: { fillStyle: '#444' } });
+    const bottom = Bodies.rectangle(0, maxY + wallThickness/2, mapWidth + 2*wallThickness, wallThickness, { isStatic: true, render: { fillStyle: '#444' } });
 
-    walls.push(top, bottom, left, right);
-    Composite.add(world, walls);
+    walls.push(left, right, top, bottom);
+
+    // Gates
+    // Gate 1 at -600
+    if (areaLevel < 2) {
+        const gate1 = Bodies.rectangle(0, -600, mapWidth, 60, {
+            isStatic: true,
+            label: 'gate',
+            render: { fillStyle: '#e74c3c', opacity: 0.9 }
+        });
+        gates.push(gate1);
+    }
+
+    // Gate 2 at -1800
+    if (areaLevel < 3) {
+        const gate2 = Bodies.rectangle(0, -1800, mapWidth, 60, {
+            isStatic: true,
+            label: 'gate',
+            render: { fillStyle: '#e74c3c', opacity: 0.9 }
+        });
+        gates.push(gate2);
+    }
+
+    Composite.add(world, [...walls, ...gates]);
 }
 
 // Bulldozer
 let bulldozer;
 
 function createBulldozer() {
-    let pos = { x: width/2, y: height/2 };
+    let pos = { x: 0, y: 0 };
     let angle = 0; // Facing up (Constructed at angle 0 facing up)
 
     if (bulldozer) {
@@ -83,17 +114,10 @@ function createBulldozer() {
     const bodySize = 40 + (dozerLevel * 5); // Base size
 
     // Plow size
-    // Plow width should be wider than body generally
     const plowWidth = bodySize * 1.2 + (plowLevel * 10);
     const plowHeight = 15 + (plowLevel * 2);
 
     // Parts creation
-    // We position them relative to (0,0).
-    // Body centered at (0, 0)
-    // Plow in front (Up is -y in screen, but let's define local coordinates)
-    // Let's say forward is +y in local coords for simplicity of construction, then we rotate.
-    // Actually standard matter rects are centered.
-
     // Main Chassis
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, {
         render: {
@@ -106,8 +130,6 @@ function createBulldozer() {
     });
 
     // Plow
-    // Positioned in front. If 'front' is Up (negative Y on screen), relative to chassis.
-    // Distance from center = bodySize/2 + plowHeight/2
     const plowOffset = -(bodySize/2 + plowHeight/2 - 5); // Overlap slightly
     const plow = Bodies.rectangle(0, plowOffset, plowWidth, plowHeight, {
         render: {
@@ -136,11 +158,10 @@ function createCollector() {
     if (collector) Composite.remove(world, collector);
 
     const size = 60 + (collectorLevel * 20);
-    const areaHeight = Math.min(height - 100, 600 + (areaLevel - 1) * 300);
-    const centerY = height / 2;
-    const collectorY = centerY - areaHeight/2 + 60;
+    // Position at fixed location in Zone 1
+    const collectorY = 400;
 
-    collector = Bodies.circle(width/2, collectorY, size/2, {
+    collector = Bodies.circle(0, collectorY, size/2, {
         isStatic: true,
         isSensor: true,
         render: {
@@ -166,36 +187,51 @@ const gemSprites = {
     '#00FF00': 'assets/gem_green.svg'
 };
 
-function spawnGem() {
-    const areaWidth = Math.min(width - 100, 800 + (areaLevel - 1) * 400);
-    const areaHeight = Math.min(height - 100, 600 + (areaLevel - 1) * 300);
+function initGems() {
+    // Clear existing
+    for (const g of gems) Composite.remove(world, g);
+    gems.length = 0;
 
-    const x = (width/2 - areaWidth/2 + 50) + Math.random() * (areaWidth - 100);
-    const y = (height/2 - areaHeight/2 + 100) + Math.random() * (areaHeight - 200);
+    // Zone 1: Cyan/Magenta, Value 10-25
+    spawnZoneGems(40, -500, 500, -500, 500, 10, 25, ['#00FFFF', '#FF00FF']);
 
-    const radius = 10 + Math.random() * 10;
-    const color = gemColors[Math.floor(Math.random() * gemColors.length)];
-    const spritePath = gemSprites[color];
+    // Zone 2: Yellow, Value 30-60
+    spawnZoneGems(40, -500, 500, -1700, -700, 30, 60, ['#FFFF00']);
 
-    const gem = Bodies.circle(x, y, radius, {
-        restitution: 0.5,
-        friction: 0.0,
-        frictionAir: 0.02,
-        render: {
-            sprite: {
-                texture: spritePath,
-                xScale: (radius * 2) / 32,
-                yScale: (radius * 2) / 32
-            }
-        },
-        label: 'gem'
-    });
-
-    gem.value = Math.floor(radius);
-
-    gems.push(gem);
-    Composite.add(world, gem);
+    // Zone 3: Green, Value 70-120
+    spawnZoneGems(40, -500, 500, -2900, -1900, 70, 120, ['#00FF00']);
 }
+
+function spawnZoneGems(count, xMin, xMax, yMin, yMax, valMin, valMax, colors) {
+    for(let i=0; i<count; i++) {
+        const x = xMin + Math.random() * (xMax - xMin);
+        const y = yMin + Math.random() * (yMax - yMin);
+
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const spritePath = gemSprites[color];
+
+        const radius = 10 + Math.random() * 8 + (valMin/10); // Slight size increase with value
+
+        const gem = Bodies.circle(x, y, radius, {
+            restitution: 0.5,
+            friction: 0.0,
+            frictionAir: 0.02,
+            render: {
+                sprite: {
+                    texture: spritePath,
+                    xScale: (radius * 2) / 32,
+                    yScale: (radius * 2) / 32
+                }
+            },
+            label: 'gem'
+        });
+
+        gem.value = Math.floor(valMin + Math.random() * (valMax - valMin));
+        gems.push(gem);
+        Composite.add(world, gem);
+    }
+}
+
 
 // Input handling
 const keys = {};
@@ -304,14 +340,10 @@ Events.on(engine, 'beforeUpdate', () => {
     if (!bulldozer) return;
 
     // Car/Tank controls
-    // Forward/Back moves in direction of facing
-    // Left/Right rotates body
-
     let throttle = 0;
     let turn = 0;
 
     // Keyboard
-    // Up/W is Gas (Forward), Down/S is Brake/Reverse
     if (keys['ArrowUp'] || keys['KeyW']) throttle += 1;
     if (keys['ArrowDown'] || keys['KeyS']) throttle -= 1;
     if (keys['ArrowLeft'] || keys['KeyA']) turn -= 1;
@@ -321,54 +353,21 @@ Events.on(engine, 'beforeUpdate', () => {
     const baseSpeed = 0.002 * (1 + dozerLevel * 0.1);
     const turnSpeed = 0.03;
 
-    // Joystick override (Arcade Style / Directional)
+    // Joystick override
     if (joystick.active) {
-        // Calculate target angle from joystick
-        // Joystick Y is down positive, X is right positive.
-        // -PI/2 is Up.
         const targetAngle = Math.atan2(joystick.y, joystick.x);
         const magnitude = Math.sqrt(joystick.x*joystick.x + joystick.y*joystick.y);
 
         if (magnitude > 0.1) {
-            // Current heading (Up is -PI/2)
-            // But Matter body angle 0 usually means "East" or "Right".
-            // We defined Forward as Up (-PI/2).
-            // So if body.angle = 0, "Forward" vector is Up.
-            // Wait, if body.angle = 0, sprite is drawn upright.
-            // If sprite is upright, it points Up.
-            // So "Forward" is relative to body.angle.
-            // Body "Forward" axis is -90 deg from body.angle axis (Right).
-
             const currentHeading = bulldozer.angle - Math.PI/2;
-
-            // Difference
             let delta = targetAngle - currentHeading;
-            // Normalize to [-PI, PI]
             while (delta <= -Math.PI) delta += 2*Math.PI;
             while (delta > Math.PI) delta -= 2*Math.PI;
 
-            // Turn towards target
-            // If delta is large, we might want to reverse?
-            // For now, "always forward" logic.
-            // But we can scale throttle if we are facing wrong way to avoid drifting sideways too much
-
-            const turnFactor = Math.max(-1, Math.min(1, delta * 2)); // Amplify small angles
+            const turnFactor = Math.max(-1, Math.min(1, delta * 2));
             turn = turnFactor;
-
-            // Throttle is magnitude
-            // Optionally reduce throttle if turning hard
             throttle = magnitude;
         }
-    } else {
-        // Keyboard: existing tank controls logic is fine, or map it to directional?
-        // Let's keep tank controls for keyboard for now as it's separate inputs
-        // Or we can convert to similar logic.
-        // But the previous code for keyboard was simple and worked.
-        // However, we need to apply forces.
-
-        // If we are using keyboard, we have 'turn' and 'throttle' from earlier block
-        // (throttle +/- 1, turn +/- 1)
-        // We can just use them directly as before.
     }
 
     // Apply rotation
@@ -387,6 +386,14 @@ Events.on(engine, 'beforeUpdate', () => {
 
         Body.applyForce(bulldozer, bulldozer.position, force);
     }
+
+    // Camera Follow
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    render.bounds.min.x = bulldozer.position.x - w/2;
+    render.bounds.max.x = bulldozer.position.x + w/2;
+    render.bounds.min.y = bulldozer.position.y - h/2;
+    render.bounds.max.y = bulldozer.position.y + h/2;
 });
 
 // Collision handling
@@ -397,16 +404,13 @@ Events.on(engine, 'collisionStart', event => {
         const bodyA = pairs[i].bodyA;
         const bodyB = pairs[i].bodyB;
 
-        // Check labels. Since bulldozer is multipart, collision might be with parts.
-        // Parent label is usually inherited or we check body.parent.label
-
         const labelA = bodyA.parent.label || bodyA.label;
         const labelB = bodyB.parent.label || bodyB.label;
 
         let gemBody = null;
         let collectorBody = null;
 
-        if (labelA === 'gem') gemBody = bodyA.parent; // gem is single part but let's be safe
+        if (labelA === 'gem') gemBody = bodyA.parent;
         if (labelB === 'gem') gemBody = bodyB.parent;
 
         if (labelA === 'collector') collectorBody = bodyA.parent;
@@ -432,12 +436,24 @@ function updateUI() {
     document.getElementById('cost-dozer').innerText = costs.dozer;
     document.getElementById('cost-plow').innerText = costs.plow;
     document.getElementById('cost-collector').innerText = costs.collector;
-    document.getElementById('cost-area').innerText = costs.area;
+
+    // Update Area button text/state
+    const btnArea = document.getElementById('btn-unlock-area');
+    const costArea = document.getElementById('cost-area');
+
+    if (areaLevel >= 3) {
+        btnArea.innerText = "Max Level";
+        btnArea.disabled = true;
+        costArea.innerText = "-";
+    } else {
+        btnArea.innerText = "Unlock Gate";
+        costArea.innerText = costs.area;
+        btnArea.disabled = money < costs.area;
+    }
 
     document.getElementById('btn-upgrade-dozer').disabled = money < costs.dozer;
     document.getElementById('btn-upgrade-plow').disabled = money < costs.plow;
     document.getElementById('btn-upgrade-collector').disabled = money < costs.collector;
-    document.getElementById('btn-unlock-area').disabled = money < costs.area;
 
     const speedVal = Math.round(100 * (1 + dozerLevel * 0.1));
     const speedEl = document.getElementById('stats-speed');
@@ -447,8 +463,6 @@ function updateUI() {
 window.toggleShop = function() {
     const shop = document.getElementById('shop-modal');
     shop.classList.toggle('hidden');
-    // Maybe pause game?
-    // engine.enabled = shop.classList.contains('hidden');
 }
 
 window.upgradeDozer = function() {
@@ -482,40 +496,32 @@ window.upgradeCollector = function() {
 };
 
 window.unlockArea = function() {
-    if (money >= costs.area) {
+    if (money >= costs.area && areaLevel < 3) {
         money -= costs.area;
         areaLevel++;
-        costs.area = Math.floor(costs.area * 2.0);
-        createWalls();
-        createCollector();
-        createBulldozer();
+
+        if (areaLevel === 2) costs.area = 2000;
+        else costs.area = 999999;
+
+        createMap();
         updateUI();
     }
 };
 
 
 // Start
-createWalls();
+createMap();
 createBulldozer();
 createCollector();
-
-// Spawn gems
-setInterval(() => {
-    if (gems.length < 50) {
-        spawnGem();
-    }
-}, 1000);
+initGems();
 
 updateUI();
 Render.run(render);
 const runner = Runner.create();
 Runner.run(runner, engine);
 
-// Handle resize
+// Handle resize (only render resize needed)
 window.addEventListener('resize', () => {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    render.canvas.width = width;
-    render.canvas.height = height;
-    createWalls();
+    render.canvas.width = window.innerWidth;
+    render.canvas.height = window.innerHeight;
 });
