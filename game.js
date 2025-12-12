@@ -79,7 +79,13 @@ function createBulldozer() {
     bulldozer = Bodies.rectangle(width/2, height/2, size, size, {
         restitution: 0.1,
         frictionAir: 0.1,
-        render: { fillStyle: '#F4A460' },
+        render: {
+            sprite: {
+                texture: 'assets/bulldozer.svg',
+                xScale: size / 64, // SVG is 64x64
+                yScale: size / 64
+            }
+        },
         label: 'bulldozer'
     });
     Composite.add(world, bulldozer);
@@ -104,7 +110,11 @@ function createCollector() {
         isStatic: true,
         isSensor: true, // Things pass through, but events fire
         render: {
-            fillStyle: '#FF4444',
+            sprite: {
+                texture: 'assets/collector.svg',
+                xScale: size / 64, // SVG is 64x64
+                yScale: size / 64
+            },
             opacity: 0.7
         },
         label: 'collector'
@@ -115,6 +125,12 @@ function createCollector() {
 // Gems
 const gems = [];
 const gemColors = ['#00FFFF', '#FF00FF', '#FFFF00', '#00FF00'];
+const gemSprites = {
+    '#00FFFF': 'assets/gem_cyan.svg',
+    '#FF00FF': 'assets/gem_magenta.svg',
+    '#FFFF00': 'assets/gem_yellow.svg',
+    '#00FF00': 'assets/gem_green.svg'
+};
 
 function spawnGem() {
     const areaWidth = Math.min(width - 100, 800 + (areaLevel - 1) * 400);
@@ -125,12 +141,19 @@ function spawnGem() {
 
     const radius = 10 + Math.random() * 10;
     const color = gemColors[Math.floor(Math.random() * gemColors.length)];
+    const spritePath = gemSprites[color];
 
     const gem = Bodies.circle(x, y, radius, {
         restitution: 0.5,
         friction: 0.0,
         frictionAir: 0.02,
-        render: { fillStyle: color },
+        render: {
+            sprite: {
+                texture: spritePath,
+                xScale: (radius * 2) / 32, // SVG is 32x32
+                yScale: (radius * 2) / 32
+            }
+        },
         label: 'gem'
     });
 
@@ -146,6 +169,31 @@ const keys = {};
 window.addEventListener('keydown', e => keys[e.code] = true);
 window.addEventListener('keyup', e => keys[e.code] = false);
 
+// Touch/Mouse controls for mobile UI
+const touchControls = {
+    up: false,
+    down: false,
+    left: false,
+    right: false
+};
+
+function setupTouchControl(id, key) {
+    const btn = document.getElementById(id);
+    const start = (e) => { e.preventDefault(); touchControls[key] = true; };
+    const end = (e) => { e.preventDefault(); touchControls[key] = false; };
+
+    btn.addEventListener('mousedown', start);
+    btn.addEventListener('touchstart', start);
+    btn.addEventListener('mouseup', end);
+    btn.addEventListener('touchend', end);
+    btn.addEventListener('mouseleave', end);
+}
+
+setupTouchControl('btn-up', 'up');
+setupTouchControl('btn-down', 'down');
+setupTouchControl('btn-left', 'left');
+setupTouchControl('btn-right', 'right');
+
 Events.on(engine, 'beforeUpdate', () => {
     if (!bulldozer) return;
 
@@ -156,12 +204,19 @@ Events.on(engine, 'beforeUpdate', () => {
     // Let's use force for "heavy machinery" feel but cap velocity
 
     const force = { x: 0, y: 0 };
-    if (keys['ArrowUp'] || keys['KeyW']) force.y -= forceMagnitude;
-    if (keys['ArrowDown'] || keys['KeyS']) force.y += forceMagnitude;
-    if (keys['ArrowLeft'] || keys['KeyA']) force.x -= forceMagnitude;
-    if (keys['ArrowRight'] || keys['KeyD']) force.x += forceMagnitude;
+    if (keys['ArrowUp'] || keys['KeyW'] || touchControls.up) force.y -= forceMagnitude;
+    if (keys['ArrowDown'] || keys['KeyS'] || touchControls.down) force.y += forceMagnitude;
+    if (keys['ArrowLeft'] || keys['KeyA'] || touchControls.left) force.x -= forceMagnitude;
+    if (keys['ArrowRight'] || keys['KeyD'] || touchControls.right) force.x += forceMagnitude;
 
     Body.applyForce(bulldozer, bulldozer.position, force);
+
+    // Rotate bulldozer to face movement direction
+    if (force.x !== 0 || force.y !== 0) {
+        const angle = Math.atan2(force.y, force.x);
+        // Add 90 degrees (PI/2) because our sprite points up (angle -PI/2)
+        Body.setAngle(bulldozer, angle + Math.PI/2);
+    }
 });
 
 // Collision handling
