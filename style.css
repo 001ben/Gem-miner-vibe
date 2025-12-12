@@ -5,101 +5,145 @@ body {
     background-color: #222;
     color: white;
     overflow: hidden; /* Prevent scrolling */
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 #game-ui {
     position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#top-bar {
+    position: absolute;
     top: 10px;
     left: 10px;
-    z-index: 10;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 10px;
-    border-radius: 8px;
-    pointer-events: none; /* Let clicks pass through to game if needed, but buttons need pointer-events auto */
-}
-
-#game-ui button {
-    pointer-events: auto;
-    display: block;
-    margin-top: 5px;
-    padding: 5px 10px;
-    cursor: pointer;
-    background: #444;
-    color: white;
-    border: 1px solid #666;
-    border-radius: 4px;
-}
-
-#game-ui button:hover {
-    background: #555;
-}
-
-#game-ui button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-#mobile-controls {
-    display: none; /* Hidden by default on desktop */
-    margin-top: 20px;
-    pointer-events: auto;
-}
-
-#dpad {
+    right: 10px;
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    gap: 5px;
+    pointer-events: none;
 }
 
-.dpad-row {
-    display: flex;
-    gap: 50px;
+#stats {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 1px 1px 2px black;
 }
 
-.dpad-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 2px solid rgba(255, 255, 255, 0.5) !important;
-    border-radius: 50% !important;
-    user-select: none;
-    touch-action: manipulation;
+#btn-shop-toggle {
+    pointer-events: auto;
+    background: #ff9800;
+    border: 2px solid #fff;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.1s;
+}
+
+#btn-shop-toggle:active {
+    transform: scale(0.95);
+}
+
+#shop-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
+    pointer-events: auto;
+    z-index: 20;
 }
 
-.dpad-btn:active {
-    background: rgba(255, 255, 255, 0.4) !important;
+#shop-modal.hidden {
+    display: none;
 }
 
-@media (max-width: 768px) {
-    #mobile-controls {
-        display: block;
-    }
+.shop-content {
+    background: #333;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    border: 2px solid #555;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    text-align: center;
+}
 
-    #game-ui {
-        bottom: 10px;
-        top: auto;
-        width: calc(100% - 40px);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+.shop-content h2 {
+    margin-top: 0;
+    color: #ff9800;
+}
 
-    #upgrades {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 5px;
-    }
+#btn-close-shop {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
 
-    #upgrades button {
-        display: inline-block;
-        margin: 2px;
-    }
+#btn-close-shop:hover {
+    color: white;
+}
+
+.shop-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.shop-items button {
+    padding: 15px;
+    font-size: 1rem;
+    background: #444;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.shop-items button:hover {
+    background: #555;
+}
+
+.shop-items button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #222;
+}
+
+#controls-hint {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    pointer-events: none;
 }
 
 #game-container {

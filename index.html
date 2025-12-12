@@ -8,23 +8,39 @@
 </head>
 <body>
     <div id="game-ui">
-        <div id="stats">
-            <div>Money: $<span id="money">0</span></div>
-        </div>
-        <div id="upgrades">
-            <button id="btn-upgrade-dozer" onclick="upgradeDozer()">Upgrade Dozer ($<span id="cost-dozer">100</span>)</button>
-            <button id="btn-upgrade-collector" onclick="upgradeCollector()">Upgrade Collector ($<span id="cost-collector">150</span>)</button>
-            <button id="btn-unlock-area" onclick="unlockArea()">Unlock Area ($<span id="cost-area">500</span>)</button>
-        </div>
-        <div id="mobile-controls">
-            <div id="dpad">
-                <button id="btn-up" class="dpad-btn">▲</button>
-                <div class="dpad-row">
-                    <button id="btn-left" class="dpad-btn">◀</button>
-                    <button id="btn-right" class="dpad-btn">▶</button>
-                </div>
-                <button id="btn-down" class="dpad-btn">▼</button>
+        <div id="top-bar">
+            <div id="stats">
+                <div>Money: $<span id="money">0</span></div>
             </div>
+            <button id="btn-shop-toggle" onclick="toggleShop()">Shop</button>
+        </div>
+
+        <!-- Shop Modal -->
+        <div id="shop-modal" class="hidden">
+            <div class="shop-content">
+                <h2>Upgrades</h2>
+                <button id="btn-close-shop" onclick="toggleShop()">X</button>
+                <div class="shop-items">
+                    <button id="btn-upgrade-dozer" onclick="upgradeDozer()">
+                        Upgrade Body ($<span id="cost-dozer">100</span>)
+                    </button>
+                    <button id="btn-upgrade-plow" onclick="upgradePlow()">
+                        Upgrade Plow ($<span id="cost-plow">100</span>)
+                    </button>
+                    <button id="btn-upgrade-collector" onclick="upgradeCollector()">
+                        Upgrade Collector ($<span id="cost-collector">150</span>)
+                    </button>
+                    <button id="btn-unlock-area" onclick="unlockArea()">
+                        Unlock Area ($<span id="cost-area">500</span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hint for controls -->
+        <div id="controls-hint">
+            Use Arrow Keys / WASD to Drive<br>
+            Swipe/Drag on screen to steer
         </div>
     </div>
     <div id="game-container"></div>
