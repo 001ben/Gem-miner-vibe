@@ -375,6 +375,13 @@ Events.on(engine, 'beforeUpdate', () => {
         Body.setAngularVelocity(bulldozer, turn * turnSpeed);
     }
 
+    // Sync part angles for rendering
+    if (bulldozer && bulldozer.parts) {
+        bulldozer.parts.forEach(part => {
+            part.angle = bulldozer.angle;
+        });
+    }
+
     // Apply drive force
     if (throttle !== 0) {
         const forceMagnitude = throttle * baseSpeed;
