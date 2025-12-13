@@ -13,7 +13,7 @@ export function initThree() {
     const aspect = window.innerWidth / window.innerHeight;
     camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
     // Initial position, updated later
-    camera.position.set(0, 1500, 500); // Higher and steeper angle
+    camera.position.set(0, 1500, 100); // Higher and steeper angle
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -56,10 +56,29 @@ export function createMesh(body) {
     const { label } = body;
 
     // Determine dimensions
-    // For rectangles, bounds are updated, but we can access initial dims or calculate from vertices.
-    // Easier: calculate from bounds.
-    let w = body.bounds.max.x - body.bounds.min.x;
-    let h = body.bounds.max.y - body.bounds.min.y;
+    // We cannot use bounds (AABB) because it changes with rotation, but BoxGeometry is local (unrotated).
+    // We must calculate the unrotated width/height by projecting vertices onto the body's axes.
+    // Effectively, we find the range of vertex positions in the body's local coordinate system.
+    const c = Math.cos(body.angle);
+    const s = Math.sin(body.angle);
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+
+    body.vertices.forEach(v => {
+        // Rotate vertex back by -angle to align with global axes (local space)
+        // x' = x*cos(-a) - y*sin(-a) = x*c + y*s
+        // y' = x*sin(-a) + y*cos(-a) = -x*s + y*c
+        const rx = v.x * c + v.y * s;
+        const ry = -v.x * s + v.y * c;
+
+        if (rx < minX) minX = rx;
+        if (rx > maxX) maxX = rx;
+        if (ry < minY) minY = ry;
+        if (ry > maxY) maxY = ry;
+    });
+
+    const w = maxX - minX;
+    const h = maxY - minY;
 
     if (label === 'wall') {
         const geo = new THREE.BoxGeometry(w, 40, h);
@@ -225,12 +244,13 @@ export function updateGraphics(bulldozer) {
     // 3. Camera Follow
     if (bulldozer) {
         const targetX = bulldozer.position.x;
-        const targetZ = bulldozer.position.y + 500; // Look from south, closer offset for steeper angle
+        const targetZ = bulldozer.position.y + 100; // Look from south, closer offset for steeper angle
 
         camera.position.x += (targetX - camera.position.x) * 0.1;
         camera.position.z += (targetZ - camera.position.z) * 0.1;
-        // Look slightly ahead of the bulldozer
-        camera.lookAt(camera.position.x, 0, camera.position.z - 1200);
+
+        // Look directly at the bulldozer
+        camera.lookAt(bulldozer.position.x, 0, bulldozer.position.y);
     }
 
     updateParticles();
