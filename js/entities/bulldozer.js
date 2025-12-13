@@ -96,5 +96,61 @@ export function createBulldozer() {
 
     Body.setPosition(bulldozer, pos);
     Body.setAngle(bulldozer, angle);
+
+    // Store relative offsets for manual rigidity enforcement
+    bulldozer.parts.forEach(part => {
+        if (part === bulldozer) return; // Skip self
+        // Calculate relative position in unrotated body space
+        // pos = body.pos + rotate(offset)
+        // offset = rotateBack(part.pos - body.pos)
+        const dx = part.position.x - bulldozer.position.x;
+        const dy = part.position.y - bulldozer.position.y;
+
+        // Rotate back by -body.angle
+        const c = Math.cos(-bulldozer.angle);
+        const s = Math.sin(-bulldozer.angle);
+
+        part.oOffset = {
+            x: dx * c - dy * s,
+            y: dx * s + dy * c
+        };
+        part.oAngle = part.angle - bulldozer.angle;
+    });
+
     Composite.add(world, bulldozer);
+}
+
+export function enforceBulldozerRigidity() {
+    if (!bulldozer) return;
+
+    const body = bulldozer;
+    const c = Math.cos(body.angle);
+    const s = Math.sin(body.angle);
+
+    body.parts.forEach(part => {
+        if (part === body) return;
+        if (!part.oOffset) return;
+
+        // Desired position
+        // pos = body.pos + rotate(offset)
+        const ox = part.oOffset.x;
+        const oy = part.oOffset.y;
+
+        const rotatedX = ox * c - oy * s;
+        const rotatedY = ox * s + oy * c;
+
+        const desiredX = body.position.x + rotatedX;
+        const desiredY = body.position.y + rotatedY;
+        const desiredAngle = body.angle + part.oAngle;
+
+        // Force position (snap)
+        // We use Body.setPosition/Angle which updates physics properties
+        // This fights the drift
+        Body.setPosition(part, { x: desiredX, y: desiredY });
+        Body.setAngle(part, desiredAngle);
+
+        // Also sync velocity to prevent fighting?
+        // Body.setVelocity(part, body.velocity);
+        // Body.setAngularVelocity(part, body.angularVelocity);
+    });
 }
