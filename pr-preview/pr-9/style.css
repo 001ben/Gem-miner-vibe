@@ -93,6 +93,20 @@ body {
     color: #eee;
 }
 
+#btn-console-copy {
+    background: #444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    border-top: 1px solid #666;
+}
+
+#btn-console-copy:hover {
+    background: #555;
+}
+
 .log-line {
     margin-bottom: 4px;
     word-wrap: break-word;
