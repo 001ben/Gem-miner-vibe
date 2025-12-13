@@ -1,4 +1,4 @@
-import { engine, runner, Runner, Events } from './physics.js';
+import { engine, runner, Runner, Events, Body } from './physics.js';
 import { initThree, updateGraphics, scene, camera, renderer } from './graphics.js';
 import { createMap } from './entities/map.js';
 import { createBulldozer, getBulldozer } from './entities/bulldozer.js';
@@ -12,6 +12,47 @@ window.updateUI = updateUI;
 import { state } from './state.js'; // Import state to expose it
 
 initConsole();
+
+// Conveyor belt logic
+Events.on(engine, 'collisionActive', event => {
+    const pairs = event.pairs;
+
+    for (let i = 0; i < pairs.length; i++) {
+        const bodyA = pairs[i].bodyA;
+        const bodyB = pairs[i].bodyB;
+
+        // Identify gem and conveyor
+        let gem = null;
+        let conveyor = null;
+
+        if (bodyA.label === 'gem') gem = bodyA;
+        if (bodyB.label === 'gem') gem = bodyB;
+
+        if (bodyA.label && bodyA.label.startsWith('conveyor_')) conveyor = bodyA;
+        if (bodyB.label && bodyB.label.startsWith('conveyor_')) conveyor = bodyB;
+
+        if (gem && conveyor) {
+            // Apply force towards the collector center (0, 400)
+            const collectorPos = { x: 0, y: 400 };
+
+            // Calculate vector towards collector
+            const dx = collectorPos.x - gem.position.x;
+            const dy = collectorPos.y - gem.position.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+
+            if (dist > 0) {
+                // Normalize and scale force
+                const forceMagnitude = 0.0005 * gem.mass; // Tune this
+                const force = {
+                    x: (dx / dist) * forceMagnitude,
+                    y: (dy / dist) * forceMagnitude
+                };
+                Body.applyForce(gem, gem.position, force);
+            }
+        }
+    }
+});
+
 
 // Collision handling
 Events.on(engine, 'collisionStart', event => {
