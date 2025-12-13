@@ -13,7 +13,7 @@ export function initThree() {
     const aspect = window.innerWidth / window.innerHeight;
     camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
     // Initial position, updated later
-    camera.position.set(0, 1000, 800);
+    camera.position.set(0, 1500, 500); // Higher and steeper angle
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -23,10 +23,10 @@ export function initThree() {
     document.getElementById('game-container').appendChild(renderer.domElement);
 
     // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Brighter ambient
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0); // Brighter sun
     dirLight.position.set(200, 1000, 500);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -224,11 +224,12 @@ export function updateGraphics(bulldozer) {
     // 3. Camera Follow
     if (bulldozer) {
         const targetX = bulldozer.position.x;
-        const targetZ = bulldozer.position.y + 800; // Look from south
+        const targetZ = bulldozer.position.y + 500; // Look from south, closer offset for steeper angle
 
         camera.position.x += (targetX - camera.position.x) * 0.1;
         camera.position.z += (targetZ - camera.position.z) * 0.1;
-        camera.lookAt(camera.position.x, 0, camera.position.z - 1000);
+        // Look slightly ahead of the bulldozer
+        camera.lookAt(camera.position.x, 0, camera.position.z - 1200);
     }
 
     updateParticles();
