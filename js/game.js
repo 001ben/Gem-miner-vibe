@@ -1,4 +1,4 @@
-import { engine, runner, Runner, Events } from './physics.js';
+import { engine, runner, Runner, Events, Body, Matter } from './physics.js';
 import { initThree, updateGraphics, scene, camera, renderer } from './graphics.js';
 import { createMap } from './entities/map.js';
 import { createBulldozer, getBulldozer } from './entities/bulldozer.js';
@@ -12,6 +12,70 @@ window.updateUI = updateUI;
 import { state } from './state.js'; // Import state to expose it
 
 initConsole();
+
+// Conveyor belt logic
+Events.on(engine, 'collisionActive', event => {
+    const pairs = event.pairs;
+
+    for (let i = 0; i < pairs.length; i++) {
+        const bodyA = pairs[i].bodyA;
+        const bodyB = pairs[i].bodyB;
+
+        // Identify gem and conveyor
+        let gem = null;
+        let conveyor = null;
+
+        // Check labels on body or parent (compound bodies)
+        const labelA = bodyA.label || (bodyA.parent && bodyA.parent.label);
+        const labelB = bodyB.label || (bodyB.parent && bodyB.parent.label);
+
+        if (labelA === 'gem') gem = bodyA;
+        if (labelB === 'gem') gem = bodyB;
+
+        // For conveyor, we explicitly named the parts "conveyor_left", etc.
+        // But Matter.js might report the parent "collector_compound".
+        // However, we need to know WHICH conveyor it is to animate or apply specific logic if needed?
+        // Actually, for now, we just push to center.
+        // Wait, if it reports parent, we can't check startsWith('conveyor_').
+        // Let's check the specific part label first.
+
+        if (bodyA.label && bodyA.label.startsWith('conveyor_')) conveyor = bodyA;
+        if (bodyB.label && bodyB.label.startsWith('conveyor_')) conveyor = bodyB;
+
+        if (gem && conveyor) {
+            // Log once per gem overlap interaction
+            if (!gem.hasLoggedConveyor) {
+                console.log(`Gem ${gem.id} detected on conveyor ${conveyor.label}`);
+                gem.hasLoggedConveyor = true;
+                // We should reset this flag when it leaves, but for simple "first time" logging this is fine.
+                // Or use a global Set of pairs.
+            }
+
+            // Apply force towards the collector center (0, 400)
+            const collectorPos = { x: 0, y: 400 };
+
+            // Calculate vector towards collector
+            const dx = collectorPos.x - gem.position.x;
+            const dy = collectorPos.y - gem.position.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+
+            if (dist > 0) {
+                // Wake up gem if sleeping
+                if (gem.isSleeping) Matter.Sleeping.set(gem, false);
+
+                // Use velocity for consistent "conveyor" movement
+                // Vector towards collector
+                const speed = 3; // Constant speed
+                const vx = (dx / dist) * speed;
+                const vy = (dy / dist) * speed;
+
+                // Blend with current velocity to avoid snapping, but dominate
+                Body.setVelocity(gem, { x: vx, y: vy });
+            }
+        }
+    }
+});
+
 
 // Collision handling
 Events.on(engine, 'collisionStart', event => {

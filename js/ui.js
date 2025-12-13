@@ -39,7 +39,14 @@ async function updateVersionDisplay() {
         if (response.ok) {
             const version = await response.text();
             const el = document.getElementById('game-version');
-            if (el) el.innerText = `v${version.trim()}`;
+            // We want to preserve the timestamp if it exists in the HTML
+            // content of game-version: v1.0.0 <span id="build-timestamp">...</span>
+            // If we just set innerText, we wipe the span.
+            // So let's check if the span exists.
+            const timestampSpan = document.getElementById('build-timestamp');
+            if (el) {
+                el.childNodes[0].nodeValue = `v${version.trim()} `;
+            }
         }
     } catch (e) {
         console.warn('Could not load version');
