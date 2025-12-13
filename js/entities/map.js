@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { Bodies, Composite, world } from '../physics.js';
+import { Bodies, Composite, world, CATEGORIES } from '../physics.js';
 
 const mapWidth = 1200;
 const wallThickness = 100;
@@ -17,7 +17,15 @@ export function createMap() {
     const totalHeight = maxY - minY;
     const centerY = minY + totalHeight / 2;
 
-    const wallOptions = { isStatic: true, label: 'wall', render: { fillStyle: '#444' } };
+    const wallOptions = {
+        isStatic: true,
+        label: 'wall',
+        render: { fillStyle: '#444' },
+        collisionFilter: {
+            category: CATEGORIES.WALL,
+            mask: CATEGORIES.DEFAULT | CATEGORIES.DOZER | CATEGORIES.GEM
+        }
+    };
 
     // Outer Walls
     const left = Bodies.rectangle(-mapWidth/2 - wallThickness/2, centerY, wallThickness, totalHeight, wallOptions);
@@ -28,17 +36,24 @@ export function createMap() {
     walls.push(left, right, top, bottom);
 
     // Gates
+    // Gates behave like walls until removed
+    const gateOptions = {
+        isStatic: true,
+        label: 'gate',
+        render: { fillStyle: '#e74c3c' },
+        collisionFilter: {
+            category: CATEGORIES.WALL,
+            mask: CATEGORIES.DEFAULT | CATEGORIES.DOZER | CATEGORIES.GEM
+        }
+    };
+
     if (state.areaLevel < 2) {
-        const gate1 = Bodies.rectangle(0, -600, mapWidth, 60, {
-            isStatic: true, label: 'gate', render: { fillStyle: '#e74c3c' }
-        });
+        const gate1 = Bodies.rectangle(0, -600, mapWidth, 60, gateOptions);
         gates.push(gate1);
     }
 
     if (state.areaLevel < 3) {
-        const gate2 = Bodies.rectangle(0, -1800, mapWidth, 60, {
-            isStatic: true, label: 'gate', render: { fillStyle: '#e74c3c' }
-        });
+        const gate2 = Bodies.rectangle(0, -1800, mapWidth, 60, gateOptions);
         gates.push(gate2);
     }
 

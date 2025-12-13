@@ -13,7 +13,18 @@ const MatterLocal = window.Matter;
 export { Engine, Runner, Bodies, Composite, Events, Vector, Body, MatterLocal as Matter };
 
 export const engine = Engine.create();
+// Increase iterations significantly to prevent compound body parts (wings) from drifting under extreme force
+engine.positionIterations = 20;
+engine.velocityIterations = 20;
+engine.constraintIterations = 10;
 export const world = engine.world;
 engine.gravity.y = 0; // Top down
 
 export const runner = Runner.create();
+export const CATEGORIES = {
+    DEFAULT: 0x0001,
+    DOZER: 0x0002,
+    GEM: 0x0004,
+    CONVEYOR: 0x0008,
+    WALL: 0x0010
+};
