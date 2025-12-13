@@ -56,10 +56,29 @@ export function createMesh(body) {
     const { label } = body;
 
     // Determine dimensions
-    // For rectangles, bounds are updated, but we can access initial dims or calculate from vertices.
-    // Easier: calculate from bounds.
-    let w = body.bounds.max.x - body.bounds.min.x;
-    let h = body.bounds.max.y - body.bounds.min.y;
+    // We cannot use bounds (AABB) because it changes with rotation, but BoxGeometry is local (unrotated).
+    // We must calculate the unrotated width/height by projecting vertices onto the body's axes.
+    // Effectively, we find the range of vertex positions in the body's local coordinate system.
+    const c = Math.cos(body.angle);
+    const s = Math.sin(body.angle);
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+
+    body.vertices.forEach(v => {
+        // Rotate vertex back by -angle to align with global axes (local space)
+        // x' = x*cos(-a) - y*sin(-a) = x*c + y*s
+        // y' = x*sin(-a) + y*cos(-a) = -x*s + y*c
+        const rx = v.x * c + v.y * s;
+        const ry = -v.x * s + v.y * c;
+
+        if (rx < minX) minX = rx;
+        if (rx > maxX) maxX = rx;
+        if (ry < minY) minY = ry;
+        if (ry > maxY) maxY = ry;
+    });
+
+    const w = maxX - minX;
+    const h = maxY - minY;
 
     if (label === 'wall') {
         const geo = new THREE.BoxGeometry(w, 40, h);
