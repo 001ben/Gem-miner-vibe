@@ -32,15 +32,13 @@ export function createBulldozer() {
 
     let parts = [chassis, plow];
 
-    if (state.plowLevel >= 2) {
+    if (state.plowLevel >= 3) {
         const wingLength = 30;
         const wingWidth = 10;
-        // Angles: -45 deg for left (Up-Right), -135 deg for right (Up-Left)
-        // Up is -Y, Right is +X
-        // Left Wing on Left end: (-plowWidth/2, plowOffset)
-        // Angle -45 deg (North East).
-        const angleLeft = -Math.PI / 4;
-        const angleRight = -3 * Math.PI / 4;
+        // Angles: -135 deg for left (Up-Left), -45 deg for right (Up-Right)
+        // This makes them flare outwards like a funnel.
+        const angleLeft = -3 * Math.PI / 4;
+        const angleRight = -Math.PI / 4;
 
         // Position adjustment:
         // We want the "start" of the wing to be at the corner of the plow.
