@@ -13,7 +13,7 @@ export function initThree() {
     const aspect = window.innerWidth / window.innerHeight;
     camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
     // Initial position, updated later
-    camera.position.set(0, 1500, 500); // Higher and steeper angle
+    camera.position.set(0, 1500, 100); // Higher and steeper angle
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -225,12 +225,13 @@ export function updateGraphics(bulldozer) {
     // 3. Camera Follow
     if (bulldozer) {
         const targetX = bulldozer.position.x;
-        const targetZ = bulldozer.position.y + 500; // Look from south, closer offset for steeper angle
+        const targetZ = bulldozer.position.y + 100; // Look from south, closer offset for steeper angle
 
         camera.position.x += (targetX - camera.position.x) * 0.1;
         camera.position.z += (targetZ - camera.position.z) * 0.1;
-        // Look slightly ahead of the bulldozer
-        camera.lookAt(camera.position.x, 0, camera.position.z - 1200);
+
+        // Look directly at the bulldozer
+        camera.lookAt(bulldozer.position.x, 0, bulldozer.position.y);
     }
 
     updateParticles();
