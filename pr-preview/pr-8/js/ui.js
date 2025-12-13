@@ -31,8 +31,23 @@ export function updateUI() {
     if (speedEl) speedEl.innerText = `Speed: ${speedVal}%`;
 }
 
+async function updateVersionDisplay() {
+    try {
+        const response = await fetch('VERSION');
+        if (response.ok) {
+            const version = await response.text();
+            const el = document.getElementById('game-version');
+            if (el) el.innerText = `v${version.trim()}`;
+        }
+    } catch (e) {
+        console.warn('Could not load version');
+    }
+}
+
 // Shop Functions - Exposed via window for HTML onclick or we attach them
 export function setupShop() {
+    updateVersionDisplay();
+
     window.toggleShop = function() {
         const shop = document.getElementById('shop-modal');
         shop.classList.toggle('hidden');
