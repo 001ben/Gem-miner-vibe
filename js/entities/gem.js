@@ -1,7 +1,8 @@
-import { state } from '../state.js';
+import { state, costs } from '../state.js';
 import { Bodies, Composite, world } from '../physics.js';
 import { removeBodyMesh, spawnParticles } from '../graphics.js';
-import { updateUI } from '../ui.js';
+import { updateUI, showNotification } from '../ui.js';
+import { createMap } from './map.js';
 
 const gems = [];
 const gemColors = {
@@ -19,12 +20,18 @@ export function initGems() {
     }
     gems.length = 0;
 
-    spawnZoneGems(300, -500, 500, -500, 500, 10, 25, ['#00FFFF', '#FF00FF']);
-    spawnZoneGems(300, -500, 500, -1700, -700, 30, 60, ['#FFFF00']);
-    spawnZoneGems(300, -500, 500, -2900, -1900, 70, 120, ['#00FF00']);
+    // Reset progress tracking
+    state.zoneProgress[1] = { total: 0, collected: 0 };
+    state.zoneProgress[2] = { total: 0, collected: 0 };
+    state.zoneProgress[3] = { total: 0, collected: 0 };
+
+    spawnZoneGems(1, 300, -500, 500, -500, 500, 10, 25, ['#00FFFF', '#FF00FF']);
+    spawnZoneGems(2, 300, -500, 500, -1700, -700, 30, 60, ['#FFFF00']);
+    spawnZoneGems(3, 300, -500, 500, -2900, -1900, 70, 120, ['#00FF00']);
 }
 
-function spawnZoneGems(count, xMin, xMax, yMin, yMax, valMin, valMax, colors) {
+function spawnZoneGems(zoneId, count, xMin, xMax, yMin, yMax, valMin, valMax, colors) {
+    state.zoneProgress[zoneId].total += count;
     for(let i=0; i<count; i++) {
         const x = xMin + Math.random() * (xMax - xMin);
         const y = yMin + Math.random() * (yMax - yMin);
@@ -42,6 +49,7 @@ function spawnZoneGems(count, xMin, xMax, yMin, yMax, valMin, valMax, colors) {
 
         gem.renderColor = colorVal;
         gem.value = Math.floor(valMin + Math.random() * (valMax - valMin));
+        gem.zoneId = zoneId;
         gems.push(gem);
         Composite.add(world, gem);
     }
@@ -54,6 +62,13 @@ export function collectGem(gem) {
 
     gem.isCollected = true;
     state.money += gem.value;
+
+    // Update Progress
+    if (gem.zoneId && state.zoneProgress[gem.zoneId]) {
+        state.zoneProgress[gem.zoneId].collected++;
+        checkZoneUnlock(gem.zoneId);
+    }
+
     updateUI();
 
     // Spawn particles
@@ -68,4 +83,25 @@ export function collectGem(gem) {
     // Remove from local array
     const index = gems.indexOf(gem);
     if (index > -1) gems.splice(index, 1);
+}
+
+function checkZoneUnlock(zoneId) {
+    const p = state.zoneProgress[zoneId];
+    // Unlock next zone if 50% cleared
+    if (p.collected >= p.total * 0.5) {
+        // If we are in zone 1, we unlock zone 2 (which means areaLevel goes from 1 to 2)
+        // If we are in zone 2, we unlock zone 3 (areaLevel goes from 2 to 3)
+        // Check if next level is locked
+        if (state.areaLevel === zoneId) {
+             // Unlock next area
+             state.areaLevel++;
+
+             // Update costs for next unlock if any
+             if (state.areaLevel === 2) costs.area = 2000;
+             else costs.area = 999999; // Maxed out basically
+
+             createMap(); // Removes gate
+             showNotification(`Area ${state.areaLevel} Unlocked!`);
+        }
+    }
 }
