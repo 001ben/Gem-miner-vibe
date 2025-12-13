@@ -7,6 +7,9 @@ import { initGems, collectGem } from './entities/gem.js';
 import { updateUI, setupShop } from './ui.js';
 import { initInput } from './input.js';
 import { initConsole } from './console.js';
+// Expose updateUI
+window.updateUI = updateUI;
+import { state } from './state.js'; // Import state to expose it
 
 initConsole();
 
@@ -48,12 +51,15 @@ initGems();
 setupShop(); // Expose global functions
 updateUI();
 initInput(); // Start input listener loop
+window.state = state; // Expose state
 
 Runner.run(runner, engine);
 
 function animate() {
     requestAnimationFrame(animate);
-    updateGraphics(getBulldozer());
+    const dozer = getBulldozer();
+    updateGraphics(dozer);
+    window.bulldozer = dozer; // Expose for debugging/verification
 }
 animate();
 
