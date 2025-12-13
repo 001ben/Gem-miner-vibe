@@ -8,8 +8,8 @@ export const particles = [];
 export function initThree() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x8899aa); // Lighter sky
-    // Fog for depth
-    scene.fog = new THREE.Fog(0x8899aa, 500, 2500);
+    // Fog for depth - Increased far plane to prevent washed out look at high zoom
+    scene.fog = new THREE.Fog(0x8899aa, 500, 5000);
 
     const aspect = window.innerWidth / window.innerHeight;
     camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
