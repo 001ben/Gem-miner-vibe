@@ -31,7 +31,10 @@ export function updateUI() {
     document.getElementById('btn-upgrade-plow').disabled = state.money < costs.plow;
     document.getElementById('btn-upgrade-collector').disabled = state.money < costs.collector;
 
-    const speedVal = Math.round(100 * (1 + state.dozerLevel * 0.1));
+    // Speed increases ~33% per level relative to previous.
+    // L1 = 100%. L2 = 133%.
+    // Formula: 100 * Math.pow(1.333, state.dozerLevel - 1)
+    const speedVal = Math.round(100 * Math.pow(1.3333, state.dozerLevel - 1));
     const speedEl = document.getElementById('stats-speed');
     if (speedEl) speedEl.innerText = `Speed: ${speedVal}%`;
 }
