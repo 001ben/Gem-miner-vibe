@@ -1,4 +1,5 @@
 import { world } from './physics.js';
+import { state } from './state.js';
 
 export let scene, camera, renderer;
 export const bodyMeshMap = new Map();
@@ -325,6 +326,14 @@ export function updateGraphics(bulldozer) {
 
     // 3. Camera Follow
     if (bulldozer) {
+        // Zoom out slightly as dozer levels up
+        const baseHeight = 1500;
+        const zoomLevel = (state.dozerLevel - 1) * 200; // 200 units per level
+        const targetY = baseHeight + zoomLevel;
+
+        // Simple lerp for smoothness if we wanted, but instant is fine
+        camera.position.y = targetY;
+
         camera.position.x = bulldozer.position.x;
         camera.position.z = bulldozer.position.y + 100;
 
