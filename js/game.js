@@ -43,6 +43,14 @@ Events.on(engine, 'collisionActive', event => {
         if (bodyB.label && bodyB.label.startsWith('conveyor_')) conveyor = bodyB;
 
         if (gem && conveyor) {
+            // Log once per gem overlap interaction
+            if (!gem.hasLoggedConveyor) {
+                console.log(`Gem ${gem.id} detected on conveyor ${conveyor.label}`);
+                gem.hasLoggedConveyor = true;
+                // We should reset this flag when it leaves, but for simple "first time" logging this is fine.
+                // Or use a global Set of pairs.
+            }
+
             // Apply force towards the collector center (0, 400)
             const collectorPos = { x: 0, y: 400 };
 
@@ -53,8 +61,8 @@ Events.on(engine, 'collisionActive', event => {
 
             if (dist > 0) {
                 // Normalize and scale force
-                // Increase force significantly to ensure movement
-                const forceMagnitude = 0.002 * gem.mass;
+                // Increase force even more significantly to ensure movement
+                const forceMagnitude = 0.005 * gem.mass;
                 const force = {
                     x: (dx / dist) * forceMagnitude,
                     y: (dy / dist) * forceMagnitude
