@@ -1,5 +1,5 @@
 import { state, costs } from '../state.js';
-import { Bodies, Composite, world } from '../physics.js';
+import { Bodies, Composite, Body, world, CATEGORIES } from '../physics.js';
 import { removeBodyMesh, spawnParticles } from '../graphics.js';
 import { updateUI, showNotification } from '../ui.js';
 import { createMap } from './map.js';
@@ -44,7 +44,12 @@ function spawnZoneGems(zoneId, count, xMin, xMax, yMin, yMax, valMin, valMax, co
             restitution: 0.5,
             friction: 0.0,
             frictionAir: 0.02,
-            label: 'gem'
+            label: 'gem',
+            collisionFilter: {
+                category: CATEGORIES.GEM,
+                // Collides with everything: Default, Dozer, Gem, Conveyor, Wall
+                mask: CATEGORIES.DEFAULT | CATEGORIES.DOZER | CATEGORIES.GEM | CATEGORIES.CONVEYOR | CATEGORIES.WALL
+            }
         });
 
         gem.renderColor = colorVal;
@@ -91,8 +96,22 @@ function checkZoneUnlock(zoneId) {
     if (p.collected >= p.total * 0.5) {
         // If we are in zone 1, we unlock zone 2 (which means areaLevel goes from 1 to 2)
         // If we are in zone 2, we unlock zone 3 (areaLevel goes from 2 to 3)
-        // Check if next level is locked
+        // Zone 3 is the last zone.
+
         if (state.areaLevel === zoneId) {
+            // If we are at max area (3), do not increment further.
+            if (state.areaLevel >= 3) {
+                 // Maybe show final victory message if this was the last trigger?
+                 // But we don't want to spam it.
+                 // Only show if we just crossed the threshold.
+                 // We can use a flag or just check if we haven't shown it.
+                 if (!state.victoryShown) {
+                     state.victoryShown = true;
+                     showNotification("Congrats! You are the mightiest Gem Lord!");
+                 }
+                 return;
+            }
+
              // Unlock next area
              state.areaLevel++;
 

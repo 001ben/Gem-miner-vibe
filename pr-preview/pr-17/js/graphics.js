@@ -281,20 +281,28 @@ export function updateGraphics(bulldozer) {
                                  // If conveyor_right is at +X, gems move -X.
 
                                  let speed = 0.5;
-                                 if (part.label === 'conveyor_right') speed = -0.5;
-                                 if (part.label === 'conveyor_top') {
-                                     // Top is different?
-                                     // Top is placed at 0, Y. Gems move +Y (towards 400).
-                                     // If top belt is vertical (width < height), then movement is along Z in Three.js terms.
-                                     // But our arrows are setup along X.
-                                     // This simple animation might assume horizontal belts.
-                                     // For now let's handle left/right.
+                                 // "The belt arrow symbols are all facing right" - arrow rotation is likely static in createMesh.
+                                 // In createMesh, arrow.rotation.z = -Math.PI / 2. This points them towards +X (Right).
+                                 // conveyor_left (at negative X) pushes gems Right (+X). Arrows should point Right.
+                                 // conveyor_right (at positive X) pushes gems Left (-X). Arrows should point Left.
+
+                                 if (part.label === 'conveyor_right') {
+                                     speed = -0.5;
+                                     // Rotate arrows to point Left if not already?
+                                     // Updating rotation every frame is wasteful but simple.
+                                     arrow.rotation.z = Math.PI / 2; // Point Left (-X)
+                                 } else {
+                                     arrow.rotation.z = -Math.PI / 2; // Point Right (+X)
                                  }
+
+                                 // Note: For conveyor_top, we'd need different logic, but it's vertical.
+                                 // Assuming mostly horizontal belts for now as per current simple logic.
 
                                  arrow.position.x += speed;
 
-                                 // Loop
-                                 const range = 40; // Approx w/2
+                                 // Loop based on mesh size?
+                                 // We don't have mesh size easily here, using fixed range.
+                                 const range = 40;
                                  if (arrow.position.x > range) arrow.position.x -= 2*range;
                                  if (arrow.position.x < -range) arrow.position.x += 2*range;
                              });

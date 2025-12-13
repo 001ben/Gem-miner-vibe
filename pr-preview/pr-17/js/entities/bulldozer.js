@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { Bodies, Composite, Body, world } from '../physics.js';
+import { Bodies, Composite, Body, world, CATEGORIES } from '../physics.js';
 import { removeBodyMesh } from '../graphics.js';
 
 let bulldozer;
@@ -83,7 +83,12 @@ export function createBulldozer() {
         parts: parts,
         frictionAir: 0.15,
         restitution: 0.0,
-        label: 'bulldozer'
+        label: 'bulldozer',
+        collisionFilter: {
+            category: CATEGORIES.DOZER,
+            // Collides with Default, Gems, Walls. NOT Conveyors.
+            mask: CATEGORIES.DEFAULT | CATEGORIES.GEM | CATEGORIES.WALL
+        }
     });
 
     // Explicitly set density to ensure it overrides part defaults
