@@ -61,14 +61,23 @@ Events.on(engine, 'collisionActive', event => {
                 // Wake up gem if sleeping
                 if (gem.isSleeping) Matter.Sleeping.set(gem, false);
 
-                // Use velocity for consistent "conveyor" movement
+                // Use Force/Acceleration instead of straight velocity to allow physics interactions (like pushing back on dozer) to happen naturally.
                 // Vector towards collector
-                const speed = 3; // Constant speed
-                const vx = (dx / dist) * speed;
-                const vy = (dy / dist) * speed;
+                const targetSpeed = 3;
+                const nx = dx / dist;
+                const ny = dy / dist;
 
-                // Blend with current velocity to avoid snapping, but dominate
-                Body.setVelocity(gem, { x: vx, y: vy });
+                const targetVx = nx * targetSpeed;
+                const targetVy = ny * targetSpeed;
+
+                // Acceleration: Apply force proportional to the difference between current and target velocity
+                const forceFactor = 0.0005 * gem.mass; // Tuned for smooth acceleration
+
+                const fx = (targetVx - gem.velocity.x) * forceFactor;
+                const fy = (targetVy - gem.velocity.y) * forceFactor;
+
+                // Apply force
+                Body.applyForce(gem, gem.position, { x: fx, y: fy });
             }
         }
     }
