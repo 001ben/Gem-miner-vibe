@@ -1,4 +1,4 @@
-import { engine, runner, Runner, Events, Body } from './physics.js';
+import { engine, runner, Runner, Events, Body, Matter } from './physics.js';
 import { initThree, updateGraphics, scene, camera, renderer } from './graphics.js';
 import { createMap } from './entities/map.js';
 import { createBulldozer, getBulldozer } from './entities/bulldozer.js';
@@ -60,14 +60,17 @@ Events.on(engine, 'collisionActive', event => {
             const dist = Math.sqrt(dx*dx + dy*dy);
 
             if (dist > 0) {
-                // Normalize and scale force
-                // Increase force even more significantly to ensure movement
-                const forceMagnitude = 0.005 * gem.mass;
-                const force = {
-                    x: (dx / dist) * forceMagnitude,
-                    y: (dy / dist) * forceMagnitude
-                };
-                Body.applyForce(gem, gem.position, force);
+                // Wake up gem if sleeping
+                if (gem.isSleeping) Matter.Sleeping.set(gem, false);
+
+                // Use velocity for consistent "conveyor" movement
+                // Vector towards collector
+                const speed = 3; // Constant speed
+                const vx = (dx / dist) * speed;
+                const vy = (dy / dist) * speed;
+
+                // Blend with current velocity to avoid snapping, but dominate
+                Body.setVelocity(gem, { x: vx, y: vy });
             }
         }
     }
