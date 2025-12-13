@@ -19,7 +19,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare Distribution
+        if: github.event.action != 'closed'
+        run: |
+          mkdir -p dist
+          cp index.html dist/
+          cp style.css dist/
+          cp -r js dist/
+          cp -r assets dist/ 2>/dev/null || true
+          touch dist/.nojekyll
+
       - name: Deploy Preview
         uses: rossjrw/pr-preview-action@v1
         with:
-          source-dir: .
+          source-dir: dist
