@@ -124,6 +124,7 @@ function animate() {
     const dozer = getBulldozer();
     updateGraphics(dozer);
     window.bulldozer = dozer; // Expose for debugging/verification
+    window.camera = camera; // Expose camera for verification
 }
 animate();
 

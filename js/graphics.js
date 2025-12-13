@@ -317,11 +317,8 @@ export function updateGraphics(bulldozer) {
 
     // 3. Camera Follow
     if (bulldozer) {
-        const targetX = bulldozer.position.x;
-        const targetZ = bulldozer.position.y + 100; // Look from south, closer offset for steeper angle
-
-        camera.position.x += (targetX - camera.position.x) * 0.1;
-        camera.position.z += (targetZ - camera.position.z) * 0.1;
+        camera.position.x = bulldozer.position.x;
+        camera.position.z = bulldozer.position.y + 100;
 
         // Look directly at the bulldozer
         camera.lookAt(bulldozer.position.x, 0, bulldozer.position.y);
