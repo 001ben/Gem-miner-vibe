@@ -15,6 +15,22 @@ export function initConsole() {
         toggleBtn.innerText = consoleContainer.classList.contains('minimized') ? 'Show Logs' : 'Hide Logs';
     });
 
+    // Create Copy Button
+    const copyBtn = document.createElement('button');
+    copyBtn.innerText = 'Copy';
+    copyBtn.id = 'btn-console-copy';
+    copyBtn.onclick = () => {
+        const text = Array.from(consoleLogs.children).map(line => line.textContent).join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = 'Copied!';
+            setTimeout(() => copyBtn.innerText = originalText, 1500);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    };
+    consoleContainer.appendChild(copyBtn);
+
     function addLog(type, args) {
         const msg = args.map(arg =>
             typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
