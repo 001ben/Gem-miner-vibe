@@ -24,8 +24,9 @@ export function initInput() {
         if (keys['ArrowLeft'] || keys['KeyA']) turn -= 1;
         if (keys['ArrowRight'] || keys['KeyD']) turn += 1;
 
-        const baseSpeed = 0.002 * (1 + state.dozerLevel * 0.1);
-        const turnSpeed = 0.03;
+        // Increase base speed impact significantly per level
+        const baseSpeed = 0.003 * (1 + state.dozerLevel * 0.25);
+        const turnSpeed = 0.04;
 
         if (joystick.active) {
             const targetAngle = Math.atan2(joystick.y, joystick.x);
