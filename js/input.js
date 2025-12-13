@@ -27,7 +27,9 @@ export function initInput() {
         if (keys['ArrowRight'] || keys['KeyD']) turn += 1;
 
         // Increase base speed impact significantly per level
-        const baseSpeed = 0.003 * (1 + state.dozerLevel * 0.25);
+        // Power calculation for "juicier" upgrades: Force needs to scale faster than Mass
+        // Mass scales by 1.5x, so Force must scale by ~2.0x to get ~33% speed increase per level
+        const baseSpeed = 0.003 * Math.pow(2.0, state.dozerLevel);
         const turnSpeed = 0.04;
 
         if (joystick.active) {
