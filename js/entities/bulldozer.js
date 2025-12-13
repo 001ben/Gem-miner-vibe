@@ -23,8 +23,8 @@ export function createBulldozer() {
     }
 
     const bodySize = 40 + (state.dozerLevel * 5);
-    const plowWidth = bodySize * 1.2 + (state.plowLevel * 10);
-    const plowHeight = 15 + (state.plowLevel * 2);
+    const plowWidth = bodySize * 1.2 + (state.plowLevel * 15);
+    const plowHeight = 15;
 
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { label: 'chassis' });
     const plowOffset = -(bodySize/2 + plowHeight/2 - 5);
