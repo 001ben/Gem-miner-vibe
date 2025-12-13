@@ -42,7 +42,8 @@ Events.on(engine, 'collisionActive', event => {
 
             if (dist > 0) {
                 // Normalize and scale force
-                const forceMagnitude = 0.0005 * gem.mass; // Tune this
+                // Increase force significantly to ensure movement
+                const forceMagnitude = 0.002 * gem.mass;
                 const force = {
                     x: (dx / dist) * forceMagnitude,
                     y: (dy / dist) * forceMagnitude
