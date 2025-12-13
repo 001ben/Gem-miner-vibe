@@ -142,6 +142,42 @@ export function createMesh(body) {
         // inner is already in XY plane, parent rotated X -90
         mesh.add(inner);
 
+    } else if (label && label.startsWith('conveyor')) {
+        const geo = new THREE.BoxGeometry(w, 5, h);
+        const mat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        mesh = new THREE.Mesh(geo, mat);
+        mesh.position.y = 2.5;
+
+        // Add arrows or markings
+        // Since we don't have textures easily available, let's add some small meshes as "arrows"
+        // that we can animate in updateGraphics
+        const arrowGroup = new THREE.Group();
+        // Create 3 arrows along the length
+        for (let i = -1; i <= 1; i++) {
+            const arrowGeo = new THREE.ConeGeometry(3, 8, 8);
+            const arrowMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            const arrow = new THREE.Mesh(arrowGeo, arrowMat);
+            // Arrow points up Y in local space.
+            // We want it to point along the conveyor movement direction.
+            // The conveyor is a rectangle.
+            // In local unrotated space, width is along X, height is along Z (because we map y to z).
+            // Actually, in `createMesh`, we map box W to X and H to Z.
+            // If the conveyor is "conveyor_left", it extends left.
+            // If we assume length is along X (which it is for Bodies.rectangle unless rotated).
+            // Let's just place them along X and see.
+            // Wait, Bodies.rectangle(x, y, w, h). W is X, H is Y.
+            // In Three.js: W is X, H is Z.
+            // So they are along X.
+
+            arrow.rotation.x = Math.PI / 2; // Point along Z? No.
+            arrow.rotation.z = -Math.PI / 2; // Point along X.
+
+            arrow.position.set(i * (w/4), 6, 0);
+            arrowGroup.add(arrow);
+        }
+        arrowGroup.userData = { isArrows: true };
+        mesh.add(arrowGroup);
+
     } else {
         // Fallback
         const geo = new THREE.BoxGeometry(w, 10, h);
@@ -226,6 +262,44 @@ export function updateGraphics(bulldozer) {
 
                  if (part.label === 'collector') {
                      mesh.rotation.z += 0.02;
+                 }
+
+                 if (part.label && part.label.startsWith('conveyor')) {
+                     // Animate arrows
+                     // The arrows are in arrowGroup, which is children[0] if we added it last?
+                     // Or traverse.
+                     mesh.children.forEach(child => {
+                         if (child.userData.isArrows) {
+                             // Move arrows
+                             child.children.forEach(arrow => {
+                                 // Move along X local
+                                 // Check label to see direction?
+                                 // conveyor_left: gems move Right (towards center 0).
+                                 // conveyor_right: gems move Left (towards center 0).
+                                 // If the body is just a rectangle at position X.
+                                 // If conveyor_left is at -X, gems move +X.
+                                 // If conveyor_right is at +X, gems move -X.
+
+                                 let speed = 0.5;
+                                 if (part.label === 'conveyor_right') speed = -0.5;
+                                 if (part.label === 'conveyor_top') {
+                                     // Top is different?
+                                     // Top is placed at 0, Y. Gems move +Y (towards 400).
+                                     // If top belt is vertical (width < height), then movement is along Z in Three.js terms.
+                                     // But our arrows are setup along X.
+                                     // This simple animation might assume horizontal belts.
+                                     // For now let's handle left/right.
+                                 }
+
+                                 arrow.position.x += speed;
+
+                                 // Loop
+                                 const range = 40; // Approx w/2
+                                 if (arrow.position.x > range) arrow.position.x -= 2*range;
+                                 if (arrow.position.x < -range) arrow.position.x += 2*range;
+                             });
+                         }
+                     });
                  }
              }
         });
