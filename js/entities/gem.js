@@ -59,6 +59,9 @@ export function collectGem(gem) {
     // Spawn particles
     spawnParticles({x: gem.position.x, y: gem.position.y}, gem.renderColor);
 
+    // Explicitly remove mesh to ensure visual update happens immediately
+    removeBodyMesh(gem.id);
+
     // Remove from physics world
     Composite.remove(world, gem);
 

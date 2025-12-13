@@ -6,9 +6,9 @@ export const particles = [];
 
 export function initThree() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x222222);
+    scene.background = new THREE.Color(0x8899aa); // Lighter sky
     // Fog for depth
-    scene.fog = new THREE.Fog(0x222222, 500, 2000);
+    scene.fog = new THREE.Fog(0x8899aa, 500, 2500);
 
     const aspect = window.innerWidth / window.innerHeight;
     camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
@@ -23,10 +23,10 @@ export function initThree() {
     document.getElementById('game-container').appendChild(renderer.domElement);
 
     // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // Brighter ambient
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Brighter ambient
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0); // Brighter sun
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2); // Brighter sun
     dirLight.position.set(200, 1000, 500);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -42,7 +42,8 @@ export function initThree() {
 
     // Ground
     const planeGeo = new THREE.PlaneGeometry(10000, 10000);
-    const planeMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.8 });
+    // Construction site dirt color
+    const planeMat = new THREE.MeshStandardMaterial({ color: 0x9b7653, roughness: 1.0 });
     const plane = new THREE.Mesh(planeGeo, planeMat);
     plane.rotation.x = -Math.PI / 2;
     plane.position.y = -2;
