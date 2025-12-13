@@ -19,9 +19,9 @@ export function initGems() {
     }
     gems.length = 0;
 
-    spawnZoneGems(40, -500, 500, -500, 500, 10, 25, ['#00FFFF', '#FF00FF']);
-    spawnZoneGems(40, -500, 500, -1700, -700, 30, 60, ['#FFFF00']);
-    spawnZoneGems(40, -500, 500, -2900, -1900, 70, 120, ['#00FF00']);
+    spawnZoneGems(300, -500, 500, -500, 500, 10, 25, ['#00FFFF', '#FF00FF']);
+    spawnZoneGems(300, -500, 500, -1700, -700, 30, 60, ['#FFFF00']);
+    spawnZoneGems(300, -500, 500, -2900, -1900, 70, 120, ['#00FF00']);
 }
 
 function spawnZoneGems(count, xMin, xMax, yMin, yMax, valMin, valMax, colors) {
