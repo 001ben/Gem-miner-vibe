@@ -1,40 +1,35 @@
 from playwright.sync_api import sync_playwright
 
-def verify_game_load():
+def verify_changes():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
-        page.on("console", lambda msg: print(f"Browser console: {msg.text}"))
-        page.on("pageerror", lambda err: print(f"Browser error: {err}"))
-        try:
-            page.goto("http://localhost:8000")
 
-            # Wait for game to initialize (canvas present)
-            page.wait_for_selector("#game-container canvas")
+        # Navigate to the game
+        page.goto("http://localhost:8000")
 
-            # Check UI elements
-            money = page.wait_for_selector("#money")
-            print(f"Money found: {money.inner_text()}")
+        # Wait for game to load
+        page.wait_for_selector("canvas")
+        page.wait_for_timeout(2000) # Give it time to render
 
-            # Toggle shop
-            page.click("#btn-shop-toggle")
+        # 1. Verify Console Log button exists and console is hidden initially
+        console_btn = page.locator("#btn-console-toggle")
+        console_box = page.locator("#debug-console")
 
-            shop = page.query_selector("#shop-modal")
-            classes = shop.get_attribute("class")
-            print(f"Shop classes: {classes}")
+        assert console_btn.is_visible()
+        # It has class 'minimized' so it might be technically "visible" in DOM but hidden via CSS display:none
+        # Playwright's is_visible() checks visibility style.
+        assert not console_box.is_visible()
 
-            if "hidden" in classes:
-                print("Shop did not open")
-            else:
-                print("Shop opened")
+        # 2. Click button to show logs
+        console_btn.click()
+        page.wait_for_timeout(500)
+        assert console_box.is_visible()
 
-            # Take screenshot
-            page.screenshot(path="verification/game_preview.png")
+        # 3. Take screenshot of the game with console open and new ground color
+        page.screenshot(path="verification/verification.png")
 
-        except Exception as e:
-            print(f"Error: {e}")
-        finally:
-            browser.close()
+        browser.close()
 
 if __name__ == "__main__":
-    verify_game_load()
+    verify_changes()

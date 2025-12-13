@@ -6,6 +6,9 @@ import { createCollector } from './entities/collector.js';
 import { initGems, collectGem } from './entities/gem.js';
 import { updateUI, setupShop } from './ui.js';
 import { initInput } from './input.js';
+import { initConsole } from './console.js';
+
+initConsole();
 
 // Collision handling
 Events.on(engine, 'collisionStart', event => {
