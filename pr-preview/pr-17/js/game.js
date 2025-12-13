@@ -1,7 +1,7 @@
 import { engine, runner, Runner, Events, Body, Matter } from './physics.js';
 import { initThree, updateGraphics, scene, camera, renderer } from './graphics.js';
 import { createMap } from './entities/map.js';
-import { createBulldozer, getBulldozer } from './entities/bulldozer.js';
+import { createBulldozer, getBulldozer, enforceBulldozerRigidity } from './entities/bulldozer.js';
 import { createCollector } from './entities/collector.js';
 import { initGems, collectGem } from './entities/gem.js';
 import { updateUI, setupShop, showNotification } from './ui.js';
@@ -13,6 +13,11 @@ window.showNotification = showNotification;
 import { state } from './state.js'; // Import state to expose it
 
 initConsole();
+
+// Force dozer rigidity before physics update
+Events.on(engine, 'beforeUpdate', () => {
+    enforceBulldozerRigidity();
+});
 
 // Conveyor belt logic
 Events.on(engine, 'collisionActive', event => {
@@ -78,8 +83,12 @@ Events.on(engine, 'collisionActive', event => {
                 const fx = (targetVx - gem.velocity.x) * forceFactor;
                 const fy = (targetVy - gem.velocity.y) * forceFactor;
 
-                // Apply force
-                Body.applyForce(gem, gem.position, { x: fx, y: fy });
+                // Directly modify velocity (acceleration) because Body.applyForce can be inconsistent if forces are cleared or fighting constraints.
+                // This mimics applying a strong force that overcomes friction immediately.
+                Body.setVelocity(gem, {
+                    x: gem.velocity.x + (fx / gem.mass),
+                    y: gem.velocity.y + (fy / gem.mass)
+                });
             }
         }
     }
