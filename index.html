@@ -14,7 +14,14 @@
                 <div id="stats-speed" style="font-size: 0.8rem; color: #aaa;">Speed: 100%</div>
                 <div id="game-version" style="font-size: 0.6rem; color: #666; margin-top: 2px;">v1.0.0</div>
             </div>
-            <button id="btn-shop-toggle" onclick="toggleShop()">Shop</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="btn-console-toggle" style="pointer-events: auto;">Show Logs</button>
+                <button id="btn-shop-toggle" onclick="toggleShop()">Shop</button>
+            </div>
+        </div>
+
+        <div id="debug-console" class="minimized">
+            <div id="console-logs"></div>
         </div>
 
         <!-- Joystick -->

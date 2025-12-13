@@ -12,14 +12,16 @@ export function updateUI() {
     const btnArea = document.getElementById('btn-unlock-area');
     const costArea = document.getElementById('cost-area');
 
-    if (state.areaLevel >= 3) {
-        btnArea.innerText = "Max Level";
-        btnArea.disabled = true;
-        costArea.innerText = "-";
-    } else {
-        btnArea.innerText = "Unlock Gate";
-        costArea.innerText = costs.area;
-        btnArea.disabled = state.money < costs.area;
+    if (btnArea && costArea) {
+        if (state.areaLevel >= 3) {
+            btnArea.innerText = "Max Level";
+            btnArea.disabled = true;
+            costArea.innerText = "-";
+        } else {
+            btnArea.innerText = "Unlock Gate";
+            costArea.innerText = costs.area;
+            btnArea.disabled = state.money < costs.area;
+        }
     }
 
     document.getElementById('btn-upgrade-dozer').disabled = state.money < costs.dozer;
