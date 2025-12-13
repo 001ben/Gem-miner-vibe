@@ -24,6 +24,8 @@ jobs:
         run: |
           mkdir -p dist
           cp index.html dist/
+          # Inject timestamp
+          sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
           cp style.css dist/
           cp -r js dist/
           cp VERSION dist/

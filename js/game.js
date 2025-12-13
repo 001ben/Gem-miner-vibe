@@ -25,8 +25,19 @@ Events.on(engine, 'collisionActive', event => {
         let gem = null;
         let conveyor = null;
 
-        if (bodyA.label === 'gem') gem = bodyA;
-        if (bodyB.label === 'gem') gem = bodyB;
+        // Check labels on body or parent (compound bodies)
+        const labelA = bodyA.label || (bodyA.parent && bodyA.parent.label);
+        const labelB = bodyB.label || (bodyB.parent && bodyB.parent.label);
+
+        if (labelA === 'gem') gem = bodyA;
+        if (labelB === 'gem') gem = bodyB;
+
+        // For conveyor, we explicitly named the parts "conveyor_left", etc.
+        // But Matter.js might report the parent "collector_compound".
+        // However, we need to know WHICH conveyor it is to animate or apply specific logic if needed?
+        // Actually, for now, we just push to center.
+        // Wait, if it reports parent, we can't check startsWith('conveyor_').
+        // Let's check the specific part label first.
 
         if (bodyA.label && bodyA.label.startsWith('conveyor_')) conveyor = bodyA;
         if (bodyB.label && bodyB.label.startsWith('conveyor_')) conveyor = bodyB;
