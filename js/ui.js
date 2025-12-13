@@ -18,6 +18,9 @@ export function updateUI() {
             btnArea.disabled = true;
             costArea.innerText = "-";
         } else {
+            // Check if current level is cleared enough to unlock?
+            // Actually, we can just let them buy it early if they want, OR wait for auto unlock.
+            // But if they have enough money they can still buy it.
             btnArea.innerText = "Unlock Gate";
             costArea.innerText = costs.area;
             btnArea.disabled = state.money < costs.area;
@@ -31,6 +34,21 @@ export function updateUI() {
     const speedVal = Math.round(100 * (1 + state.dozerLevel * 0.1));
     const speedEl = document.getElementById('stats-speed');
     if (speedEl) speedEl.innerText = `Speed: ${speedVal}%`;
+}
+
+export function showNotification(message) {
+    const container = document.getElementById('notification-area');
+    if (!container) return;
+
+    const el = document.createElement('div');
+    el.className = 'notification';
+    el.innerText = message;
+    container.appendChild(el);
+
+    // Remove after animation
+    setTimeout(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+    }, 4000);
 }
 
 async function updateVersionDisplay() {

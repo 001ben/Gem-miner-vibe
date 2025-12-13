@@ -4,11 +4,12 @@ import { createMap } from './entities/map.js';
 import { createBulldozer, getBulldozer } from './entities/bulldozer.js';
 import { createCollector } from './entities/collector.js';
 import { initGems, collectGem } from './entities/gem.js';
-import { updateUI, setupShop } from './ui.js';
+import { updateUI, setupShop, showNotification } from './ui.js';
 import { initInput } from './input.js';
 import { initConsole } from './console.js';
-// Expose updateUI
+// Expose updateUI and showNotification
 window.updateUI = updateUI;
+window.showNotification = showNotification;
 import { state } from './state.js'; // Import state to expose it
 
 initConsole();
@@ -45,10 +46,7 @@ Events.on(engine, 'collisionActive', event => {
         if (gem && conveyor) {
             // Log once per gem overlap interaction
             if (!gem.hasLoggedConveyor) {
-                console.log(`Gem ${gem.id} detected on conveyor ${conveyor.label}`);
                 gem.hasLoggedConveyor = true;
-                // We should reset this flag when it leaves, but for simple "first time" logging this is fine.
-                // Or use a global Set of pairs.
             }
 
             // Apply force towards the collector center (0, 400)

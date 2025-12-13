@@ -3,7 +3,12 @@ export const state = {
     dozerLevel: 1,
     plowLevel: 1,
     collectorLevel: 1,
-    areaLevel: 1
+    areaLevel: 1,
+    zoneProgress: {
+        1: { total: 0, collected: 0 },
+        2: { total: 0, collected: 0 },
+        3: { total: 0, collected: 0 }
+    }
 };
 
 export const costs = {
