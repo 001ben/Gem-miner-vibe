@@ -32,7 +32,7 @@ export function createBulldozer() {
     // However, maybe visual scaling is capped? No.
     // Let's verify startXLeft uses this.
     const plowWidth = bodySize * 1.2 + (state.plowLevel * 40);
-    const plowHeight = 10;
+    const plowHeight = 30; // Thicker to prevent gem tunneling
 
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { label: 'chassis' });
     const plowOffset = -(bodySize/2 + plowHeight/2 - 5);
