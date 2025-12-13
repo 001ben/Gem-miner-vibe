@@ -83,7 +83,8 @@ export function createBulldozer() {
         parts: parts,
         frictionAir: 0.15,
         restitution: 0.0,
-        label: 'bulldozer'
+        label: 'bulldozer',
+        density: 0.001 * (1 + state.dozerLevel * 0.5) // Increase mass significantly with level
     });
 
     Body.setPosition(bulldozer, pos);
