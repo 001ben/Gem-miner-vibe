@@ -1,7 +1,7 @@
 import { engine, runner, Runner, Events, Body, Matter } from './physics.js';
 import { initThree, updateGraphics, scene, camera, renderer } from './graphics.js';
 import { createMap } from './entities/map.js';
-import { createBulldozer, getBulldozer } from './entities/bulldozer.js';
+import { createBulldozer, getBulldozer, enforceBulldozerRigidity } from './entities/bulldozer.js';
 import { createCollector } from './entities/collector.js';
 import { initGems, collectGem } from './entities/gem.js';
 import { updateUI, setupShop, showNotification } from './ui.js';
@@ -13,6 +13,11 @@ window.showNotification = showNotification;
 import { state } from './state.js'; // Import state to expose it
 
 initConsole();
+
+// Force dozer rigidity before physics update
+Events.on(engine, 'beforeUpdate', () => {
+    enforceBulldozerRigidity();
+});
 
 // Conveyor belt logic
 Events.on(engine, 'collisionActive', event => {
@@ -61,14 +66,29 @@ Events.on(engine, 'collisionActive', event => {
                 // Wake up gem if sleeping
                 if (gem.isSleeping) Matter.Sleeping.set(gem, false);
 
-                // Use velocity for consistent "conveyor" movement
+                // Use Force/Acceleration instead of straight velocity to allow physics interactions (like pushing back on dozer) to happen naturally.
                 // Vector towards collector
-                const speed = 3; // Constant speed
-                const vx = (dx / dist) * speed;
-                const vy = (dy / dist) * speed;
+                const targetSpeed = 3;
+                const nx = dx / dist;
+                const ny = dy / dist;
 
-                // Blend with current velocity to avoid snapping, but dominate
-                Body.setVelocity(gem, { x: vx, y: vy });
+                const targetVx = nx * targetSpeed;
+                const targetVy = ny * targetSpeed;
+
+                // Acceleration: Apply force proportional to the difference between current and target velocity
+                // Use a very high gain (0.5) to ensure rapid acceleration (time constant ~2 frames)
+                // This makes the belt feel responsive while still allowing external forces (like dozer) to interact.
+                const forceFactor = 0.5 * gem.mass;
+
+                const fx = (targetVx - gem.velocity.x) * forceFactor;
+                const fy = (targetVy - gem.velocity.y) * forceFactor;
+
+                // Directly modify velocity (acceleration) because Body.applyForce can be inconsistent if forces are cleared or fighting constraints.
+                // This mimics applying a strong force that overcomes friction immediately.
+                Body.setVelocity(gem, {
+                    x: gem.velocity.x + (fx / gem.mass),
+                    y: gem.velocity.y + (fy / gem.mass)
+                });
             }
         }
     }

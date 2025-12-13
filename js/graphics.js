@@ -1,4 +1,5 @@
 import { world } from './physics.js';
+import { state } from './state.js';
 
 export let scene, camera, renderer;
 export const bodyMeshMap = new Map();
@@ -7,8 +8,8 @@ export const particles = [];
 export function initThree() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x8899aa); // Lighter sky
-    // Fog for depth
-    scene.fog = new THREE.Fog(0x8899aa, 500, 2500);
+    // Fog for depth - Increased far plane to prevent washed out look at high zoom
+    scene.fog = new THREE.Fog(0x8899aa, 500, 5000);
 
     const aspect = window.innerWidth / window.innerHeight;
     camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
@@ -281,20 +282,28 @@ export function updateGraphics(bulldozer) {
                                  // If conveyor_right is at +X, gems move -X.
 
                                  let speed = 0.5;
-                                 if (part.label === 'conveyor_right') speed = -0.5;
-                                 if (part.label === 'conveyor_top') {
-                                     // Top is different?
-                                     // Top is placed at 0, Y. Gems move +Y (towards 400).
-                                     // If top belt is vertical (width < height), then movement is along Z in Three.js terms.
-                                     // But our arrows are setup along X.
-                                     // This simple animation might assume horizontal belts.
-                                     // For now let's handle left/right.
+                                 // "The belt arrow symbols are all facing right" - arrow rotation is likely static in createMesh.
+                                 // In createMesh, arrow.rotation.z = -Math.PI / 2. This points them towards +X (Right).
+                                 // conveyor_left (at negative X) pushes gems Right (+X). Arrows should point Right.
+                                 // conveyor_right (at positive X) pushes gems Left (-X). Arrows should point Left.
+
+                                 if (part.label === 'conveyor_right') {
+                                     speed = -0.5;
+                                     // Rotate arrows to point Left if not already?
+                                     // Updating rotation every frame is wasteful but simple.
+                                     arrow.rotation.z = Math.PI / 2; // Point Left (-X)
+                                 } else {
+                                     arrow.rotation.z = -Math.PI / 2; // Point Right (+X)
                                  }
+
+                                 // Note: For conveyor_top, we'd need different logic, but it's vertical.
+                                 // Assuming mostly horizontal belts for now as per current simple logic.
 
                                  arrow.position.x += speed;
 
-                                 // Loop
-                                 const range = 40; // Approx w/2
+                                 // Loop based on mesh size?
+                                 // We don't have mesh size easily here, using fixed range.
+                                 const range = 40;
                                  if (arrow.position.x > range) arrow.position.x -= 2*range;
                                  if (arrow.position.x < -range) arrow.position.x += 2*range;
                              });
@@ -317,8 +326,16 @@ export function updateGraphics(bulldozer) {
 
     // 3. Camera Follow
     if (bulldozer) {
+        // Zoom out slightly as dozer levels up
+        const baseHeight = 1500;
+        const zoomLevel = (state.dozerLevel - 1) * 200; // 200 units per level
+        const targetY = baseHeight + zoomLevel;
+
+        // Simple lerp for smoothness if we wanted, but instant is fine
+        camera.position.y = targetY;
+
         camera.position.x = bulldozer.position.x;
-        camera.position.z = bulldozer.position.y + 100;
+        camera.position.z = bulldozer.position.y + 500; // Tilted angle (previously 100)
 
         // Look directly at the bulldozer
         camera.lookAt(bulldozer.position.x, 0, bulldozer.position.y);
