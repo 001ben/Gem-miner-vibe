@@ -44,7 +44,9 @@ export function initInput() {
         }
 
         if (turn !== 0) {
-            Body.setAngularVelocity(bulldozer, turn * turnSpeed);
+            Body.setAngle(bulldozer, bulldozer.angle + turn * turnSpeed);
+            // Ensure angular velocity is zeroed out to prevent physics interference
+            Body.setAngularVelocity(bulldozer, 0);
         }
 
         // Apply drive force
