@@ -4,6 +4,8 @@ import { getBulldozer } from './entities/bulldozer.js';
 
 export const keys = {};
 
+const joystick = { active: false, x: 0, y: 0, originX: 0, originY: 0, isReversing: false, knob: null };
+
 export function initInput() {
     window.addEventListener('keydown', e => keys[e.code] = true);
     window.addEventListener('keyup', e => keys[e.code] = false);
@@ -38,9 +40,39 @@ export function initInput() {
                 while (delta <= -Math.PI) delta += 2*Math.PI;
                 while (delta > Math.PI) delta -= 2*Math.PI;
 
-                const turnFactor = Math.max(-1, Math.min(1, delta * 2));
-                turn = turnFactor;
-                throttle = magnitude;
+                const absDelta = Math.abs(delta);
+                const reverseThreshold = 3 * Math.PI / 4; // ~135 degrees
+                const forwardThreshold = Math.PI / 2;     // 90 degrees
+
+                if (!joystick.isReversing) {
+                    if (absDelta > reverseThreshold) {
+                         joystick.isReversing = true;
+                    }
+                } else {
+                    if (absDelta < forwardThreshold) {
+                         joystick.isReversing = false;
+                    }
+                }
+
+                if (joystick.isReversing) {
+                    // Reverse logic
+                    throttle = -magnitude;
+                    // Steer rear towards targetAngle (Front towards opposite)
+                    let revDelta = (targetAngle + Math.PI) - currentHeading;
+                    while (revDelta <= -Math.PI) revDelta += 2*Math.PI;
+                    while (revDelta > Math.PI) revDelta -= 2*Math.PI;
+
+                    turn = Math.max(-1, Math.min(1, revDelta * 2));
+
+                    if (joystick.knob) joystick.knob.style.backgroundColor = 'rgba(255, 50, 50, 0.8)';
+                } else {
+                    // Forward logic
+                    const turnFactor = Math.max(-1, Math.min(1, delta * 2));
+                    turn = turnFactor;
+                    throttle = magnitude;
+
+                    if (joystick.knob) joystick.knob.style.backgroundColor = 'rgba(255, 152, 0, 0.8)';
+                }
             }
         }
 
@@ -64,19 +96,21 @@ export function initInput() {
     });
 }
 
-const joystick = { active: false, x: 0, y: 0, originX: 0, originY: 0 };
-
 function initJoystick() {
     const gameContainer = document.getElementById('game-container');
     const joystickZone = document.getElementById('joystick-zone');
     const joystickBase = document.getElementById('joystick-base');
     const joystickKnob = document.getElementById('joystick-knob');
 
+    joystick.knob = joystickKnob;
+
     function showJoystick(x, y) {
         joystickZone.style.display = 'block';
         joystickBase.style.left = x + 'px';
         joystickBase.style.top = y + 'px';
         joystickKnob.style.transform = `translate(-50%, -50%) translate(0px, 0px)`;
+        // Reset color
+        joystickKnob.style.backgroundColor = 'rgba(255, 152, 0, 0.8)';
     }
 
     function updateJoystickVisual(dx, dy) {
@@ -85,6 +119,8 @@ function initJoystick() {
 
     function hideJoystick() {
         joystickZone.style.display = 'none';
+        // Reset color
+        joystickKnob.style.backgroundColor = 'rgba(255, 152, 0, 0.8)';
     }
 
     gameContainer.addEventListener('touchstart', e => {
@@ -95,6 +131,7 @@ function initJoystick() {
         joystick.originY = touch.clientY;
         joystick.x = 0;
         joystick.y = 0;
+        joystick.isReversing = false;
         showJoystick(joystick.originX, joystick.originY);
     }, { passive: false });
 
@@ -125,6 +162,7 @@ function initJoystick() {
         joystick.active = false;
         joystick.x = 0;
         joystick.y = 0;
+        joystick.isReversing = false;
         hideJoystick();
     }, { passive: false });
 
@@ -136,6 +174,7 @@ function initJoystick() {
         joystick.originY = e.clientY;
         joystick.x = 0;
         joystick.y = 0;
+        joystick.isReversing = false;
         showJoystick(joystick.originX, joystick.originY);
     });
     window.addEventListener('mousemove', e => {
@@ -159,6 +198,7 @@ function initJoystick() {
         joystick.active = false;
         joystick.x = 0;
         joystick.y = 0;
+        joystick.isReversing = false;
         hideJoystick();
     });
 }
