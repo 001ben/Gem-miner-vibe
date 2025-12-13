@@ -26,6 +26,7 @@ jobs:
           cp index.html dist/
           cp style.css dist/
           cp -r js dist/
+          cp VERSION dist/
           cp -r assets dist/ 2>/dev/null || true
           touch dist/.nojekyll
 
