@@ -71,7 +71,9 @@ Events.on(engine, 'collisionActive', event => {
                 const targetVy = ny * targetSpeed;
 
                 // Acceleration: Apply force proportional to the difference between current and target velocity
-                const forceFactor = 0.0005 * gem.mass; // Tuned for smooth acceleration
+                // Increased factor significantly as 0.0005 was too weak (time constant ~33s).
+                // 0.05 gives time constant ~0.3s.
+                const forceFactor = 0.05 * gem.mass;
 
                 const fx = (targetVx - gem.velocity.x) * forceFactor;
                 const fy = (targetVy - gem.velocity.y) * forceFactor;
