@@ -7,12 +7,17 @@ def verify_fixes():
         page.goto("http://localhost:8000")
         page.wait_for_timeout(2000)
 
-        # 1. Verify Speed UI and Camera Zoom
+        # 1. Verify Speed and Power UI
         # Level 1
         speed_text_l1 = page.inner_text("#stats-speed")
+        power_text_l1 = page.inner_text("#stats-power")
         cam_y_l1 = page.evaluate("window.camera.position.y")
-        print(f"L1 Speed: {speed_text_l1}, CamY: {cam_y_l1}")
-        # Expected: 100%, 1500
+        cam_z_l1 = page.evaluate("window.camera.position.z")
+        # Dozer Y position is approx 0.
+        # Cam Z should be ~500.
+
+        print(f"L1 Speed: {speed_text_l1}, Power: {power_text_l1}, CamY: {cam_y_l1}, CamZ: {cam_z_l1}")
+        # Expected: Speed 100%, Power 100%, CamY 1500, CamZ ~500
 
         # Upgrade to Level 2
         page.evaluate("window.state.money = 10000; window.updateUI();")
@@ -22,17 +27,10 @@ def verify_fixes():
         page.wait_for_timeout(500)
 
         speed_text_l2 = page.inner_text("#stats-speed")
+        power_text_l2 = page.inner_text("#stats-power")
         cam_y_l2 = page.evaluate("window.camera.position.y")
-        print(f"L2 Speed: {speed_text_l2}, CamY: {cam_y_l2}")
-        # Expected: 133%, 1700 (1500 + 200)
-
-        # Upgrade to Level 3
-        page.click("#btn-upgrade-dozer") # L2 -> L3
-        page.wait_for_timeout(500)
-        speed_text_l3 = page.inner_text("#stats-speed")
-        cam_y_l3 = page.evaluate("window.camera.position.y")
-        print(f"L3 Speed: {speed_text_l3}, CamY: {cam_y_l3}")
-        # Expected: 178%, 1900 (1500 + 400)
+        print(f"L2 Speed: {speed_text_l2}, Power: {power_text_l2}, CamY: {cam_y_l2}")
+        # Expected: Speed 133%, Power 200%, CamY 1700
 
         browser.close()
 

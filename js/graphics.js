@@ -335,7 +335,7 @@ export function updateGraphics(bulldozer) {
         camera.position.y = targetY;
 
         camera.position.x = bulldozer.position.x;
-        camera.position.z = bulldozer.position.y + 100;
+        camera.position.z = bulldozer.position.y + 500; // Tilted angle (previously 100)
 
         // Look directly at the bulldozer
         camera.lookAt(bulldozer.position.x, 0, bulldozer.position.y);
