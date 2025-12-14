@@ -4,7 +4,7 @@ import { createBulldozer } from './bulldozer.js';
 import { createCollector } from './collector.js';
 import { createMap } from './map.js';
 import { showNotification, updateUI } from '../ui.js';
-import { spawnParticles } from '../graphics.js';
+import { spawnParticles, spawnFloatingText } from '../graphics.js';
 
 // Shop Pads
 // These are sensor bodies placed on the map.
@@ -26,16 +26,16 @@ export function createShopPads() {
     // Let's place them to the left of spawn, in a row or grid.
 
     // Pad 1: Upgrade Dozer
-    createPad(-300, 0, 'Upgrade Engine', 'dozer', () => costs.dozer);
+    createPad(-900, 0, 'Upgrade Engine', 'dozer', () => costs.dozer);
 
     // Pad 2: Upgrade Plow
-    createPad(-300, 200, 'Upgrade Plow', 'plow', () => costs.plow);
+    createPad(-900, 200, 'Upgrade Plow', 'plow', () => costs.plow);
 
     // Pad 3: Upgrade Collector
-    createPad(-300, 400, 'Upgrade Collector', 'collector', () => costs.collector);
+    createPad(-900, 400, 'Upgrade Collector', 'collector', () => costs.collector);
 
     // Pad 4: Unlock Area
-    createPad(-300, -200, 'Unlock Gate', 'area', () => {
+    createPad(-900, -200, 'Unlock Gate', 'area', () => {
         if (state.areaLevel >= 3) return null; // Max level
         return costs.area;
     });
@@ -45,12 +45,11 @@ export function createShopPads() {
 
 function createShopBarrier() {
     // A barrier around the shop area (Left side) to block Gems but allow Dozer.
-    // The pads are at x = -300.
-    // Let's protect the area from x = -500 to x = -100, and y from -300 to 500.
-    // Actually, just a simple fence separating the shop area from the main game area (x > -150).
+    // The pads are at x = -900.
+    // Fence separating the shop area from the main game area (x > -600).
 
-    // Vertical barrier at x = -150
-    const barrier = Bodies.rectangle(-150, 100, 20, 1000, {
+    // Vertical barrier at x = -600
+    const barrier = Bodies.rectangle(-600, 100, 20, 1000, {
         isStatic: true,
         label: 'shop_barrier',
         collisionFilter: {
@@ -133,22 +132,26 @@ function handleShopInteraction(pad) {
             state.dozerLevel++;
             costs.dozer = Math.floor(costs.dozer * 1.5);
             createBulldozer();
+            spawnFloatingText("Engine Up!", { x: pad.x, y: pad.y }, '#f39c12');
             showNotification(`Engine Upgraded to Level ${state.dozerLevel}!`);
         } else if (pad.type === 'plow') {
             state.plowLevel++;
             costs.plow = Math.floor(costs.plow * 1.5);
             createBulldozer();
+            spawnFloatingText("Plow Up!", { x: pad.x, y: pad.y }, '#d35400');
             showNotification(`Plow Upgraded to Level ${state.plowLevel}!`);
         } else if (pad.type === 'collector') {
             state.collectorLevel++;
             costs.collector = Math.floor(costs.collector * 1.5);
             createCollector();
+            spawnFloatingText("Collector Up!", { x: pad.x, y: pad.y }, '#00ff00');
             showNotification(`Collector Upgraded to Level ${state.collectorLevel}!`);
         } else if (pad.type === 'area') {
             state.areaLevel++;
             if (state.areaLevel === 2) costs.area = 2000;
             else costs.area = 999999;
             createMap();
+            spawnFloatingText("Area Unlocked!", { x: pad.x, y: pad.y }, '#e74c3c');
             showNotification(`Area Unlocked!`);
         }
 
