@@ -83,42 +83,42 @@ function createCoinPile() {
 // Map to store textures for pads to avoid recreation if text doesn't change
 const padTextures = new Map();
 
+// Updated for billboards: simpler, bigger text, transparent background
 function getPadTexture(title, cost) {
     const key = `${title}-${cost}`;
     if (padTextures.has(key)) return padTextures.get(key);
 
     const canvas = document.createElement('canvas');
-    canvas.width = 256;
+    canvas.width = 512;
     canvas.height = 256;
     const ctx = canvas.getContext('2d');
 
-    // Background
-    ctx.fillStyle = '#222222';
-    ctx.fillRect(0, 0, 256, 256);
+    // Transparent Background
+    ctx.clearRect(0, 0, 512, 256);
+
+    // Background panel for text
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.roundRect(10, 10, 492, 236, 20);
+    ctx.fill();
 
     // Border
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 10;
-    ctx.strokeRect(5, 5, 246, 246);
+    ctx.stroke();
 
     // Text
     ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center';
-    ctx.font = 'bold 30px Arial';
+    ctx.font = 'bold 40px Arial';
 
-    // Split title
-    const words = title.split(' ');
-    let y = 80;
-    words.forEach(w => {
-        ctx.fillText(w, 128, y);
-        y += 40;
-    });
+    // Title
+    ctx.fillText(title, 256, 80);
 
     // Cost
     ctx.fillStyle = '#f1c40f';
-    ctx.font = 'bold 40px Arial';
+    ctx.font = 'bold 80px Arial';
     const costText = cost === null ? "MAX" : `$${cost}`;
-    ctx.fillText(costText, 128, 200);
+    ctx.fillText(costText, 256, 180);
 
     const texture = new THREE.CanvasTexture(canvas);
     padTextures.set(key, texture);
@@ -237,27 +237,39 @@ export function createMesh(body) {
 
     } else if (label && label.startsWith('shop_pad')) {
         // Shop Pad Visual
-        // We handle this specially because we need to update texture dynamically if cost changes.
-        // Actually, createMesh is called once per body generally.
-        // But shop pad costs change.
-        // So we might need to update the material map in updateGraphics loop or handle it here if we re-create.
-        // Better: render simple base here, and handle text overlay in updateGraphics or a specific updateShopPads function.
-
-        // Let's create a base mesh.
         const geo = new THREE.BoxGeometry(w, 5, h); // Low platform
-        const mat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        const mat = new THREE.MeshStandardMaterial({ color: 0x222222 });
         mesh = new THREE.Mesh(geo, mat);
         mesh.position.y = 2.5;
 
-        // Add a plane on top for the text
-        const textGeo = new THREE.PlaneGeometry(w * 0.9, h * 0.9);
-        const textMat = new THREE.MeshBasicMaterial({ transparent: true }); // Map set later
-        const textMesh = new THREE.Mesh(textGeo, textMat);
-        textMesh.rotation.x = -Math.PI / 2;
-        textMesh.position.y = 3; // Slightly above platform
-        textMesh.userData = { isTextPlane: true }; // Tag it
+        // Add a "Billboard" for text
+        // Vertical plane at the back of the pad
+        const billGeo = new THREE.PlaneGeometry(w * 1.5, h * 0.8);
+        const billMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide }); // Map set later
+        const billMesh = new THREE.Mesh(billGeo, billMat);
 
-        mesh.add(textMesh);
+        // Position: Back edge. Pad center is 0. Height is h. Z is mapped to h.
+        // Local Z is height axis (h).
+        // Back edge is at -h/2 (or +h/2 depending on orientation).
+        // Let's place it at -h/2 - 20 (behind).
+        // And raised up.
+        billMesh.position.set(0, 60, -h/2 - 20);
+        // Rotate to face somewhat towards camera?
+        // Camera is looking at 0,0 from 0,1500,500. High angle.
+        // Text should be tilted back slightly.
+        billMesh.rotation.x = -Math.PI / 6; // Tilt back 30 deg
+
+        billMesh.userData = { isTextPlane: true };
+        mesh.add(billMesh);
+
+        // Add 3D Icon floating above
+        // Determine type from label
+        // label format: shop_pad_TYPE
+        const type = label.split('_')[2];
+        const iconMesh = createShopIcon(type);
+        iconMesh.position.set(0, 40, 0);
+        iconMesh.userData = { isIcon: true };
+        mesh.add(iconMesh);
 
     } else if (label && label.startsWith('conveyor')) {
         const geo = new THREE.BoxGeometry(w, 5, h);
@@ -305,6 +317,34 @@ export function createMesh(body) {
 
     mesh.castShadow = true;
     mesh.receiveShadow = true;
+    return mesh;
+}
+
+function createShopIcon(type) {
+    let geo, mat, mesh;
+
+    if (type === 'dozer') {
+        // Engine block / Box
+        geo = new THREE.BoxGeometry(20, 20, 20);
+        mat = new THREE.MeshStandardMaterial({ color: 0xf39c12 });
+    } else if (type === 'plow') {
+        // Wedge
+        geo = new THREE.ConeGeometry(15, 30, 4); // Pyramid-ish
+        mat = new THREE.MeshStandardMaterial({ color: 0xd35400 });
+    } else if (type === 'collector') {
+        // Ring
+        geo = new THREE.TorusGeometry(10, 3, 8, 16);
+        mat = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+    } else if (type === 'area') {
+        // Gate/Lock (Box)
+        geo = new THREE.BoxGeometry(15, 25, 5);
+        mat = new THREE.MeshStandardMaterial({ color: 0xe74c3c });
+    } else {
+        geo = new THREE.BoxGeometry(10, 10, 10);
+        mat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+    }
+
+    mesh = new THREE.Mesh(geo, mat);
     return mesh;
 }
 
@@ -495,11 +535,18 @@ export function updateGraphics(bulldozer) {
                          const currentCost = padData.costFn();
                          const texture = getPadTexture(padData.title, currentCost);
 
-                         // Find text plane
+                         // Find text plane (billboard)
                          const textPlane = mesh.children.find(c => c.userData.isTextPlane);
                          if (textPlane && textPlane.material.map !== texture) {
                              textPlane.material.map = texture;
                              textPlane.material.needsUpdate = true;
+                         }
+
+                         // Rotate Icon
+                         const icon = mesh.children.find(c => c.userData.isIcon);
+                         if (icon) {
+                             icon.rotation.y += 0.02;
+                             icon.rotation.z += 0.01;
                          }
                      }
                  }
