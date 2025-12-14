@@ -104,14 +104,6 @@ function checkZoneUnlock(zoneId) {
         if (state.areaLevel === zoneId) {
             // If we are at max area (3), do not increment further.
             if (state.areaLevel >= 3) {
-                 // Maybe show final victory message if this was the last trigger?
-                 // But we don't want to spam it.
-                 // Only show if we just crossed the threshold.
-                 // We can use a flag or just check if we haven't shown it.
-                 if (!state.victoryShown) {
-                     state.victoryShown = true;
-                     showNotification("Congrats! You are the mightiest Gem Lord!");
-                 }
                  return;
             }
 
@@ -125,5 +117,13 @@ function checkZoneUnlock(zoneId) {
              createMap(); // Removes gate
              showNotification(`Area ${state.areaLevel} Unlocked!`);
         }
+    }
+
+    // Check for Victory (All gems in last zone collected)
+    if (zoneId === 3 && p.collected >= p.total) {
+         if (!state.victoryShown) {
+             state.victoryShown = true;
+             showNotification("Congrats! You are the mightiest Gem Lord!");
+         }
     }
 }

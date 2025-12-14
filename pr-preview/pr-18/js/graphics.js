@@ -11,15 +11,15 @@ let lastDozerPos = null;
 let coinPileGroup = null;
 
 // Bank Area Configuration
-const BANK_POS = { x: 0, y: 600 };
+const BANK_POS = { x: 400, y: 400 }; // Moved away from wall (Collector is at 0, 400)
 const COINS_PER_STACK = 100;
-const STACK_SPACING = 15;
+const PILE_RADIUS = 80;
 
 export function initThree() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x8899aa); // Lighter sky
     // Fog for depth - Increased far plane to prevent washed out look at high zoom
-    scene.fog = new THREE.Fog(0x8899aa, 500, 5000);
+    scene.fog = new THREE.Fog(0x8899aa, 500, 10000);
 
     const aspect = window.innerWidth / window.innerHeight;
     camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
@@ -188,10 +188,31 @@ export function createMesh(body) {
         cab.position.y = 17.5;
         mesh.add(cab);
     } else if (label === 'plow') {
-        const geo = new THREE.BoxGeometry(w, 15, h);
+        let geo;
+        if (state.plowLevel >= 6) {
+             // Curved / Bigger wings visual
+             geo = new THREE.BoxGeometry(w, 20, h);
+        } else {
+             geo = new THREE.BoxGeometry(w, 15, h);
+        }
+
         const mat = new THREE.MeshStandardMaterial({ color: 0xd35400 });
         mesh = new THREE.Mesh(geo, mat);
         mesh.position.y = 7.5;
+
+        if (state.plowLevel >= 6) {
+            // Add visual wings
+            const wingGeo = new THREE.BoxGeometry(20, 20, h * 0.8);
+            const leftWing = new THREE.Mesh(wingGeo, mat);
+            leftWing.position.set(-w/2, 0, 20);
+            leftWing.rotation.y = Math.PI / 4;
+            mesh.add(leftWing);
+
+            const rightWing = new THREE.Mesh(wingGeo, mat);
+            rightWing.position.set(w/2, 0, 20);
+            rightWing.rotation.y = -Math.PI / 4;
+            mesh.add(rightWing);
+        }
     } else if (label === 'gem') {
         const r = (w / 2);
         const geo = new THREE.IcosahedronGeometry(r, 0);
@@ -522,25 +543,12 @@ function updateCoinPile() {
     // Add stacks
     if (currentStacks < targetStacks) {
         const diff = targetStacks - currentStacks;
-        // Limit additions per frame to avoid lag on big jumps
         const addCount = Math.min(diff, 5);
 
         for (let i = 0; i < addCount; i++) {
-            const index = currentStacks + i;
-
-            // Arrange in a grid expanding from center
-            // Spiral or simply rows?
-            // Simple grid:
-            // Layered? Or flat grid?
-            // Flat grid centered at 0,0 local.
-            // row width roughly sqrt(target)
-
-            // Let's use a spiral for density
-            // angle = index * golden_angle
-            // r = c * sqrt(index)
-            const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-            const r = STACK_SPACING * Math.sqrt(index);
-            const theta = index * goldenAngle;
+            // Random pile distribution for "Classic Heap" look
+            const r = Math.sqrt(Math.random()) * PILE_RADIUS;
+            const theta = Math.random() * 2 * Math.PI;
 
             const x = r * Math.cos(theta);
             const z = r * Math.sin(theta);
@@ -550,10 +558,13 @@ function updateCoinPile() {
             const mat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
             const mesh = new THREE.Mesh(geo, mat);
 
-            mesh.position.set(x, 5, z);
+            // Randomize rotation slightly for messiness
+            mesh.rotation.x = (Math.random() - 0.5) * 0.5;
+            mesh.rotation.z = (Math.random() - 0.5) * 0.5;
             mesh.rotation.y = Math.random() * Math.PI;
 
-            // Animate in?
+            mesh.position.set(x, 5, z);
+
             mesh.scale.set(0.1, 0.1, 0.1);
             mesh.userData.targetScale = 1.0;
 
@@ -658,7 +669,7 @@ export function updateGraphics(bulldozer) {
 
     if (bulldozer) {
         const baseHeight = 1500;
-        const zoomLevel = (state.dozerLevel - 1) * 200;
+        const zoomLevel = (state.dozerLevel - 1) * 100; // Reduced zoom multiplier
         const targetY = baseHeight + zoomLevel;
         camera.position.y = targetY;
         camera.position.x = bulldozer.position.x;
