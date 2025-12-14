@@ -5,6 +5,7 @@ import { createBulldozer, getBulldozer, enforceBulldozerRigidity } from './entit
 import { createCollector } from './entities/collector.js';
 import { initGems, collectGem } from './entities/gem.js';
 import { updateUI, setupShop, showNotification } from './ui.js';
+import { createShopPads, checkShopCollisions } from './entities/shop.js';
 import { initInput } from './input.js';
 import { initConsole } from './console.js';
 // Expose updateUI and showNotification
@@ -17,6 +18,7 @@ initConsole();
 // Force dozer rigidity before physics update
 Events.on(engine, 'beforeUpdate', () => {
     enforceBulldozerRigidity();
+    checkShopCollisions(getBulldozer());
 });
 
 // Conveyor belt logic
@@ -128,9 +130,10 @@ initThree();
 createMap();
 createBulldozer();
 createCollector();
+createShopPads(); // Shop Pads
 initGems();
 
-setupShop(); // Expose global functions
+setupShop(); // Expose global functions (though we removed buttons, we might still want setupShop for version?)
 updateUI();
 initInput(); // Start input listener loop
 window.state = state; // Expose state

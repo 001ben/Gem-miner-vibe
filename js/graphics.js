@@ -1,9 +1,14 @@
 import { world } from './physics.js';
 import { state } from './state.js';
+import { getShopPads } from './entities/shop.js';
 
 export let scene, camera, renderer;
 export const bodyMeshMap = new Map();
 export const particles = [];
+const tracks = [];
+let trackTexture;
+let lastDozerPos = null;
+let coinPileMesh = null;
 
 export function initThree() {
     scene = new THREE.Scene();
@@ -50,6 +55,93 @@ export function initThree() {
     plane.position.y = -2;
     plane.receiveShadow = true;
     scene.add(plane);
+
+    createTrackTexture();
+    createCoinPile();
+}
+
+function createCoinPile() {
+    // A group for the coin pile
+    coinPileMesh = new THREE.Group();
+    coinPileMesh.position.set(0, 5, 400); // Near collector (0, 400)
+
+    // Create several "piles" or simple gold shapes
+    // A main central mound
+    const geo = new THREE.ConeGeometry(30, 20, 16);
+    const mat = new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        roughness: 0.3,
+        metalness: 0.8
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = 10;
+    coinPileMesh.add(mesh);
+
+    scene.add(coinPileMesh);
+}
+
+// Map to store textures for pads to avoid recreation if text doesn't change
+const padTextures = new Map();
+
+function getPadTexture(title, cost) {
+    const key = `${title}-${cost}`;
+    if (padTextures.has(key)) return padTextures.get(key);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#222222';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Border
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 10;
+    ctx.strokeRect(5, 5, 246, 246);
+
+    // Text
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 30px Arial';
+
+    // Split title
+    const words = title.split(' ');
+    let y = 80;
+    words.forEach(w => {
+        ctx.fillText(w, 128, y);
+        y += 40;
+    });
+
+    // Cost
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = 'bold 40px Arial';
+    const costText = cost === null ? "MAX" : `$${cost}`;
+    ctx.fillText(costText, 128, 200);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    padTextures.set(key, texture);
+    return texture;
+}
+
+function createTrackTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    // Transparent background
+    ctx.clearRect(0, 0, 32, 32);
+    // Dark tracks
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(0, 0, 32, 32);
+    // Darker stripes
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(0, 0, 32, 6);
+    ctx.fillRect(0, 16, 32, 6);
+
+    trackTexture = new THREE.CanvasTexture(canvas);
+    trackTexture.magFilter = THREE.NearestFilter;
 }
 
 export function createMesh(body) {
@@ -143,6 +235,30 @@ export function createMesh(body) {
         // inner is already in XY plane, parent rotated X -90
         mesh.add(inner);
 
+    } else if (label && label.startsWith('shop_pad')) {
+        // Shop Pad Visual
+        // We handle this specially because we need to update texture dynamically if cost changes.
+        // Actually, createMesh is called once per body generally.
+        // But shop pad costs change.
+        // So we might need to update the material map in updateGraphics loop or handle it here if we re-create.
+        // Better: render simple base here, and handle text overlay in updateGraphics or a specific updateShopPads function.
+
+        // Let's create a base mesh.
+        const geo = new THREE.BoxGeometry(w, 5, h); // Low platform
+        const mat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        mesh = new THREE.Mesh(geo, mat);
+        mesh.position.y = 2.5;
+
+        // Add a plane on top for the text
+        const textGeo = new THREE.PlaneGeometry(w * 0.9, h * 0.9);
+        const textMat = new THREE.MeshBasicMaterial({ transparent: true }); // Map set later
+        const textMesh = new THREE.Mesh(textGeo, textMat);
+        textMesh.rotation.x = -Math.PI / 2;
+        textMesh.position.y = 3; // Slightly above platform
+        textMesh.userData = { isTextPlane: true }; // Tag it
+
+        mesh.add(textMesh);
+
     } else if (label && label.startsWith('conveyor')) {
         const geo = new THREE.BoxGeometry(w, 5, h);
         const mat = new THREE.MeshStandardMaterial({ color: 0x333333 });
@@ -216,23 +332,130 @@ function updateParticles() {
             particles.splice(i, 1);
         }
     }
+
+    // Update Tracks
+    for (let i = tracks.length - 1; i >= 0; i--) {
+        const t = tracks[i];
+        t.life -= 0.016; // 1/60 (approx 1 sec fade? No, 0.016 per frame -> 60 frames = 1 sec. User wanted 2 sec. So 0.008)
+
+        if (t.life < 1.0) {
+            t.mesh.material.opacity = t.life;
+        }
+
+        if (t.life <= 0) {
+            scene.remove(t.mesh);
+            t.mesh.geometry.dispose(); // Share geometry? No, we created simple planes.
+            tracks.splice(i, 1);
+        }
+    }
 }
 
-export function spawnParticles(pos, color) {
-    const count = 8;
+function spawnTrackSegment(pos, angle, width) {
+    // We spawn two segments (Left and Right)
+    // Offset from center.
+    // If body width is `width`. Treads are at +/- (width/2 - 5).
+    const treadOffset = (width / 2) - 8;
+    const segmentLength = 15;
+    const segmentWidth = 10;
+
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+
+    // Left Tread
+    // local: x = -treadOffset, y = 0
+    // global: x' = x*c - y*s, y' = x*s + y*c (Wait, angle is body angle)
+    // Actually we want to place it BEHIND the dozer? No, AT the dozer position is fine if we spawn frequently.
+    // But better to spawn at the BACK of the dozer if we only spawn when moved.
+    // Or just spawn at current pos and let dozer move away.
+
+    // We spawn at current pos.
+
+    const offsets = [-treadOffset, treadOffset];
+
+    const geo = new THREE.PlaneGeometry(segmentWidth, segmentLength);
+    const mat = new THREE.MeshBasicMaterial({
+        map: trackTexture,
+        transparent: true,
+        opacity: 0.8,
+        depthWrite: false,
+    });
+
+    offsets.forEach(off => {
+        const mesh = new THREE.Mesh(geo, mat);
+        // Rotate: Plane is XY. Ground is XZ.
+        // We want plane to lie on ground.
+        mesh.rotation.x = -Math.PI / 2;
+
+        // Also rotate around Y to match dozer angle.
+        // But dozer angle `angle` is in physics (inverted Y?).
+        // In graphics: mesh.rotation.y = -part.angle;
+        mesh.rotation.z = -angle; // For plane geometry in XY rotated -90 X, rotation around local Z is Y-axis world rotation.
+        // Wait. If we rotate X -90. Local Z points UP world Y. Local Y points World -Z. Local X points World X.
+        // We want to rotate around World Y.
+        // It's easier to set rotation order or use setFromEuler.
+
+        mesh.rotation.order = 'YXZ';
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.rotation.y = -angle;
+
+        // Position
+        // Rotate offset vector
+        // Physics angle `angle`.
+        // Vector (off, 0).
+        // Rotated: x = off * cos(angle), y = off * sin(angle).
+        // In World: x -> x, y -> z.
+
+        const rx = off * Math.cos(angle);
+        const ry = off * Math.sin(angle);
+
+        mesh.position.set(pos.x + rx, 0.5, pos.y + ry); // Slightly above ground
+
+        scene.add(mesh);
+        tracks.push({ mesh, life: 2.0 }); // 2 seconds (if we decrement 0.008 per frame at 60fps ~ 125 frames -> 125 * 0.016 = 2s)
+        // Actually if we decrement 0.008, 1.0 / 0.008 = 125 frames. 125/60 = 2.08s. Close enough.
+    });
+}
+
+export function spawnParticles(pos, color, type = 'normal') {
+    let count = 8;
+    let size = 5;
+    let speedBase = 2;
+    let life = 1.0;
+
+    if (type === 'dust') {
+        count = 3;
+        size = 3;
+        speedBase = 0.5;
+        life = 0.5;
+    } else if (type === 'upgrade') {
+        count = 30;
+        size = 4;
+        speedBase = 5;
+        life = 2.0;
+    }
+
     for (let i = 0; i < count; i++) {
-        const geo = new THREE.BoxGeometry(5, 5, 5);
+        const geo = new THREE.BoxGeometry(size, size, size);
         const mat = new THREE.MeshBasicMaterial({ color: color });
         const mesh = new THREE.Mesh(geo, mat);
 
         mesh.position.set(pos.x, 10, pos.y);
 
+        if (type === 'upgrade') {
+            mesh.position.y += Math.random() * 50; // Start higher
+        }
+
         const angle = Math.random() * Math.PI * 2;
-        const speed = 2 + Math.random() * 3;
-        const vel = new THREE.Vector3(Math.cos(angle) * speed, Math.random() * 5, Math.sin(angle) * speed);
+        const speed = speedBase + Math.random() * speedBase;
+
+        let vy = Math.random() * 5;
+        if (type === 'upgrade') vy = 5 + Math.random() * 10;
+        if (type === 'dust') vy = Math.random() * 2;
+
+        const vel = new THREE.Vector3(Math.cos(angle) * speed, vy, Math.sin(angle) * speed);
 
         scene.add(mesh);
-        particles.push({ mesh, vel, life: 1.0 });
+        particles.push({ mesh, vel, life: life, type: type });
     }
 }
 
@@ -240,6 +463,9 @@ export function updateGraphics(bulldozer) {
     // 1. Sync Physics to Mesh
     const bodies = Matter.Composite.allBodies(world);
     const activeIds = new Set();
+
+    // Also update Shop Pad textures
+    const shopPads = getShopPads(); // From entities/shop.js
 
     bodies.forEach(body => {
         const parts = (body.parts && body.parts.length > 1) ? body.parts.slice(1) : [body];
@@ -260,6 +486,23 @@ export function updateGraphics(bulldozer) {
                  mesh.position.x = part.position.x;
                  mesh.position.z = part.position.y;
                  mesh.rotation.y = -part.angle;
+
+                 if (part.label && part.label.startsWith('shop_pad')) {
+                     // Find the associated pad data to get cost/title
+                     const padData = shopPads.find(p => p.body === body);
+                     if (padData) {
+                         // Update texture
+                         const currentCost = padData.costFn();
+                         const texture = getPadTexture(padData.title, currentCost);
+
+                         // Find text plane
+                         const textPlane = mesh.children.find(c => c.userData.isTextPlane);
+                         if (textPlane && textPlane.material.map !== texture) {
+                             textPlane.material.map = texture;
+                             textPlane.material.needsUpdate = true;
+                         }
+                     }
+                 }
 
                  if (part.label === 'collector') {
                      mesh.rotation.z += 0.02;
@@ -339,8 +582,73 @@ export function updateGraphics(bulldozer) {
 
         // Look directly at the bulldozer
         camera.lookAt(bulldozer.position.x, 0, bulldozer.position.y);
+
+        // Tracks Logic
+        if (!lastDozerPos) {
+            lastDozerPos = { ...bulldozer.position };
+        } else {
+            const dx = bulldozer.position.x - lastDozerPos.x;
+            const dy = bulldozer.position.y - lastDozerPos.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+
+            // Spawn every 20 units moved
+            if (dist > 20) {
+                // Get chassis width. bulldozer body size is roughly what we need.
+                // In bulldozer.js: bodySize = 40 + (state.dozerLevel * 5).
+                // We can't easily access that variable, but we can guess or calculate from bounds?
+                // Or just use 40 + level * 5. We import `state`.
+                const width = 40 + (state.dozerLevel * 5);
+
+                spawnTrackSegment(bulldozer.position, bulldozer.angle, width);
+                // Also spawn dust
+                spawnParticles(bulldozer.position, 0x9b7653, 'dust');
+
+                lastDozerPos = { ...bulldozer.position };
+            }
+        }
+    }
+
+    // Update Coin Pile Size
+    if (coinPileMesh) {
+        // Log scale?
+        // 0 money -> scale 0.5
+        // 1000 money -> scale 1.0
+        // 10000 money -> scale 2.0
+
+        let targetScale = 0.5 + Math.log10(Math.max(1, state.money) + 100) / 4;
+        // Dampen changes
+        coinPileMesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.05);
+
+        // Spin slowly
+        coinPileMesh.rotation.y += 0.005;
     }
 
     updateParticles();
     renderer.render(scene, camera);
+}
+
+export function spawnCoinDrop(amount) {
+    // Spawn a falling coin visual
+    const pos = { x: 0, y: 400 }; // Collector position
+
+    const geo = new THREE.CylinderGeometry(5, 5, 2, 16);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8 });
+    const mesh = new THREE.Mesh(geo, mat);
+
+    mesh.rotation.x = Math.PI / 2; // Lie flat? No, cylinder is Y-up. Disc shape.
+    mesh.rotation.z = Math.PI / 2; // Upright coin?
+
+    mesh.position.set(pos.x + (Math.random()-0.5)*40, 200, pos.y + (Math.random()-0.5)*40); // Start high
+
+    scene.add(mesh);
+
+    // Animate falling
+    const particle = {
+        mesh,
+        vel: new THREE.Vector3(0, -5, 0), // Fall down
+        life: 2.0, // Should hit ground fast
+        type: 'coin_drop'
+    };
+
+    particles.push(particle);
 }

@@ -1,6 +1,6 @@
 import { state, costs } from '../state.js';
 import { Bodies, Composite, Body, world, CATEGORIES } from '../physics.js';
-import { removeBodyMesh, spawnParticles } from '../graphics.js';
+import { removeBodyMesh, spawnParticles, spawnCoinDrop } from '../graphics.js';
 import { updateUI, showNotification } from '../ui.js';
 import { createMap } from './map.js';
 
@@ -78,6 +78,9 @@ export function collectGem(gem) {
 
     // Spawn particles
     spawnParticles({x: gem.position.x, y: gem.position.y}, gem.renderColor);
+
+    // Spawn falling coin visual at collector
+    spawnCoinDrop(gem.value);
 
     // Explicitly remove mesh to ensure visual update happens immediately
     removeBodyMesh(gem.id);
