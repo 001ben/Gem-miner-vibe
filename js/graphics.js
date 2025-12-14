@@ -8,7 +8,12 @@ export const particles = [];
 const tracks = [];
 let trackTexture;
 let lastDozerPos = null;
-let coinPileMesh = null;
+let coinPileGroup = null;
+
+// Bank Area Configuration
+const BANK_POS = { x: 0, y: 600 };
+const COINS_PER_STACK = 100;
+const STACK_SPACING = 15;
 
 export function initThree() {
     scene = new THREE.Scene();
@@ -61,23 +66,10 @@ export function initThree() {
 }
 
 function createCoinPile() {
-    // A group for the coin pile
-    coinPileMesh = new THREE.Group();
-    coinPileMesh.position.set(0, 5, 400); // Near collector (0, 400)
-
-    // Create several "piles" or simple gold shapes
-    // A main central mound
-    const geo = new THREE.ConeGeometry(30, 20, 16);
-    const mat = new THREE.MeshStandardMaterial({
-        color: 0xffd700,
-        roughness: 0.3,
-        metalness: 0.8
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.y = 10;
-    coinPileMesh.add(mesh);
-
-    scene.add(coinPileMesh);
+    // A group for the coin pile grid
+    coinPileGroup = new THREE.Group();
+    coinPileGroup.position.set(BANK_POS.x, 0, BANK_POS.y);
+    scene.add(coinPileGroup);
 }
 
 // Map to store textures for pads to avoid recreation if text doesn't change
@@ -127,43 +119,45 @@ function getPadTexture(title, cost) {
 
 function createTrackTexture() {
     const canvas = document.createElement('canvas');
-    canvas.width = 32;
-    canvas.height = 32;
+    canvas.width = 64;
+    canvas.height = 64;
     const ctx = canvas.getContext('2d');
-    // Transparent background
-    ctx.clearRect(0, 0, 32, 32);
-    // Dark tracks
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.fillRect(0, 0, 32, 32);
-    // Darker stripes
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    ctx.fillRect(0, 0, 32, 6);
-    ctx.fillRect(0, 16, 32, 6);
+
+    // Clear
+    ctx.clearRect(0, 0, 64, 64);
+
+    // Two tire tracks
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+
+    // Left Track (approx 1/3 width)
+    // Draw treads
+    for(let y = 0; y < 64; y += 8) {
+        ctx.fillRect(4, y, 16, 4); // Left tread
+        ctx.fillRect(44, y, 16, 4); // Right tread
+    }
+
+    // Add some noise or dirt
+    ctx.fillStyle = 'rgba(50, 40, 30, 0.1)';
+    ctx.fillRect(0, 0, 64, 64);
 
     trackTexture = new THREE.CanvasTexture(canvas);
     trackTexture.magFilter = THREE.NearestFilter;
+    trackTexture.wrapS = THREE.RepeatWrapping;
+    trackTexture.wrapT = THREE.RepeatWrapping;
 }
 
 export function createMesh(body) {
     let mesh;
     const { label } = body;
 
-    // Determine dimensions
-    // We cannot use bounds (AABB) because it changes with rotation, but BoxGeometry is local (unrotated).
-    // We must calculate the unrotated width/height by projecting vertices onto the body's axes.
-    // Effectively, we find the range of vertex positions in the body's local coordinate system.
     const c = Math.cos(body.angle);
     const s = Math.sin(body.angle);
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
 
     body.vertices.forEach(v => {
-        // Rotate vertex back by -angle to align with global axes (local space)
-        // x' = x*cos(-a) - y*sin(-a) = x*c + y*s
-        // y' = x*sin(-a) + y*cos(-a) = -x*s + y*c
         const rx = v.x * c + v.y * s;
         const ry = -v.x * s + v.y * c;
-
         if (rx < minX) minX = rx;
         if (rx > maxX) maxX = rx;
         if (ry < minY) minY = ry;
@@ -188,22 +182,18 @@ export function createMesh(body) {
         const mat = new THREE.MeshStandardMaterial({ color: 0xf39c12 }); // Bulldozer yellow
         mesh = new THREE.Mesh(geo, mat);
         mesh.position.y = 10;
-
-        // Add a "cab"
         const cabGeo = new THREE.BoxGeometry(w * 0.6, 15, h * 0.6);
         const cabMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
         const cab = new THREE.Mesh(cabGeo, cabMat);
         cab.position.y = 17.5;
         mesh.add(cab);
-
     } else if (label === 'plow') {
-        // Curved plow shape
-        const geo = new THREE.BoxGeometry(w, 15, h); // Simplified
+        const geo = new THREE.BoxGeometry(w, 15, h);
         const mat = new THREE.MeshStandardMaterial({ color: 0xd35400 });
         mesh = new THREE.Mesh(geo, mat);
         mesh.position.y = 7.5;
     } else if (label === 'gem') {
-        const r = (w / 2); // Approximate
+        const r = (w / 2);
         const geo = new THREE.IcosahedronGeometry(r, 0);
         const color = body.renderColor || 0xffffff;
         const mat = new THREE.MeshStandardMaterial({
@@ -227,44 +217,26 @@ export function createMesh(body) {
         mesh = new THREE.Mesh(geo, mat);
         mesh.rotation.x = -Math.PI/2;
         mesh.position.y = 2;
-
-        // Add a glowy center
         const innerGeo = new THREE.CircleGeometry(r, 32);
         const innerMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
         const inner = new THREE.Mesh(innerGeo, innerMat);
-        // inner is already in XY plane, parent rotated X -90
         mesh.add(inner);
-
     } else if (label && label.startsWith('shop_pad')) {
-        // Shop Pad Visual
-        const geo = new THREE.BoxGeometry(w, 5, h); // Low platform
+        const geo = new THREE.BoxGeometry(w, 5, h);
         const mat = new THREE.MeshStandardMaterial({ color: 0x222222 });
         mesh = new THREE.Mesh(geo, mat);
         mesh.position.y = 2.5;
 
-        // Add a "Billboard" for text
-        // Vertical plane at the back of the pad
         const billGeo = new THREE.PlaneGeometry(w * 1.5, h * 0.8);
-        const billMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide }); // Map set later
+        const billMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide });
         const billMesh = new THREE.Mesh(billGeo, billMat);
 
-        // Position: Back edge. Pad center is 0. Height is h. Z is mapped to h.
-        // Local Z is height axis (h).
-        // Back edge is at -h/2 (or +h/2 depending on orientation).
-        // Let's place it at -h/2 - 20 (behind).
-        // And raised up.
         billMesh.position.set(0, 60, -h/2 - 20);
-        // Rotate to face somewhat towards camera?
-        // Camera is looking at 0,0 from 0,1500,500. High angle.
-        // Text should be tilted back slightly.
-        billMesh.rotation.x = -Math.PI / 6; // Tilt back 30 deg
+        billMesh.rotation.x = -Math.PI / 6;
 
         billMesh.userData = { isTextPlane: true };
         mesh.add(billMesh);
 
-        // Add 3D Icon floating above
-        // Determine type from label
-        // label format: shop_pad_TYPE
         const type = label.split('_')[2];
         const iconMesh = createShopIcon(type);
         iconMesh.position.set(0, 40, 0);
@@ -277,30 +249,12 @@ export function createMesh(body) {
         mesh = new THREE.Mesh(geo, mat);
         mesh.position.y = 2.5;
 
-        // Add arrows or markings
-        // Since we don't have textures easily available, let's add some small meshes as "arrows"
-        // that we can animate in updateGraphics
         const arrowGroup = new THREE.Group();
-        // Create 3 arrows along the length
         for (let i = -1; i <= 1; i++) {
             const arrowGeo = new THREE.ConeGeometry(3, 8, 8);
             const arrowMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
             const arrow = new THREE.Mesh(arrowGeo, arrowMat);
-            // Arrow points up Y in local space.
-            // We want it to point along the conveyor movement direction.
-            // The conveyor is a rectangle.
-            // In local unrotated space, width is along X, height is along Z (because we map y to z).
-            // Actually, in `createMesh`, we map box W to X and H to Z.
-            // If the conveyor is "conveyor_left", it extends left.
-            // If we assume length is along X (which it is for Bodies.rectangle unless rotated).
-            // Let's just place them along X and see.
-            // Wait, Bodies.rectangle(x, y, w, h). W is X, H is Y.
-            // In Three.js: W is X, H is Z.
-            // So they are along X.
-
-            arrow.rotation.x = Math.PI / 2; // Point along Z? No.
-            arrow.rotation.z = -Math.PI / 2; // Point along X.
-
+            arrow.rotation.z = -Math.PI / 2; // Point Right (+X) default
             arrow.position.set(i * (w/4), 6, 0);
             arrowGroup.add(arrow);
         }
@@ -308,7 +262,6 @@ export function createMesh(body) {
         mesh.add(arrowGroup);
 
     } else {
-        // Fallback
         const geo = new THREE.BoxGeometry(w, 10, h);
         const mat = new THREE.MeshStandardMaterial({ color: 0x999999 });
         mesh = new THREE.Mesh(geo, mat);
@@ -322,28 +275,22 @@ export function createMesh(body) {
 
 function createShopIcon(type) {
     let geo, mat, mesh;
-
     if (type === 'dozer') {
-        // Engine block / Box
         geo = new THREE.BoxGeometry(20, 20, 20);
         mat = new THREE.MeshStandardMaterial({ color: 0xf39c12 });
     } else if (type === 'plow') {
-        // Wedge
-        geo = new THREE.ConeGeometry(15, 30, 4); // Pyramid-ish
+        geo = new THREE.ConeGeometry(15, 30, 4);
         mat = new THREE.MeshStandardMaterial({ color: 0xd35400 });
     } else if (type === 'collector') {
-        // Ring
         geo = new THREE.TorusGeometry(10, 3, 8, 16);
         mat = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
     } else if (type === 'area') {
-        // Gate/Lock (Box)
         geo = new THREE.BoxGeometry(15, 25, 5);
         mat = new THREE.MeshStandardMaterial({ color: 0xe74c3c });
     } else {
         geo = new THREE.BoxGeometry(10, 10, 10);
         mat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
     }
-
     mesh = new THREE.Mesh(geo, mat);
     return mesh;
 }
@@ -361,55 +308,85 @@ export function removeBodyMesh(bodyId) {
 function updateParticles() {
     for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.life -= 0.02;
-        p.mesh.position.add(p.vel);
-        p.mesh.scale.setScalar(p.life);
-        p.mesh.rotation.x += 0.1;
-        p.mesh.rotation.y += 0.1;
 
-        if (p.life <= 0) {
-            scene.remove(p.mesh);
-            particles.splice(i, 1);
+        if (p.type === 'coin_fly') {
+            // Parabolic Flight
+            const now = Date.now();
+            const elapsed = now - p.startTime;
+            let t = elapsed / p.duration;
+
+            if (t >= 1.0) {
+                // Arrived
+                scene.remove(p.mesh);
+                particles.splice(i, 1);
+                continue;
+            }
+
+            // Lerp X and Z
+            const currentX = p.startPos.x + (p.targetPos.x - p.startPos.x) * t;
+            const currentZ = p.startPos.z + (p.targetPos.z - p.startPos.z) * t;
+
+            // Parabolic Height (Sine wave)
+            const height = Math.sin(t * Math.PI) * p.arcHeight;
+
+            p.mesh.position.set(currentX, height + 10, currentZ);
+
+            // Spin
+            p.mesh.rotation.y += 0.2;
+            p.mesh.rotation.z += 0.1;
+
+        } else if (p.type === 'floating_text') {
+            p.life -= 0.01;
+            p.mesh.position.y += 0.5; // Float up
+
+            // Fade out if possible (Canvas texture transparent?)
+            // We can set opacity on material
+            if (p.mesh.material.opacity > 0) {
+                p.mesh.material.opacity = p.life;
+            }
+
+            if (p.life <= 0) {
+                scene.remove(p.mesh);
+                if (p.mesh.material.map) p.mesh.material.map.dispose();
+                particles.splice(i, 1);
+            }
+
+        } else {
+            // Standard Physics Particles
+            p.life -= 0.02;
+            p.mesh.position.add(p.vel);
+            p.mesh.scale.setScalar(p.life);
+            p.mesh.rotation.x += 0.1;
+            p.mesh.rotation.y += 0.1;
+
+            if (p.life <= 0) {
+                scene.remove(p.mesh);
+                particles.splice(i, 1);
+            }
         }
     }
 
     // Update Tracks
     for (let i = tracks.length - 1; i >= 0; i--) {
         const t = tracks[i];
-        t.life -= 0.016; // 1/60 (approx 1 sec fade? No, 0.016 per frame -> 60 frames = 1 sec. User wanted 2 sec. So 0.008)
+        t.life -= 0.01;
 
         if (t.life < 1.0) {
-            t.mesh.material.opacity = t.life;
+            t.mesh.material.opacity = t.life * 0.8;
         }
 
         if (t.life <= 0) {
             scene.remove(t.mesh);
-            t.mesh.geometry.dispose(); // Share geometry? No, we created simple planes.
+            t.mesh.geometry.dispose();
             tracks.splice(i, 1);
         }
     }
 }
 
 function spawnTrackSegment(pos, angle, width) {
-    // We spawn two segments (Left and Right)
-    // Offset from center.
-    // If body width is `width`. Treads are at +/- (width/2 - 5).
     const treadOffset = (width / 2) - 8;
     const segmentLength = 15;
     const segmentWidth = 10;
-
-    const c = Math.cos(angle);
-    const s = Math.sin(angle);
-
-    // Left Tread
-    // local: x = -treadOffset, y = 0
-    // global: x' = x*c - y*s, y' = x*s + y*c (Wait, angle is body angle)
-    // Actually we want to place it BEHIND the dozer? No, AT the dozer position is fine if we spawn frequently.
-    // But better to spawn at the BACK of the dozer if we only spawn when moved.
-    // Or just spawn at current pos and let dozer move away.
-
-    // We spawn at current pos.
-
     const offsets = [-treadOffset, treadOffset];
 
     const geo = new THREE.PlaneGeometry(segmentWidth, segmentLength);
@@ -422,37 +399,17 @@ function spawnTrackSegment(pos, angle, width) {
 
     offsets.forEach(off => {
         const mesh = new THREE.Mesh(geo, mat);
-        // Rotate: Plane is XY. Ground is XZ.
-        // We want plane to lie on ground.
-        mesh.rotation.x = -Math.PI / 2;
-
-        // Also rotate around Y to match dozer angle.
-        // But dozer angle `angle` is in physics (inverted Y?).
-        // In graphics: mesh.rotation.y = -part.angle;
-        mesh.rotation.z = -angle; // For plane geometry in XY rotated -90 X, rotation around local Z is Y-axis world rotation.
-        // Wait. If we rotate X -90. Local Z points UP world Y. Local Y points World -Z. Local X points World X.
-        // We want to rotate around World Y.
-        // It's easier to set rotation order or use setFromEuler.
-
         mesh.rotation.order = 'YXZ';
         mesh.rotation.x = -Math.PI / 2;
         mesh.rotation.y = -angle;
 
-        // Position
-        // Rotate offset vector
-        // Physics angle `angle`.
-        // Vector (off, 0).
-        // Rotated: x = off * cos(angle), y = off * sin(angle).
-        // In World: x -> x, y -> z.
-
         const rx = off * Math.cos(angle);
         const ry = off * Math.sin(angle);
 
-        mesh.position.set(pos.x + rx, 0.5, pos.y + ry); // Slightly above ground
+        mesh.position.set(pos.x + rx, 0.5, pos.y + ry);
 
         scene.add(mesh);
-        tracks.push({ mesh, life: 2.0 }); // 2 seconds (if we decrement 0.008 per frame at 60fps ~ 125 frames -> 125 * 0.016 = 2s)
-        // Actually if we decrement 0.008, 1.0 / 0.008 = 125 frames. 125/60 = 2.08s. Close enough.
+        tracks.push({ mesh, life: 2.0 });
     });
 }
 
@@ -482,7 +439,7 @@ export function spawnParticles(pos, color, type = 'normal') {
         mesh.position.set(pos.x, 10, pos.y);
 
         if (type === 'upgrade') {
-            mesh.position.y += Math.random() * 50; // Start higher
+            mesh.position.y += Math.random() * 50;
         }
 
         const angle = Math.random() * Math.PI * 2;
@@ -499,20 +456,139 @@ export function spawnParticles(pos, color, type = 'normal') {
     }
 }
 
+export function spawnFloatingText(text, pos, color = '#ffffff') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = color;
+    ctx.font = 'bold 40px Arial';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'black';
+    ctx.shadowBlur = 4;
+    ctx.fillText(text, 128, 48);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide });
+    const geo = new THREE.PlaneGeometry(80, 20);
+    const mesh = new THREE.Mesh(geo, mat);
+
+    mesh.position.set(pos.x, 50, pos.y);
+    mesh.rotation.x = -Math.PI / 4; // Tilt back
+
+    scene.add(mesh);
+
+    particles.push({
+        mesh,
+        life: 2.0,
+        type: 'floating_text'
+    });
+}
+
+export function spawnCoinDrop(amount, startPos) {
+    // Spawn a flying coin visual
+    const targetPos = { x: BANK_POS.x, z: BANK_POS.y };
+    // Use gem position as start, or fallback to 0,0
+    const start = startPos ? { x: startPos.x, z: startPos.y } : { x: 0, z: 400 };
+
+    const geo = new THREE.CylinderGeometry(5, 5, 2, 16);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8 });
+    const mesh = new THREE.Mesh(geo, mat);
+
+    mesh.rotation.x = Math.PI / 2; // Flat coin
+    mesh.position.set(start.x, 10, start.z);
+
+    scene.add(mesh);
+
+    particles.push({
+        mesh,
+        startPos: start,
+        targetPos: targetPos,
+        startTime: Date.now(),
+        duration: 800, // ms
+        arcHeight: 200,
+        type: 'coin_fly'
+    });
+}
+
+function updateCoinPile() {
+    if (!coinPileGroup) return;
+
+    // Calculate desired number of stacks
+    const targetStacks = Math.floor(state.money / COINS_PER_STACK);
+    const currentStacks = coinPileGroup.children.length;
+
+    // Add stacks
+    if (currentStacks < targetStacks) {
+        const diff = targetStacks - currentStacks;
+        // Limit additions per frame to avoid lag on big jumps
+        const addCount = Math.min(diff, 5);
+
+        for (let i = 0; i < addCount; i++) {
+            const index = currentStacks + i;
+
+            // Arrange in a grid expanding from center
+            // Spiral or simply rows?
+            // Simple grid:
+            // Layered? Or flat grid?
+            // Flat grid centered at 0,0 local.
+            // row width roughly sqrt(target)
+
+            // Let's use a spiral for density
+            // angle = index * golden_angle
+            // r = c * sqrt(index)
+            const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+            const r = STACK_SPACING * Math.sqrt(index);
+            const theta = index * goldenAngle;
+
+            const x = r * Math.cos(theta);
+            const z = r * Math.sin(theta);
+
+            // Create stack mesh
+            const geo = new THREE.CylinderGeometry(5, 5, 10, 8);
+            const mat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
+            const mesh = new THREE.Mesh(geo, mat);
+
+            mesh.position.set(x, 5, z);
+            mesh.rotation.y = Math.random() * Math.PI;
+
+            // Animate in?
+            mesh.scale.set(0.1, 0.1, 0.1);
+            mesh.userData.targetScale = 1.0;
+
+            coinPileGroup.add(mesh);
+        }
+    }
+
+    // Remove stacks (if spent)
+    if (currentStacks > targetStacks) {
+        const removeCount = Math.min(currentStacks - targetStacks, 10);
+        for (let i = 0; i < removeCount; i++) {
+            const child = coinPileGroup.children[coinPileGroup.children.length - 1];
+            coinPileGroup.remove(child);
+            if(child.geometry) child.geometry.dispose();
+            if(child.material) child.material.dispose();
+        }
+    }
+
+    // Animate growing stacks
+    coinPileGroup.children.forEach(child => {
+        if (child.userData.targetScale) {
+            child.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+        }
+    });
+}
+
 export function updateGraphics(bulldozer) {
-    // 1. Sync Physics to Mesh
     const bodies = Matter.Composite.allBodies(world);
     const activeIds = new Set();
-
-    // Also update Shop Pad textures
-    const shopPads = getShopPads(); // From entities/shop.js
+    const shopPads = getShopPads();
 
     bodies.forEach(body => {
         const parts = (body.parts && body.parts.length > 1) ? body.parts.slice(1) : [body];
-
         parts.forEach(part => {
              activeIds.add(part.id);
-
              let mesh = bodyMeshMap.get(part.id);
              if (!mesh) {
                  mesh = createMesh(part);
@@ -521,28 +597,21 @@ export function updateGraphics(bulldozer) {
                      bodyMeshMap.set(part.id, mesh);
                  }
              }
-
              if (mesh) {
                  mesh.position.x = part.position.x;
                  mesh.position.z = part.position.y;
                  mesh.rotation.y = -part.angle;
 
                  if (part.label && part.label.startsWith('shop_pad')) {
-                     // Find the associated pad data to get cost/title
                      const padData = shopPads.find(p => p.body === body);
                      if (padData) {
-                         // Update texture
                          const currentCost = padData.costFn();
                          const texture = getPadTexture(padData.title, currentCost);
-
-                         // Find text plane (billboard)
                          const textPlane = mesh.children.find(c => c.userData.isTextPlane);
                          if (textPlane && textPlane.material.map !== texture) {
                              textPlane.material.map = texture;
                              textPlane.material.needsUpdate = true;
                          }
-
-                         // Rotate Icon
                          const icon = mesh.children.find(c => c.userData.isIcon);
                          if (icon) {
                              icon.rotation.y += 0.02;
@@ -556,43 +625,17 @@ export function updateGraphics(bulldozer) {
                  }
 
                  if (part.label && part.label.startsWith('conveyor')) {
-                     // Animate arrows
-                     // The arrows are in arrowGroup, which is children[0] if we added it last?
-                     // Or traverse.
                      mesh.children.forEach(child => {
                          if (child.userData.isArrows) {
-                             // Move arrows
                              child.children.forEach(arrow => {
-                                 // Move along X local
-                                 // Check label to see direction?
-                                 // conveyor_left: gems move Right (towards center 0).
-                                 // conveyor_right: gems move Left (towards center 0).
-                                 // If the body is just a rectangle at position X.
-                                 // If conveyor_left is at -X, gems move +X.
-                                 // If conveyor_right is at +X, gems move -X.
-
                                  let speed = 0.5;
-                                 // "The belt arrow symbols are all facing right" - arrow rotation is likely static in createMesh.
-                                 // In createMesh, arrow.rotation.z = -Math.PI / 2. This points them towards +X (Right).
-                                 // conveyor_left (at negative X) pushes gems Right (+X). Arrows should point Right.
-                                 // conveyor_right (at positive X) pushes gems Left (-X). Arrows should point Left.
-
                                  if (part.label === 'conveyor_right') {
                                      speed = -0.5;
-                                     // Rotate arrows to point Left if not already?
-                                     // Updating rotation every frame is wasteful but simple.
-                                     arrow.rotation.z = Math.PI / 2; // Point Left (-X)
+                                     arrow.rotation.z = Math.PI / 2;
                                  } else {
-                                     arrow.rotation.z = -Math.PI / 2; // Point Right (+X)
+                                     arrow.rotation.z = -Math.PI / 2;
                                  }
-
-                                 // Note: For conveyor_top, we'd need different logic, but it's vertical.
-                                 // Assuming mostly horizontal belts for now as per current simple logic.
-
                                  arrow.position.x += speed;
-
-                                 // Loop based on mesh size?
-                                 // We don't have mesh size easily here, using fixed range.
                                  const range = 40;
                                  if (arrow.position.x > range) arrow.position.x -= 2*range;
                                  if (arrow.position.x < -range) arrow.position.x += 2*range;
@@ -604,7 +647,6 @@ export function updateGraphics(bulldozer) {
         });
     });
 
-    // 2. Cleanup old meshes
     for (const [id, mesh] of bodyMeshMap) {
         if (!activeIds.has(id)) {
             scene.remove(mesh);
@@ -614,23 +656,15 @@ export function updateGraphics(bulldozer) {
         }
     }
 
-    // 3. Camera Follow
     if (bulldozer) {
-        // Zoom out slightly as dozer levels up
         const baseHeight = 1500;
-        const zoomLevel = (state.dozerLevel - 1) * 200; // 200 units per level
+        const zoomLevel = (state.dozerLevel - 1) * 200;
         const targetY = baseHeight + zoomLevel;
-
-        // Simple lerp for smoothness if we wanted, but instant is fine
         camera.position.y = targetY;
-
         camera.position.x = bulldozer.position.x;
-        camera.position.z = bulldozer.position.y + 500; // Tilted angle (previously 100)
-
-        // Look directly at the bulldozer
+        camera.position.z = bulldozer.position.y + 500;
         camera.lookAt(bulldozer.position.x, 0, bulldozer.position.y);
 
-        // Tracks Logic
         if (!lastDozerPos) {
             lastDozerPos = { ...bulldozer.position };
         } else {
@@ -638,64 +672,16 @@ export function updateGraphics(bulldozer) {
             const dy = bulldozer.position.y - lastDozerPos.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
 
-            // Spawn every 20 units moved
             if (dist > 20) {
-                // Get chassis width. bulldozer body size is roughly what we need.
-                // In bulldozer.js: bodySize = 40 + (state.dozerLevel * 5).
-                // We can't easily access that variable, but we can guess or calculate from bounds?
-                // Or just use 40 + level * 5. We import `state`.
                 const width = 40 + (state.dozerLevel * 5);
-
                 spawnTrackSegment(bulldozer.position, bulldozer.angle, width);
-                // Also spawn dust
                 spawnParticles(bulldozer.position, 0x9b7653, 'dust');
-
                 lastDozerPos = { ...bulldozer.position };
             }
         }
     }
 
-    // Update Coin Pile Size
-    if (coinPileMesh) {
-        // Log scale?
-        // 0 money -> scale 0.5
-        // 1000 money -> scale 1.0
-        // 10000 money -> scale 2.0
-
-        let targetScale = 0.5 + Math.log10(Math.max(1, state.money) + 100) / 4;
-        // Dampen changes
-        coinPileMesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.05);
-
-        // Spin slowly
-        coinPileMesh.rotation.y += 0.005;
-    }
-
+    updateCoinPile();
     updateParticles();
     renderer.render(scene, camera);
-}
-
-export function spawnCoinDrop(amount) {
-    // Spawn a falling coin visual
-    const pos = { x: 0, y: 400 }; // Collector position
-
-    const geo = new THREE.CylinderGeometry(5, 5, 2, 16);
-    const mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8 });
-    const mesh = new THREE.Mesh(geo, mat);
-
-    mesh.rotation.x = Math.PI / 2; // Lie flat? No, cylinder is Y-up. Disc shape.
-    mesh.rotation.z = Math.PI / 2; // Upright coin?
-
-    mesh.position.set(pos.x + (Math.random()-0.5)*40, 200, pos.y + (Math.random()-0.5)*40); // Start high
-
-    scene.add(mesh);
-
-    // Animate falling
-    const particle = {
-        mesh,
-        vel: new THREE.Vector3(0, -5, 0), // Fall down
-        life: 2.0, // Should hit ground fast
-        type: 'coin_drop'
-    };
-
-    particles.push(particle);
 }

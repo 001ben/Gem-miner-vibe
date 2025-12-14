@@ -47,8 +47,8 @@ function spawnZoneGems(zoneId, count, xMin, xMax, yMin, yMax, valMin, valMax, co
             label: 'gem',
             collisionFilter: {
                 category: CATEGORIES.GEM,
-                // Collides with everything: Default, Dozer, Gem, Conveyor, Wall
-                mask: CATEGORIES.DEFAULT | CATEGORIES.DOZER | CATEGORIES.GEM | CATEGORIES.CONVEYOR | CATEGORIES.WALL
+                // Collides with everything: Default, Dozer, Gem, Conveyor, Wall, Shop Barrier
+                mask: CATEGORIES.DEFAULT | CATEGORIES.DOZER | CATEGORIES.GEM | CATEGORIES.CONVEYOR | CATEGORIES.WALL | CATEGORIES.SHOP_BARRIER
             }
         });
 
@@ -79,8 +79,8 @@ export function collectGem(gem) {
     // Spawn particles
     spawnParticles({x: gem.position.x, y: gem.position.y}, gem.renderColor);
 
-    // Spawn falling coin visual at collector
-    spawnCoinDrop(gem.value);
+    // Spawn flying coin visual from gem position
+    spawnCoinDrop(gem.value, gem.position);
 
     // Explicitly remove mesh to ensure visual update happens immediately
     removeBodyMesh(gem.id);
