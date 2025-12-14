@@ -26,5 +26,6 @@ export const CATEGORIES = {
     DOZER: 0x0002,
     GEM: 0x0004,
     CONVEYOR: 0x0008,
-    WALL: 0x0010
+    WALL: 0x0010,
+    SHOP_BARRIER: 0x0020
 };

@@ -39,6 +39,29 @@ export function createShopPads() {
         if (state.areaLevel >= 3) return null; // Max level
         return costs.area;
     });
+
+    createShopBarrier();
+}
+
+function createShopBarrier() {
+    // A barrier around the shop area (Left side) to block Gems but allow Dozer.
+    // The pads are at x = -300.
+    // Let's protect the area from x = -500 to x = -100, and y from -300 to 500.
+    // Actually, just a simple fence separating the shop area from the main game area (x > -150).
+
+    // Vertical barrier at x = -150
+    const barrier = Bodies.rectangle(-150, 100, 20, 1000, {
+        isStatic: true,
+        label: 'shop_barrier',
+        collisionFilter: {
+            category: CATEGORIES.SHOP_BARRIER,
+            // Collides with GEM only.
+            mask: CATEGORIES.GEM
+        },
+        render: { visible: false } // We can make it invisible or give it a visual
+    });
+
+    Composite.add(world, barrier);
 }
 
 function createPad(x, y, title, type, costFn) {
@@ -75,26 +98,23 @@ export function checkShopCollisions(bulldozer) {
     const now = Date.now();
     if (now - lastPurchaseTime < COOLDOWN_MS) return;
 
-    // Check overlap
-    // Since these are sensors, we can check collision state or manual bounds.
-    // Manual bounds is easy since pads are static AABBs (mostly).
+    // Feedback: "I think only the centre point of the body of the Dozer should actually be used for purchasing"
+    // So we check if bulldozer.position is inside a pad's bounds.
 
-    // Or iterate physics collisions.
-    // Let's use Matter.Query.
+    const dozerPos = bulldozer.position; // This is the center of the compound body (chassis)
 
-    const collisions = Matter.Query.collides(bulldozer, shopPads.map(p => p.body));
+    // Check against each pad
+    // Pads are AABBs (unrotated).
 
-    if (collisions.length > 0) {
-        // Find which pad
-        const pair = collisions[0];
-        const bodyA = pair.bodyA;
-        const bodyB = pair.bodyB;
+    for (const pad of shopPads) {
+        const halfW = pad.width / 2;
+        const halfH = pad.height / 2;
 
-        // Find the pad body
-        const padEntry = shopPads.find(p => p.body === bodyA || p.body === bodyB);
+        if (dozerPos.x >= pad.x - halfW && dozerPos.x <= pad.x + halfW &&
+            dozerPos.y >= pad.y - halfH && dozerPos.y <= pad.y + halfH) {
 
-        if (padEntry) {
-            handleShopInteraction(padEntry);
+            handleShopInteraction(pad);
+            break; // Handle one at a time
         }
     }
 }
