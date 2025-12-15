@@ -1,0 +1,20 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Tracks -->
+  <rect x="4" y="8" width="12" height="48" fill="#333" rx="2" />
+  <rect x="48" y="8" width="12" height="48" fill="#333" rx="2" />
+
+  <!-- Track details -->
+  <path d="M4 14h12M4 20h12M4 26h12M4 32h12M4 38h12M4 44h12M4 50h12" stroke="#555" stroke-width="2"/>
+  <path d="M48 14h12M48 20h12M48 26h12M48 32h12M48 38h12M48 44h12M48 50h12" stroke="#555" stroke-width="2"/>
+
+  <!-- Main Body -->
+  <rect x="14" y="12" width="36" height="40" fill="#F4A460" stroke="#8B4513" stroke-width="2" rx="2"/>
+
+  <!-- Cabin -->
+  <rect x="20" y="24" width="24" height="20" fill="#87CEEB" stroke="#333" stroke-width="2" rx="2"/>
+
+  <!-- Blade (Front) -->
+  <path d="M10 4 L54 4 L54 10 L10 10 Z" fill="#DAA520" stroke="#8B4513" stroke-width="2"/>
+  <path d="M10 10 L14 12" stroke="#8B4513" stroke-width="2"/>
+  <path d="M54 10 L50 12" stroke="#8B4513" stroke-width="2"/>
+</svg>
