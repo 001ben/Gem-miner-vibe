@@ -8,6 +8,7 @@
     "playwright": "^1.57.0"
   },
   "scripts": {
-    "build:assets": "node scripts/build-assets.js"
+    "build:assets": "node scripts/build-assets.js",
+    "build:blender": "node scripts/build-blender-assets.js"
   }
 }
