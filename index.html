@@ -19,7 +19,6 @@
             </div>
             <div style="display: flex; gap: 10px;">
                 <button id="btn-console-toggle" style="pointer-events: auto;">Show Logs</button>
-                <button id="btn-shop-toggle" onclick="toggleShop()">Shop</button>
             </div>
         </div>
 
@@ -34,27 +33,7 @@
             </div>
         </div>
 
-        <!-- Shop Modal -->
-        <div id="shop-modal" class="hidden">
-            <div class="shop-content">
-                <h2>Upgrades</h2>
-                <button id="btn-close-shop" onclick="toggleShop()">X</button>
-                <div class="shop-items">
-                    <button id="btn-upgrade-dozer" onclick="upgradeDozer()">
-                        Upgrade Body ($<span id="cost-dozer">100</span>)
-                    </button>
-                    <button id="btn-upgrade-plow" onclick="upgradePlow()">
-                        Upgrade Plow ($<span id="cost-plow">100</span>)
-                    </button>
-                    <button id="btn-upgrade-collector" onclick="upgradeCollector()">
-                        Upgrade Collector ($<span id="cost-collector">150</span>)
-                    </button>
-                    <button id="btn-unlock-area" onclick="unlockArea()">
-                        Unlock Area ($<span id="cost-area">500</span>)
-                    </button>
-                </div>
-            </div>
-        </div>
+        <!-- Shop is now physical pads on the ground -->
 
         <!-- Hint for controls -->
         <div id="controls-hint">

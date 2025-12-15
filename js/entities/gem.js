@@ -1,6 +1,6 @@
 import { state, costs } from '../state.js';
 import { Bodies, Composite, Body, world, CATEGORIES } from '../physics.js';
-import { removeBodyMesh, spawnParticles } from '../graphics.js';
+import { removeBodyMesh, spawnParticles, spawnCoinDrop } from '../graphics.js';
 import { updateUI, showNotification } from '../ui.js';
 import { createMap } from './map.js';
 
@@ -47,8 +47,8 @@ function spawnZoneGems(zoneId, count, xMin, xMax, yMin, yMax, valMin, valMax, co
             label: 'gem',
             collisionFilter: {
                 category: CATEGORIES.GEM,
-                // Collides with everything: Default, Dozer, Gem, Conveyor, Wall
-                mask: CATEGORIES.DEFAULT | CATEGORIES.DOZER | CATEGORIES.GEM | CATEGORIES.CONVEYOR | CATEGORIES.WALL
+                // Collides with everything: Default, Dozer, Gem, Conveyor, Wall, Shop Barrier
+                mask: CATEGORIES.DEFAULT | CATEGORIES.DOZER | CATEGORIES.GEM | CATEGORIES.CONVEYOR | CATEGORIES.WALL | CATEGORIES.SHOP_BARRIER
             }
         });
 
@@ -79,6 +79,9 @@ export function collectGem(gem) {
     // Spawn particles
     spawnParticles({x: gem.position.x, y: gem.position.y}, gem.renderColor);
 
+    // Spawn flying coin visual from gem position
+    spawnCoinDrop(gem.value, gem.position);
+
     // Explicitly remove mesh to ensure visual update happens immediately
     removeBodyMesh(gem.id);
 
@@ -101,14 +104,6 @@ function checkZoneUnlock(zoneId) {
         if (state.areaLevel === zoneId) {
             // If we are at max area (3), do not increment further.
             if (state.areaLevel >= 3) {
-                 // Maybe show final victory message if this was the last trigger?
-                 // But we don't want to spam it.
-                 // Only show if we just crossed the threshold.
-                 // We can use a flag or just check if we haven't shown it.
-                 if (!state.victoryShown) {
-                     state.victoryShown = true;
-                     showNotification("Congrats! You are the mightiest Gem Lord!");
-                 }
                  return;
             }
 
@@ -122,5 +117,15 @@ function checkZoneUnlock(zoneId) {
              createMap(); // Removes gate
              showNotification(`Area ${state.areaLevel} Unlocked!`);
         }
+    }
+
+    // Check for Victory (Global gem count)
+    // We check if there are ANY gems left in the world.
+    const remainingGems = Composite.allBodies(world).filter(b => b.label === 'gem').length;
+    if (remainingGems === 0) {
+         if (!state.victoryShown) {
+             state.victoryShown = true;
+             showNotification("Congrats! You are the mightiest Gem Lord!");
+         }
     }
 }

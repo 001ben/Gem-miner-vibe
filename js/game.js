@@ -1,10 +1,11 @@
 import { engine, runner, Runner, Events, Body, Matter } from './physics.js';
-import { initThree, updateGraphics, scene, camera, renderer } from './graphics.js';
+import { initThree, updateGraphics, scene, camera, renderer, bodyMeshMap } from './graphics.js';
 import { createMap } from './entities/map.js';
 import { createBulldozer, getBulldozer, enforceBulldozerRigidity } from './entities/bulldozer.js';
 import { createCollector } from './entities/collector.js';
 import { initGems, collectGem } from './entities/gem.js';
 import { updateUI, setupShop, showNotification } from './ui.js';
+import { createShopPads, checkShopCollisions } from './entities/shop.js';
 import { initInput } from './input.js';
 import { initConsole } from './console.js';
 // Expose updateUI and showNotification
@@ -17,6 +18,7 @@ initConsole();
 // Force dozer rigidity before physics update
 Events.on(engine, 'beforeUpdate', () => {
     enforceBulldozerRigidity();
+    checkShopCollisions(getBulldozer());
 });
 
 // Conveyor belt logic
@@ -128,9 +130,10 @@ initThree();
 createMap();
 createBulldozer();
 createCollector();
+createShopPads(); // Shop Pads
 initGems();
 
-setupShop(); // Expose global functions
+setupShop(); // Expose global functions (though we removed buttons, we might still want setupShop for version?)
 updateUI();
 initInput(); // Start input listener loop
 window.state = state; // Expose state
@@ -143,6 +146,7 @@ function animate() {
     updateGraphics(dozer);
     window.bulldozer = dozer; // Expose for debugging/verification
     window.camera = camera; // Expose camera for verification
+    window.bodyMeshMap = bodyMeshMap; // Expose mesh map for verification
 }
 animate();
 
