@@ -3,49 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gem Miner Bulldozer</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Asset Viewer</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #8899aa; }
+        canvas { display: block; }
+    </style>
+    <!-- Import Map to resolve 'three' -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./node_modules/three/build/three.module.js",
+                "three/examples/jsm/": "./node_modules/three/examples/jsm/"
+            }
+        }
+    </script>
 </head>
 <body>
-    <div id="game-ui">
-        <div id="top-bar">
-            <div id="stats">
-                <div>Money: $<span id="money">0</span></div>
-                <div id="stats-speed" style="font-size: 0.8rem; color: #aaa;">Speed: 100%</div>
-                <div id="stats-power" style="font-size: 0.8rem; color: #aaa;">Power: 100%</div>
-                <div id="game-version" style="font-size: 0.6rem; color: #666; margin-top: 2px;">
-                    v1.0.0 <span id="build-timestamp">2025-12-15 02:58</span>
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="btn-console-toggle" style="pointer-events: auto;">Show Logs</button>
-            </div>
-        </div>
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-        <div id="debug-console" class="minimized">
-            <div id="console-logs"></div>
-        </div>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x8899aa);
 
-        <!-- Joystick -->
-        <div id="joystick-zone">
-            <div id="joystick-base">
-                <div id="joystick-knob"></div>
-            </div>
-        </div>
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 30, 30);
+        camera.lookAt(0, 0, 0);
 
-        <!-- Shop is now physical pads on the ground -->
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-        <!-- Hint for controls -->
-        <div id="controls-hint">
-            Use Arrow Keys / WASD to Drive<br>
-            Swipe/Drag on screen to steer
-        </div>
-        <div id="notification-area"></div>
-    </div>
-    <div id="game-container"></div>
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script type="module" src="js/game.js"></script>
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(50, 100, 50);
+        scene.add(dirLight);
+
+        const loader = new GLTFLoader();
+        let loadedModel = null;
+
+        const params = new URLSearchParams(window.location.search);
+        // Default to bulldozer if no asset specified
+        const asset = params.get('asset') || 'bulldozer.glb';
+
+        if (asset) {
+            // Load from correct path relative to this file
+            // We assume assets are in ./public/assets/ relative to this file in the deployed structure
+            loader.load(`public/assets/${asset}`, (gltf) => {
+                const mesh = gltf.scene;
+                loadedModel = mesh;
+                scene.add(mesh);
+
+                // Scale it up if it's too small, or center it
+                const box = new THREE.Box3().setFromObject(mesh);
+                const size = box.getSize(new THREE.Vector3());
+                const center = box.getCenter(new THREE.Vector3());
+
+                mesh.position.sub(center); // Center at 0,0,0
+
+                // Add a simple material if it's missing or looks plain
+                mesh.traverse((child) => {
+                    if (child.isMesh) {
+                         // Keep original material if it exists, otherwise add one
+                         if (!child.material) {
+                            child.material = new THREE.MeshStandardMaterial({ color: 0xffaa00 });
+                         }
+                    }
+                });
+
+                console.log("Model loaded");
+
+            }, undefined, (error) => {
+                console.error("Error loading model:", error);
+            });
+        }
+
+        window.setAngle = (angleDegrees) => {
+            if (loadedModel) {
+                loadedModel.rotation.y = angleDegrees * Math.PI / 180;
+            }
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
 </body>
 </html>
