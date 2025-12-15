@@ -9,6 +9,9 @@ const tracks = [];
 let trackTexture;
 let lastDozerPos = null;
 let coinPileGroup = null;
+let gemInstancedMesh;
+const dummy = new THREE.Object3D();
+const MAX_GEMS = 2000;
 
 // Bank Area Configuration
 const BANK_POS = { x: 400, y: 400 }; // Moved away from wall (Collector is at 0, 400)
@@ -63,6 +66,21 @@ export function initThree() {
 
     createTrackTexture();
     createCoinPile();
+
+    // Gem Instanced Mesh
+    const gemGeo = new THREE.IcosahedronGeometry(1, 0);
+    const gemMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.1,
+        metalness: 0.5,
+        emissive: 0x222222, // Slight neutral glow
+        emissiveIntensity: 0.4
+    });
+    gemInstancedMesh = new THREE.InstancedMesh(gemGeo, gemMat, MAX_GEMS);
+    gemInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    gemInstancedMesh.castShadow = true;
+    gemInstancedMesh.receiveShadow = true;
+    scene.add(gemInstancedMesh);
 }
 
 function createCoinPile() {
@@ -707,9 +725,31 @@ export function updateGraphics(bulldozer) {
     const activeIds = new Set();
     const shopPads = getShopPads();
 
+    let gemIndex = 0;
+
     bodies.forEach(body => {
         const parts = (body.parts && body.parts.length > 1) ? body.parts.slice(1) : [body];
         parts.forEach(part => {
+             if (part.label === 'gem') {
+                 if (gemIndex < MAX_GEMS) {
+                     dummy.position.set(part.position.x, 0, part.position.y);
+                     // Adjust Y to sit on ground: radius is scale
+                     // part.circleRadius is the radius.
+                     const r = part.circleRadius || 10;
+                     dummy.position.y = r;
+
+                     dummy.rotation.set(0, -part.angle, 0);
+
+                     dummy.scale.setScalar(r);
+                     dummy.updateMatrix();
+
+                     gemInstancedMesh.setMatrixAt(gemIndex, dummy.matrix);
+                     gemInstancedMesh.setColorAt(gemIndex, new THREE.Color(part.renderColor || 0xffffff));
+                     gemIndex++;
+                 }
+                 return;
+             }
+
              activeIds.add(part.id);
              let mesh = bodyMeshMap.get(part.id);
              if (!mesh) {
@@ -805,5 +845,12 @@ export function updateGraphics(bulldozer) {
 
     updateCoinPile();
     updateParticles();
+
+    gemInstancedMesh.count = gemIndex;
+    if (gemInstancedMesh.count > 0) {
+        gemInstancedMesh.instanceMatrix.needsUpdate = true;
+        gemInstancedMesh.instanceColor.needsUpdate = true;
+    }
+
     renderer.render(scene, camera);
 }
