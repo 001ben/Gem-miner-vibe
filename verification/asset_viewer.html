@@ -69,6 +69,9 @@
     <div id="ui-layer">
         <div id="controls">
             <button id="toggle-console">Show Logs</button>
+            <div style="margin-top: 10px; color: white; background: rgba(0,0,0,0.5); padding: 5px;">
+                Touch/Drag to Rotate • Scroll/Pinch to Zoom
+            </div>
         </div>
         <div id="console-container"></div>
     </div>
@@ -119,7 +122,7 @@
             return false;
         };
 
-        // Capture resource loading errors (which don't bubble, so use capture phase)
+        // Capture resource loading errors
         window.addEventListener('error', (event) => {
             if (event.target && (event.target.tagName === 'SCRIPT' || event.target.tagName === 'IMG' || event.target.tagName === 'LINK')) {
                 const url = event.target.src || event.target.href;
@@ -138,6 +141,7 @@
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
         console.log("Three.js imported successfully.");
 
@@ -145,8 +149,7 @@
         scene.background = new THREE.Color(0x8899aa);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 30, 30);
-        camera.lookAt(0, 0, 0);
+        camera.position.set(20, 20, 20); // Better perspective
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -156,6 +159,11 @@
         renderer.domElement.style.position = 'absolute';
         renderer.domElement.style.top = '0';
         renderer.domElement.style.zIndex = '-1';
+
+        // Add Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
@@ -194,22 +202,30 @@
 
                 mesh.position.sub(center); // Center at 0,0,0
 
-                // Add a simple material if it's missing or looks plain
+                controls.target.set(0, 0, 0);
+                controls.update();
+
+                // Apply Colors
+                let color = 0xCCCCCC; // Default Grey
+                if (asset.includes('bulldozer')) color = 0xFFAA00; // Orange/Yellow
+                if (asset.includes('plow')) color = 0x888888; // Darker Grey
+
+                // Force material
                 mesh.traverse((child) => {
                     if (child.isMesh) {
-                         if (!child.material) {
-                            console.log("Adding default material to mesh.");
-                            child.material = new THREE.MeshStandardMaterial({ color: 0xffaa00 });
-                         }
+                        console.log(`Applying color ${color.toString(16)} to mesh`);
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: color,
+                            roughness: 0.7,
+                            metalness: 0.3
+                        });
                     }
                 });
 
             }, (xhr) => {
                 // Progress
-                // console.log((xhr.loaded / xhr.total * 100) + '% loaded');
             }, (error) => {
                 console.error("Error loading model:", error);
-                // Try to dump more info
                 if (error.target && error.target.status) {
                     console.error(`HTTP Status: ${error.target.status} ${error.target.statusText}`);
                 }
@@ -224,6 +240,7 @@
 
         function animate() {
             requestAnimationFrame(animate);
+            controls.update();
             renderer.render(scene, camera);
         }
         animate();
