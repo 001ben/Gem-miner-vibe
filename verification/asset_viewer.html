@@ -12,8 +12,8 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "../node_modules/three/build/three.module.js",
-                "three/examples/jsm/": "../node_modules/three/examples/jsm/"
+                "three": "./node_modules/three/build/three.module.js",
+                "three/examples/jsm/": "./node_modules/three/examples/jsm/"
             }
         }
     </script>
@@ -45,11 +45,13 @@
         let loadedModel = null;
 
         const params = new URLSearchParams(window.location.search);
-        const asset = params.get('asset'); // e.g. 'bulldozer.glb'
+        // Default to bulldozer if no asset specified
+        const asset = params.get('asset') || 'bulldozer.glb';
 
         if (asset) {
             // Load from correct path relative to this file
-            loader.load(`../public/assets/${asset}`, (gltf) => {
+            // We assume assets are in ./public/assets/ relative to this file in the deployed structure
+            loader.load(`public/assets/${asset}`, (gltf) => {
                 const mesh = gltf.scene;
                 loadedModel = mesh;
                 scene.add(mesh);
