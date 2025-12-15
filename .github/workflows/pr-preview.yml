@@ -50,7 +50,7 @@ jobs:
           # Copy dependencies for the viewer
           mkdir -p dist/node_modules/three/build
           mkdir -p dist/node_modules/three/examples/jsm
-          cp node_modules/three/build/three.module.js dist/node_modules/three/build/
+          cp node_modules/three/build/* dist/node_modules/three/build/
           cp -r node_modules/three/examples/jsm/* dist/node_modules/three/examples/jsm/
           touch dist/.nojekyll
 

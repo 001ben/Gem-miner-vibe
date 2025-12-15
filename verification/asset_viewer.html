@@ -119,6 +119,14 @@
             return false;
         };
 
+        // Capture resource loading errors (which don't bubble, so use capture phase)
+        window.addEventListener('error', (event) => {
+            if (event.target && (event.target.tagName === 'SCRIPT' || event.target.tagName === 'IMG' || event.target.tagName === 'LINK')) {
+                const url = event.target.src || event.target.href;
+                console.error(`Failed to load resource: ${url}`);
+            }
+        }, true);
+
         // Catch unhandled promise rejections
         window.addEventListener('unhandledrejection', event => {
             console.error('Unhandled Rejection: ' + event.reason);
