@@ -201,33 +201,31 @@ export function createMesh(body) {
         mesh.position.y = 7.5;
 
         if (state.plowLevel >= 6) {
-            // Add visual wings (Fixed positioning)
-            // Left Wing (Negative X)
-            // Should be attached at the edge (-w/2).
-            // Angled 45 deg outwards.
-            // Adjust X to be slightly outside, Z to be slightly forward.
-            // Local axes: X is width, Z is height (since we mapped Y->Z).
-            // Actually, in `createMesh` we mapped physics W -> Three X, H -> Three Z.
-            // Physics H (Height) is along Z.
-            // The plow faces "up" or "down" in local?
-            // Usually Plow width is X.
-            // Wings should be at +/- X.
+            // Add visual wings attached at the edges to create a funnel
+            // Wing dimensions: 20 width extension, same height (20), same depth (h)
 
-            const wingGeo = new THREE.BoxGeometry(20, 20, h);
+            // Left Wing: Attached to left edge (-w/2)
+            // Pivot logic: Translate geometry so its right face (X=10 if width=20, so shift -10) is at origin
+            const leftWingGeo = new THREE.BoxGeometry(20, 20, h);
+            leftWingGeo.translate(-10, 0, 0);
 
-            // Left Wing
-            const leftWing = new THREE.Mesh(wingGeo, mat);
-            // Move it to the left edge (-w/2).
-            // Move slightly forward (Z?) or backward?
-            // Let's try aligning it better.
-            leftWing.position.set(-w/2 - 5, 0, 10);
-            leftWing.rotation.y = -Math.PI / 6; // Angle out
+            const leftWing = new THREE.Mesh(leftWingGeo, mat);
+            leftWing.position.set(-w/2, 0, 0); // Attach at left edge
+            // Rotate so it points forward (-Z) and left (-X).
+            // Initial (-X). Rotate -45deg (Right Hand Rule: Y axis up)
+            leftWing.rotation.y = -Math.PI / 4;
             mesh.add(leftWing);
 
-            // Right Wing
-            const rightWing = new THREE.Mesh(wingGeo, mat);
-            rightWing.position.set(w/2 + 5, 0, 10);
-            rightWing.rotation.y = Math.PI / 6; // Angle out
+            // Right Wing: Attached to right edge (w/2)
+            // Pivot logic: Translate geometry so its left face (X=-10) is at origin
+            const rightWingGeo = new THREE.BoxGeometry(20, 20, h);
+            rightWingGeo.translate(10, 0, 0);
+
+            const rightWing = new THREE.Mesh(rightWingGeo, mat);
+            rightWing.position.set(w/2, 0, 0); // Attach at right edge
+            // Rotate so it points forward (-Z) and right (+X).
+            // Initial (+X). Rotate +45deg.
+            rightWing.rotation.y = Math.PI / 4;
             mesh.add(rightWing);
         }
     } else if (label === 'gem') {
