@@ -9,53 +9,56 @@ Our "Programmer CAD" pipeline currently operates as follows:
 3.  **Conversion:** A custom script (`stl2obj.js`) converts STL to OBJ.
 4.  **Packaging:** `obj2gltf` converts OBJ to binary GLTF (`.glb`).
 
-## The Color/Material Challenge
+## Implemented Strategy: Component-Based Assembly
 
-Currently, all assets appear as a single solid color (or are manually colored as a single unit in the viewer). This is due to fundamental limitations in the current format chain:
-
-1.  **STL Limitations:** The STL format (Stereolithography) describes only the surface geometry of a three-dimensional object without any representation of color, texture, or other common CAD model attributes. When OpenSCAD exports to STL, all color information defined in the code (e.g., `color("red") cube(...)`) is discarded.
-2.  **Monolithic Meshes:** The resulting GLB file contains a single mesh primitive. In Three.js (and most engines), a single mesh with a single material index can typically only support one material. To have a "yellow body" and "grey tracks", the geometry needs to be separated or support multiple material indices.
-
-## Future Strategies for Materials
-
-To evolve the pipeline to support multi-colored assets (e.g., a yellow bulldozer with grey tracks and blue windows), we recommend the following approaches:
-
-### 1. Component-Based Assembly (Recommended)
-
-Instead of exporting the entire object as one file, we split the OpenSCAD design into logical components.
+To solve the "monolithic mesh" color limitation of STL, we have adopted a **Component-Based Assembly** strategy.
 
 *   **Workflow:**
-    *   `bulldozer_body.scad` -> `bulldozer_body.glb`
-    *   `bulldozer_tracks.scad` -> `bulldozer_tracks.glb`
-    *   `bulldozer_cabin.scad` -> `bulldozer_cabin.glb`
-*   **Implementation:**
-    *   The game code loads these separate assets and groups them into a single `THREE.Group`.
-    *   **Pros:** Flexible, allows easily swapping materials (e.g., "Upgrade Tracks" changes just the track material), simple pipeline changes.
-    *   **Cons:** More files to manage, requires game code to assemble the parts.
+    *   Instead of one `bulldozer.scad`, we maintain separate source files:
+        *   `bulldozer_body.scad`
+        *   `bulldozer_tracks.scad`
+        *   `bulldozer_cabin.scad`
+    *   The build pipeline (`npm run build:assets`) compiles these individually into `.glb` files.
+*   **Runtime Assembly:**
+    *   The game engine (Three.js) loads these separate assets.
+    *   They are added to a single `THREE.Group` container.
+    *   **Colors/Materials:** Because each part is a distinct mesh, we can assign different materials to them programmatically (e.g., `bodyMesh.material = yellowMaterial`, `tracksMesh.material = darkMaterial`).
 
-### 2. Format Switching (3MF / PLY)
+## Future Roadmap: Advanced Visuals & Best Practices
 
-We could investigate formats that support color.
+As we look to move beyond simple solid colors, here are the challenges and best practices for a "Programmer CAD" (Code-first) workflow vs. a traditional Artist workflow.
 
-*   **3MF (3D Manufacturing Format):** OpenSCAD supports 3MF export, which retains color information.
-    *   *Challenge:* We would need a tool to convert 3MF to GLTF. Finding a reliable command-line CLI for this in a Node.js environment is harder than the well-trodden OBJ path.
-*   **PLY / OFF:** Some formats support vertex colors. If we can export to a format with vertex colors and convert that to GLTF, we get colored models.
-    *   *Challenge:* Vertex colors are "baked in" and harder to change dynamically (e.g., changing team color) compared to swapping a material on a sub-mesh.
+### 1. Textures & Surface Detail
 
-### 3. Material Indexing (Sub-meshes)
+**The Challenge:**
+Standard 3D texturing relies on **UV Mapping**—unwrapping a 3D object onto a 2D plane so an image can be painted on it. OpenSCAD / CSG (Constructive Solid Geometry) tools do *not* generate UV maps automatically, and "unwrapping" a procedurally generated mesh manually defeats the purpose of an automated pipeline.
 
-We could modify the pipeline to process multiple STLs into a single GLB with multiple primitives.
+**Best Practice for Programmer CAD:**
+*   **Triplanar Mapping:** Instead of using UVs, use a special shader (or Three.js node material) that projects textures onto the object from the Top, Front, and Side (X, Y, Z axes). This allows you to apply "Dirt", "Rust", or "Scratches" textures to any shape without manual work.
+*   **Matcaps (Material Capture):** Use `THREE.MeshMatcapMaterial`. This uses a spherical reference image to fake complex lighting and reflection (e.g., chrome, shiny car paint) cheaply. It looks great and requires no UVs.
+*   **Decals:** For specific details (like a "Hazard Stripe" or a Logo), use a separate floating mesh or a "Decal" geometry placed slightly above the surface, rather than trying to texture the main body.
 
-*   **Workflow:**
-    *   Export `body.stl` and `tracks.stl`.
-    *   Use a script (e.g., using `gltf-pipeline` or custom Three.js script) to merge them into one `.glb` file but keep them as separate primitives (or use material groups).
-*   **Pros:** Single file to load (`bulldozer.glb`).
-*   **Cons:** Complex build script.
+### 2. Animations
 
-## Recommendation
+**The Challenge:**
+Traditional game assets use "Skinned Meshes" (bones/skeletons) to deform geometry (e.g., a character bending their arm). OpenSCAD exports static rigid meshes. We cannot easily add "bones" to an STL file in this pipeline.
 
-For our current stack, **Component-Based Assembly (#1)** is the most robust path. It aligns with the "Programmer CAD" philosophy:
+**Best Practice for Programmer CAD:**
+*   **Hierarchical / Rigid Body Animation:** This is what we already support with the Component-Based Assembly.
+    *   *Example:* To animate the plow moving up and down, we do not bend the metal. We verify the `plow.glb` is its own object, and in the game code, we change its `position.y` or `rotation.x`.
+    *   *Example:* To animate tracks, we don't deform the rubber. We scroll the texture on the tracks (UV offset animation) or rotate the wheels if they are separate parts.
+*   **Code-Driven Motion:** All animation should be driven by game state (physics, input), not pre-baked animation clips (like an `.fbx` file might have). This gives the "programmer" ultimate control.
 
-1.  Define a "Master" SCAD file that imports parts for previewing.
-2.  The build script is updated to generate assets for each *part*.
-3.  The game entities attach specific materials to specific parts programmatically (e.g., `this.tracksMesh.material = materials.greyMetal`).
+### Summary of "Programmer Art" Stack
+
+| Feature | Traditional Workflow (Blender/Maya) | Our Workflow (OpenSCAD/Three.js) |
+| :--- | :--- | :--- |
+| **Geometry** | Hand-modeled polygons | Code-defined primitives (CSG) |
+| **Colors** | Texture Maps / Vertex Paint | Separate Parts / Runtime Materials |
+| **Textures** | Manual UV Unwrapping | Triplanar Mapping / Matcaps |
+| **Animation** | Skeletal Rigging / Keyframes | Hierarchical Code Manipulation |
+
+**Next Steps Recommendation:**
+1.  Stick to solid colors for now to keep the style clean (e.g., "Low Poly" aesthetic).
+2.  If detail is needed, explore **Triplanar Mapping** shaders to add noise/grit without needing asset changes.
+3.  For the plow animation, ensure the plow is a separate asset from the body so it can be moved independently in code.
