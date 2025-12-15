@@ -196,6 +196,9 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        // Enable shadows
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
         renderer.domElement.style.position = 'absolute';
@@ -206,17 +209,23 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
         dirLight.position.set(50, 100, 50);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
         scene.add(dirLight);
 
         // --- Asset Management ---
         const loader = new GLTFLoader();
         let currentModelGroup = new THREE.Group();
         scene.add(currentModelGroup);
+
+        // Track animated materials
+        const animatedMaterials = [];
 
         const ASSETS = [
             { id: 'bulldozer_composite', label: 'Bulldozer (Assembled)' },
@@ -234,28 +243,175 @@
             tile.className = 'asset-tile';
             tile.textContent = asset.label;
             tile.onclick = () => loadAsset(asset.id);
-            // Highlight current
             if (window.location.search.includes(asset.id)) {
                 tile.classList.add('active');
             }
             topBar.appendChild(tile);
         });
 
-        const loadPart = (filename, color, name) => {
+        // --- Procedural Textures ---
+        function createProceduralTexture(type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            if (type === 'tracks') {
+                // Tread pattern
+                ctx.fillStyle = '#111';
+                ctx.fillRect(0, 0, 512, 512);
+                ctx.fillStyle = '#333';
+                // Draw Chevrons
+                const barHeight = 64;
+                for(let y=0; y<512; y+=barHeight) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(256, y + 32);
+                    ctx.lineTo(512, y);
+                    ctx.lineTo(512, y + 20);
+                    ctx.lineTo(256, y + 52);
+                    ctx.lineTo(0, y + 20);
+                    ctx.fill();
+                }
+            } else if (type === 'body') {
+                // Metal Scratches/Noise
+                ctx.fillStyle = '#FFAA00'; // Base Yellow
+                ctx.fillRect(0, 0, 512, 512);
+
+                // Add Noise
+                for(let i=0; i<5000; i++) {
+                    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+                    const x = Math.random() * 512;
+                    const y = Math.random() * 512;
+                    const w = Math.random() * 10 + 1;
+                    const h = Math.random() * 2 + 1;
+                    ctx.fillRect(x, y, w, h);
+                }
+
+                // Rust spots
+                for(let i=0; i<20; i++) {
+                     ctx.fillStyle = 'rgba(100, 50, 0, 0.2)';
+                     const x = Math.random() * 512;
+                     const y = Math.random() * 512;
+                     const r = Math.random() * 50 + 10;
+                     ctx.beginPath();
+                     ctx.arc(x, y, r, 0, Math.PI*2);
+                     ctx.fill();
+                }
+            } else if (type === 'cabin') {
+                // Grey Metal
+                ctx.fillStyle = '#888899';
+                ctx.fillRect(0, 0, 512, 512);
+                // Bolts/Rivets
+                 ctx.fillStyle = '#555';
+                 for(let x=20; x<512; x+=100) {
+                     for(let y=20; y<512; y+=100) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, 5, 0, Math.PI*2);
+                        ctx.fill();
+                     }
+                 }
+            }
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        }
+
+        // --- Triplanar Shader Logic ---
+        function enhanceMaterialWithTriplanar(material, isScrolling) {
+            material.onBeforeCompile = (shader) => {
+                shader.uniforms.uTime = { value: 0 };
+                shader.uniforms.uScale = { value: 0.1 }; // Texture scale
+
+                if (isScrolling) {
+                    animatedMaterials.push(shader.uniforms);
+                }
+
+                // Vertex Shader: Pass world position and normal
+                shader.vertexShader = shader.vertexShader.replace(
+                    '#include <common>',
+                    `
+                    #include <common>
+                    varying vec3 vWorldPosition;
+                    varying vec3 vWorldNormal;
+                    `
+                );
+                shader.vertexShader = shader.vertexShader.replace(
+                    '#include <worldpos_vertex>',
+                    `
+                    #include <worldpos_vertex>
+                    vWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
+                    vWorldNormal = normalize(mat3(modelMatrix) * normal);
+                    `
+                );
+
+                // Fragment Shader: Triplanar Mapping
+                shader.fragmentShader = shader.fragmentShader.replace(
+                    '#include <common>',
+                    `
+                    #include <common>
+                    varying vec3 vWorldPosition;
+                    varying vec3 vWorldNormal;
+                    uniform float uTime;
+                    uniform float uScale;
+                    `
+                );
+
+                // Replace the map fragment with triplanar logic
+                // Note: standard materials use 'map' for color. We override how it's sampled.
+                const triplanarLogic = `
+                    vec3 blending = abs(vWorldNormal);
+                    blending = normalize(max(blending, 0.00001)); // Avoid div by zero
+                    float b = (blending.x + blending.y + blending.z);
+                    blending /= b;
+
+                    vec3 coord = vWorldPosition * uScale;
+
+                    // Scrolling logic: Shift texture coords on X/Z axes based on Time
+                    // We scroll 'forward' relative to the object.
+                    // For tracks, scrolling along Y in texture space usually implies movement.
+                    // We simply offset the coordinate.
+                    float scroll = ${isScrolling ? 'uTime * 2.0' : '0.0'};
+
+                    vec4 xaxis = texture2D(map, coord.yz + vec2(0.0, scroll));
+                    vec4 yaxis = texture2D(map, coord.xz + vec2(0.0, scroll));
+                    vec4 zaxis = texture2D(map, coord.xy + vec2(0.0, scroll));
+
+                    vec4 texColor = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
+
+                    diffuseColor *= texColor;
+                `;
+
+                shader.fragmentShader = shader.fragmentShader.replace(
+                    '#include <map_fragment>',
+                    triplanarLogic
+                );
+            };
+        }
+
+
+        const loadPart = (filename, textureType, name, isScrolling) => {
             return new Promise((resolve, reject) => {
                 const path = `public/assets/${filename}`;
                 console.log(`Loading part: ${name} from ${path}`);
 
                 loader.load(path, (gltf) => {
                     const mesh = gltf.scene;
+                    const texture = createProceduralTexture(textureType);
 
                     mesh.traverse((child) => {
                         if (child.isMesh) {
-                            child.material = new THREE.MeshStandardMaterial({
-                                color: color,
-                                roughness: 0.7,
-                                metalness: 0.3
+                            const mat = new THREE.MeshStandardMaterial({
+                                map: texture,
+                                roughness: 0.8,
+                                metalness: 0.2
                             });
+
+                            enhanceMaterialWithTriplanar(mat, isScrolling);
+
+                            child.material = mat;
                             child.castShadow = true;
                             child.receiveShadow = true;
                         }
@@ -274,24 +430,24 @@
         window.loadAsset = function(assetName) {
             console.log(`Loading asset: ${assetName}`);
 
-            // Update UI state
             document.querySelectorAll('.asset-tile').forEach(t => t.classList.remove('active'));
             const activeTile = Array.from(document.querySelectorAll('.asset-tile'))
                 .find(t => t.textContent.includes(ASSETS.find(a => a.id === assetName)?.label));
             if (activeTile) activeTile.classList.add('active');
 
-            // Clear previous model
             while(currentModelGroup.children.length > 0){
                 currentModelGroup.remove(currentModelGroup.children[0]);
             }
+            // Clear animated materials
+            animatedMaterials.length = 0;
             currentModelGroup.position.set(0,0,0);
             currentModelGroup.rotation.set(0,0,0);
 
             if (assetName === 'bulldozer_composite') {
                 Promise.all([
-                    loadPart('bulldozer_body.glb', 0xFFAA00, 'Body'),
-                    loadPart('bulldozer_tracks.glb', 0x222222, 'Tracks'),
-                    loadPart('bulldozer_cabin.glb', 0x888899, 'Cabin')
+                    loadPart('bulldozer_body.glb', 'body', 'Body', false),
+                    loadPart('bulldozer_tracks.glb', 'tracks', 'Tracks', true),
+                    loadPart('bulldozer_cabin.glb', 'cabin', 'Cabin', false)
                 ]).then(() => {
                     const box = new THREE.Box3().setFromObject(currentModelGroup);
                     const center = box.getCenter(new THREE.Vector3());
@@ -304,19 +460,24 @@
                     const mesh = gltf.scene;
                     currentModelGroup.add(mesh);
 
-                    let color = 0xCCCCCC;
-                    if (assetName.includes('plow')) color = 0x888888;
-                    if (assetName.includes('body')) color = 0xFFAA00;
-                    if (assetName.includes('tracks')) color = 0x222222;
-                    if (assetName.includes('cabin')) color = 0x888899;
+                    let texType = 'body';
+                    let scrolling = false;
+                    if (assetName.includes('tracks')) { texType = 'tracks'; scrolling = true; }
+                    if (assetName.includes('cabin')) texType = 'cabin';
+
+                    const texture = createProceduralTexture(texType);
 
                      mesh.traverse((child) => {
                         if (child.isMesh) {
-                            child.material = new THREE.MeshStandardMaterial({
-                                color: color,
-                                roughness: 0.7,
-                                metalness: 0.3
+                            const mat = new THREE.MeshStandardMaterial({
+                                map: texture,
+                                roughness: 0.8,
+                                metalness: 0.2
                             });
+                            enhanceMaterialWithTriplanar(mat, scrolling);
+                            child.material = mat;
+                            child.castShadow = true;
+                            child.receiveShadow = true;
                         }
                     });
 
@@ -334,13 +495,21 @@
         const initAsset = params.get('asset') || 'bulldozer_composite';
         loadAsset(initAsset);
 
-        // For screenshot script
         window.setAngle = (angleDegrees) => {
              currentModelGroup.rotation.y = angleDegrees * Math.PI / 180;
         };
 
+        const clock = new THREE.Clock();
+
         function animate() {
             requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            // Update scrolling textures
+            animatedMaterials.forEach(uniforms => {
+                uniforms.uTime.value += delta;
+            });
+
             controls.update();
             renderer.render(scene, camera);
         }
