@@ -119,8 +119,10 @@ function checkZoneUnlock(zoneId) {
         }
     }
 
-    // Check for Victory (All gems in last zone collected)
-    if (zoneId === 3 && p.collected >= p.total) {
+    // Check for Victory (Global gem count)
+    // We check if there are ANY gems left in the world.
+    const remainingGems = Composite.allBodies(world).filter(b => b.label === 'gem').length;
+    if (remainingGems === 0) {
          if (!state.victoryShown) {
              state.victoryShown = true;
              showNotification("Congrats! You are the mightiest Gem Lord!");

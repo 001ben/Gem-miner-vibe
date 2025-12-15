@@ -201,16 +201,33 @@ export function createMesh(body) {
         mesh.position.y = 7.5;
 
         if (state.plowLevel >= 6) {
-            // Add visual wings
-            const wingGeo = new THREE.BoxGeometry(20, 20, h * 0.8);
+            // Add visual wings (Fixed positioning)
+            // Left Wing (Negative X)
+            // Should be attached at the edge (-w/2).
+            // Angled 45 deg outwards.
+            // Adjust X to be slightly outside, Z to be slightly forward.
+            // Local axes: X is width, Z is height (since we mapped Y->Z).
+            // Actually, in `createMesh` we mapped physics W -> Three X, H -> Three Z.
+            // Physics H (Height) is along Z.
+            // The plow faces "up" or "down" in local?
+            // Usually Plow width is X.
+            // Wings should be at +/- X.
+
+            const wingGeo = new THREE.BoxGeometry(20, 20, h);
+
+            // Left Wing
             const leftWing = new THREE.Mesh(wingGeo, mat);
-            leftWing.position.set(-w/2, 0, 20);
-            leftWing.rotation.y = Math.PI / 4;
+            // Move it to the left edge (-w/2).
+            // Move slightly forward (Z?) or backward?
+            // Let's try aligning it better.
+            leftWing.position.set(-w/2 - 5, 0, 10);
+            leftWing.rotation.y = -Math.PI / 6; // Angle out
             mesh.add(leftWing);
 
+            // Right Wing
             const rightWing = new THREE.Mesh(wingGeo, mat);
-            rightWing.position.set(w/2, 0, 20);
-            rightWing.rotation.y = -Math.PI / 4;
+            rightWing.position.set(w/2 + 5, 0, 10);
+            rightWing.rotation.y = Math.PI / 6; // Angle out
             mesh.add(rightWing);
         }
     } else if (label === 'gem') {
