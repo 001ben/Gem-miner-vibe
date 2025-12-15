@@ -1,5 +1,5 @@
 import { engine, runner, Runner, Events, Body, Matter } from './physics.js';
-import { initThree, updateGraphics, scene, camera, renderer } from './graphics.js';
+import { initThree, updateGraphics, scene, camera, renderer, bodyMeshMap } from './graphics.js';
 import { createMap } from './entities/map.js';
 import { createBulldozer, getBulldozer, enforceBulldozerRigidity } from './entities/bulldozer.js';
 import { createCollector } from './entities/collector.js';
@@ -146,6 +146,7 @@ function animate() {
     updateGraphics(dozer);
     window.bulldozer = dozer; // Expose for debugging/verification
     window.camera = camera; // Expose camera for verification
+    window.bodyMeshMap = bodyMeshMap; // Expose mesh map for verification
 }
 animate();
 
