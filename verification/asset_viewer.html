@@ -217,6 +217,9 @@
         dirLight.castShadow = true;
         dirLight.shadow.mapSize.width = 1024;
         dirLight.shadow.mapSize.height = 1024;
+        // Fix for Shadow Acne (Striped artifacts)
+        dirLight.shadow.bias = -0.0005;
+        dirLight.shadow.normalBias = 0.05;
         scene.add(dirLight);
 
         // --- Asset Management ---
