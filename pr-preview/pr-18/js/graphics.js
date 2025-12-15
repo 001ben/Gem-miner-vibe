@@ -146,6 +146,70 @@ function createTrackTexture() {
     trackTexture.wrapT = THREE.RepeatWrapping;
 }
 
+/**
+ * Renders a specific model type in isolation for verification/debugging.
+ * Clears the scene and sets up a studio-like environment.
+ */
+export function debugRenderModel(type, level = 1) {
+    // Clear existing scene
+    while(scene.children.length > 0){
+        scene.remove(scene.children[0]);
+    }
+    bodyMeshMap.clear();
+
+    // Reset Camera
+    camera.position.set(0, 200, 200);
+    camera.lookAt(0, 0, 0);
+
+    // Studio Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambient);
+    const spot = new THREE.SpotLight(0xffffff, 1);
+    spot.position.set(100, 200, 100);
+    spot.lookAt(0,0,0);
+    scene.add(spot);
+
+    // Grid helper
+    const grid = new THREE.GridHelper(500, 50, 0x444444, 0x222222);
+    scene.add(grid);
+
+    // Create Dummy Body for visualization
+    let body = {
+        position: { x: 0, y: 0 },
+        angle: 0,
+        vertices: [],
+        label: type,
+        // Mock properties usually provided by Matter.js
+        parts: []
+    };
+
+    // Simulate body dimensions based on type/level
+    let w = 40, h = 40;
+    if (type === 'plow') {
+        w = 50 + (level * 5); // Approximate expansion
+        h = 20;
+        state.plowLevel = level; // Hack state for createMesh check
+    } else if (type === 'chassis') {
+        w = 60; h = 40;
+    }
+
+    // Create vertices for createMesh calculation
+    body.vertices = [
+        { x: -w/2, y: -h/2 },
+        { x: w/2, y: -h/2 },
+        { x: w/2, y: h/2 },
+        { x: -w/2, y: h/2 }
+    ];
+
+    const mesh = createMesh(body);
+    if (mesh) {
+        scene.add(mesh);
+        // Spin it slowly in update loop if we wanted, but static is fine for screenshot
+        mesh.rotation.y = Math.PI; // Face camera?
+    }
+}
+window.debugRenderModel = debugRenderModel;
+
 export function createMesh(body) {
     let mesh;
     const { label } = body;
@@ -201,31 +265,63 @@ export function createMesh(body) {
         mesh.position.y = 7.5;
 
         if (state.plowLevel >= 6) {
-            // Add visual wings attached at the edges to create a funnel
-            // Wing dimensions: 20 width extension, same height (20), same depth (h)
+            // Visual Wings using Cylinder segments for smooth curve
+            // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength)
+            // We want a curved wall extending from the edge.
 
-            // Left Wing: Attached to left edge (-w/2)
-            // Pivot logic: Translate geometry so its right face (X=10 if width=20, so shift -10) is at origin
-            const leftWingGeo = new THREE.BoxGeometry(20, 20, h);
-            leftWingGeo.translate(-10, 0, 0);
+            const r = 30; // Radius of curve
+            const height = 20; // Height of plow
+            const segments = 8; // Smoothness
+            const arc = Math.PI / 3; // 60 degrees curve
 
-            const leftWing = new THREE.Mesh(leftWingGeo, mat);
-            leftWing.position.set(-w/2, 0, 0); // Attach at left edge
-            // Rotate so it points forward (-Z) and left (-X).
-            // Initial (-X). Rotate -45deg (Right Hand Rule: Y axis up)
-            leftWing.rotation.y = -Math.PI / 4;
+            // Left Wing (Curving forward and left)
+            // Center of curvature needs to be offset so the start of the arc matches the plow edge.
+            // If we want it to curve "Forward" (-Z) and "Out" (-X) from the left edge (-w/2).
+            // A cylinder centered at (-w/2 - r, 0, 0) would touch at (-w/2, 0, r) ??
+            // Let's use a Tube segment logic:
+            // Arc starts at angle 0 (Right) and goes to PI/2 (Forward)?
+
+            // Simplified: Cylinder segment starting at angle 0.
+            const wingGeo = new THREE.CylinderGeometry(r, r, height, segments, 1, true, 0, arc);
+            // By default cylinder is vertical (Y axis). We need it vertical relative to ground, which is Y in ThreeJS.
+            // Wait, our physics mapping is: Physics Width -> Three X, Physics Height (Depth) -> Three Z.
+            // The mesh.position.y is vertical.
+            // BoxGeometry(w, 20, h). Height is 20 (Y). Depth is h (Z). Width is w (X).
+
+            // So the cylinder should be standing up (Y axis). Correct.
+            // We need to shift it so the start of the arc aligns with the edge.
+            // Vertices at theta=0 are at (r, y, 0).
+            // We want (r, y, 0) to be at origin (0,0,0) so we can attach it to edge.
+            wingGeo.translate(-r, 0, 0);
+
+            // Left Wing:
+            // Attach to (-w/2, 0, h/2). Wait, front face is at -h/2?
+            // Plow is centered at 0. Extends from -h/2 to h/2 in Z.
+            // Usually "Front" of plow is collision direction.
+            // Let's assume Front is -Z? Or +Z?
+            // If Dozer moves Forward... standard is usually -Z in ThreeJS?
+            // Actually, let's look at rotation. `mesh.rotation.y = -part.angle`.
+            // If angle is 0, facing +X? MatterJS defaults.
+            // Let's assume width is X, depth is Z.
+
+            // Left Wing Mesh
+            const leftWing = new THREE.Mesh(wingGeo, mat);
+            leftWing.position.set(-w/2, 0, h/2); // Attach at left corner
+            // We want it to curve Out (-X) and Forward (+Z or -Z?).
+            // If we rotate it...
+            leftWing.rotation.y = Math.PI; // 180 deg
             mesh.add(leftWing);
 
-            // Right Wing: Attached to right edge (w/2)
-            // Pivot logic: Translate geometry so its left face (X=-10) is at origin
-            const rightWingGeo = new THREE.BoxGeometry(20, 20, h);
-            rightWingGeo.translate(10, 0, 0);
-
-            const rightWing = new THREE.Mesh(rightWingGeo, mat);
-            rightWing.position.set(w/2, 0, 0); // Attach at right edge
-            // Rotate so it points forward (-Z) and right (+X).
-            // Initial (+X). Rotate +45deg.
-            rightWing.rotation.y = Math.PI / 4;
+            // Right Wing Mesh
+            const rightWing = new THREE.Mesh(wingGeo, mat);
+            rightWing.position.set(w/2, 0, h/2);
+            // Curve Out (+X) and Forward.
+            // If geometry starts at (0,0,0) (because of translate -r) and curves towards -Z?
+            // (r*cos(theta) - r).
+            // We need to experiment with rotation to get "Funnel" shape.
+            // Let's rotate -90 (-PI/2) + arc?
+            rightWing.rotation.y = -Math.PI / 3;
+            // This is hard to visualize mentally, but Cylinder segments are cleaner than boxes.
             mesh.add(rightWing);
         }
     } else if (label === 'gem') {
