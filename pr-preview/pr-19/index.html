@@ -228,11 +228,11 @@
         const animatedMaterials = [];
 
         const ASSETS = [
-            { id: 'bulldozer_composite', label: 'Bulldozer (Assembled)' },
+            { id: 'bulldozer_blender.glb', label: 'Bulldozer (Blender)' },
+            { id: 'bulldozer_composite', label: 'Bulldozer (OpenSCAD)' },
             { id: 'plow.glb', label: 'Plow' },
-            { id: 'bulldozer_body.glb', label: 'Dozer Body' },
-            { id: 'bulldozer_tracks.glb', label: 'Dozer Tracks' },
-            { id: 'bulldozer_cabin.glb', label: 'Dozer Cabin' }
+            { id: 'bulldozer_body.glb', label: 'Body (SCAD)' },
+            { id: 'bulldozer_tracks.glb', label: 'Tracks (SCAD)' }
         ];
 
         // --- UI Setup ---
@@ -360,7 +360,6 @@
                 );
 
                 // Replace the map fragment with triplanar logic
-                // Note: standard materials use 'map' for color. We override how it's sampled.
                 const triplanarLogic = `
                     vec3 blending = abs(vWorldNormal);
                     blending = normalize(max(blending, 0.00001)); // Avoid div by zero
@@ -369,10 +368,7 @@
 
                     vec3 coord = vWorldPosition * uScale;
 
-                    // Scrolling logic: Shift texture coords on X/Z axes based on Time
-                    // We scroll 'forward' relative to the object.
-                    // For tracks, scrolling along Y in texture space usually implies movement.
-                    // We simply offset the coordinate.
+                    // Scrolling logic
                     float scroll = ${isScrolling ? 'uTime * 2.0' : '0.0'};
 
                     vec4 xaxis = texture2D(map, coord.yz + vec2(0.0, scroll));
@@ -454,7 +450,30 @@
                     currentModelGroup.position.sub(center);
                     controls.target.set(0, 0, 0);
                 }).catch(e => console.error("Composite Load Failed", e));
-            } else {
+            }
+            else if (assetName === 'bulldozer_blender.glb') {
+                const path = `public/assets/${assetName}`;
+                 loader.load(path, (gltf) => {
+                    const mesh = gltf.scene;
+                    currentModelGroup.add(mesh);
+
+                    // The Blender model already has materials exported with it (PBR)
+                    // We just enable shadows
+                     mesh.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    const box = new THREE.Box3().setFromObject(mesh);
+                    const center = box.getCenter(new THREE.Vector3());
+                    mesh.position.sub(center);
+                    controls.target.set(0, 0, 0);
+
+                 }, undefined, (error) => console.error(error));
+            }
+            else {
                  const path = `public/assets/${assetName}`;
                  loader.load(path, (gltf) => {
                     const mesh = gltf.scene;
@@ -492,7 +511,7 @@
 
         // Initialize
         const params = new URLSearchParams(window.location.search);
-        const initAsset = params.get('asset') || 'bulldozer_composite';
+        const initAsset = params.get('asset') || 'bulldozer_blender.glb'; // Default to Blender for showcase
         loadAsset(initAsset);
 
         window.setAngle = (angleDegrees) => {
