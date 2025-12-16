@@ -765,17 +765,22 @@ export function updateGraphics(bulldozer) {
 
                  // Estimate track speed from velocity
                  // Project velocity onto forward vector to get signed speed
-                 const fwdX = Math.sin(-part.angle); // -sin(angle)
-                 const fwdY = Math.cos(-part.angle); // cos(angle)
-                 // MatterJS angle 0 is up?
-                 // Actually in updateGraphics we set rotation.y = -part.angle.
-                 // ThreeJS +Z is forward?
-                 // Let's just use magnitude for now, assuming forward movement.
-                 const speed = Math.sqrt(body.velocity.x**2 + body.velocity.y**2) * 0.05;
-                 // Determine direction roughly?
-                 // If dot product with forward is negative, reverse.
-                 // This is tricky without exact orientation knowledge, but visually:
-                 // part.angle rotates the body.
+                 // Bulldozer "Forward" in MatterJS is -Y relative to angle?
+                 // Wait, in input.js: angle = bulldozer.angle - Math.PI/2; force = (cos(angle), sin(angle)).
+                 // So "Forward" is -90 degrees from angle 0.
+                 // If Angle=0, Forward is (0, -1).
+                 // Let's calculate the Forward vector based on `part.angle`.
+                 // Forward vector D = (cos(angle - PI/2), sin(angle - PI/2))
+                 // = (sin(angle), -cos(angle))
+
+                 const angle = part.angle - Math.PI / 2;
+                 const fwdX = Math.cos(angle);
+                 const fwdY = Math.sin(angle);
+
+                 // Project velocity onto forward vector
+                 const dot = body.velocity.x * fwdX + body.velocity.y * fwdY;
+
+                 const speed = dot * 0.05;
 
                  bulldozerRenderer.setSpeeds(speed, speed);
                  bulldozerRenderer.update(1/60);
