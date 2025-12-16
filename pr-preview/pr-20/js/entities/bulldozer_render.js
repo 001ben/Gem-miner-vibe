@@ -175,7 +175,9 @@ export class BulldozerRenderer {
                 let rightPathPoints = null;
 
                 gltf.scene.traverse((child) => {
+                    console.log(`Node: ${child.name}, Type: ${child.type}, isMesh: ${child.isMesh}`);
                     if (child.name.includes("Bulldozer_Body") && child.isMesh) {
+                        console.log("Found Bulldozer_Body mesh!");
                         bodyMesh = child.clone();
                     }
                     else if (child.name.includes("Asset_TrackLink") && child.isMesh) {
@@ -204,6 +206,7 @@ export class BulldozerRenderer {
 
                 // Setup Body
                 if (bodyMesh) {
+                    console.log("Setting up body mesh...");
                     bodyMesh.castShadow = true;
                     bodyMesh.receiveShadow = true;
                     // Apply Body Texture/Material logic if needed
@@ -216,6 +219,15 @@ export class BulldozerRenderer {
                     enhanceMaterialWithTriplanar(mat, false, this.animatedMaterials);
                     bodyMesh.material = mat;
                     this.group.add(bodyMesh);
+                } else {
+                    console.warn("Bulldozer_Body mesh not found in GLB! Using fallback.");
+                    const geo = new THREE.BoxGeometry(2.5, 1.5, 4.0); // Rough dimensions from Blender (Y is Z in Three?)
+                    // Blender: 2.5(X), 4.0(Y), 1.5(Z).
+                    // Three: 2.5(X), 1.5(Y/Height), 4.0(Z/Depth).
+                    const mat = new THREE.MeshStandardMaterial({ color: 0xff0000, wireframe: true });
+                    const mesh = new THREE.Mesh(geo, mat);
+                    mesh.position.y = 1.0 + 0.75; // Z=1.0 + half height?
+                    this.group.add(mesh);
                 }
 
                 // Setup Tracks
