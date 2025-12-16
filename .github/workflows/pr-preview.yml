@@ -55,6 +55,8 @@ jobs:
           sed -i 's|\.\./js|\./js|g' dist/index.html
           mkdir -p dist/public
           cp -r public/assets dist/public/
+          # Copy JS source for the viewer (needed for bulldozer_render.js)
+          cp -r js dist/
           # Copy dependencies for the viewer
           mkdir -p dist/node_modules/three/build
           mkdir -p dist/node_modules/three/examples/jsm
