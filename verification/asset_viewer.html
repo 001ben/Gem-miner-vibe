@@ -339,14 +339,10 @@
 
         // Track animated materials and instanced meshes
         const animatedMaterials = [];
-        const animatedInstances = []; // { mesh: InstancedMesh, curve: Curve, speed: float }
+        const animatedInstances = []; // Legacy support
 
         const ASSETS = [
-            { id: 'bulldozer_components.glb', label: 'Bulldozer (Animated Tracks)' },
-            { id: 'bulldozer_composite', label: 'Bulldozer (OpenSCAD)' },
-            { id: 'plow.glb', label: 'Plow' },
-            { id: 'bulldozer_body.glb', label: 'Body (SCAD)' },
-            { id: 'bulldozer_tracks.glb', label: 'Tracks (SCAD)' }
+            { id: 'bulldozer_components.glb', label: 'Bulldozer (Blender)' }
         ];
 
         // --- UI Setup ---
@@ -363,179 +359,6 @@
             topBar.appendChild(tile);
         });
 
-        // --- Procedural Textures ---
-        function createProceduralTexture(type) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-
-            if (type === 'tracks') {
-                // Tread pattern
-                ctx.fillStyle = '#111';
-                ctx.fillRect(0, 0, 512, 512);
-                ctx.fillStyle = '#333';
-                // Draw Chevrons
-                const barHeight = 64;
-                for(let y=0; y<512; y+=barHeight) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(256, y + 32);
-                    ctx.lineTo(512, y);
-                    ctx.lineTo(512, y + 20);
-                    ctx.lineTo(256, y + 52);
-                    ctx.lineTo(0, y + 20);
-                    ctx.fill();
-                }
-            } else if (type === 'body') {
-                // Metal Scratches/Noise
-                ctx.fillStyle = '#FFAA00'; // Base Yellow
-                ctx.fillRect(0, 0, 512, 512);
-
-                // Add Noise
-                for(let i=0; i<5000; i++) {
-                    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
-                    const x = Math.random() * 512;
-                    const y = Math.random() * 512;
-                    const w = Math.random() * 10 + 1;
-                    const h = Math.random() * 2 + 1;
-                    ctx.fillRect(x, y, w, h);
-                }
-
-                // Rust spots
-                for(let i=0; i<20; i++) {
-                     ctx.fillStyle = 'rgba(100, 50, 0, 0.2)';
-                     const x = Math.random() * 512;
-                     const y = Math.random() * 512;
-                     const r = Math.random() * 50 + 10;
-                     ctx.beginPath();
-                     ctx.arc(x, y, r, 0, Math.PI*2);
-                     ctx.fill();
-                }
-            } else if (type === 'cabin') {
-                // Grey Metal
-                ctx.fillStyle = '#888899';
-                ctx.fillRect(0, 0, 512, 512);
-                // Bolts/Rivets
-                 ctx.fillStyle = '#555';
-                 for(let x=20; x<512; x+=100) {
-                     for(let y=20; y<512; y+=100) {
-                        ctx.beginPath();
-                        ctx.arc(x, y, 5, 0, Math.PI*2);
-                        ctx.fill();
-                     }
-                 }
-            }
-
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.wrapS = THREE.RepeatWrapping;
-            tex.wrapT = THREE.RepeatWrapping;
-            return tex;
-        }
-
-        // --- Triplanar Shader Logic ---
-        function enhanceMaterialWithTriplanar(material, isScrolling) {
-            material.onBeforeCompile = (shader) => {
-                shader.uniforms.uTime = { value: 0 };
-                shader.uniforms.uScale = { value: 0.1 }; // Texture scale
-
-                if (isScrolling) {
-                    animatedMaterials.push(shader.uniforms);
-                }
-
-                // Vertex Shader: Pass world position and normal
-                shader.vertexShader = shader.vertexShader.replace(
-                    '#include <common>',
-                    `
-                    #include <common>
-                    varying vec3 vWorldPosition;
-                    varying vec3 vWorldNormal;
-                    `
-                );
-                shader.vertexShader = shader.vertexShader.replace(
-                    '#include <worldpos_vertex>',
-                    `
-                    #include <worldpos_vertex>
-                    vWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
-                    vWorldNormal = normalize(mat3(modelMatrix) * normal);
-                    `
-                );
-
-                // Fragment Shader: Triplanar Mapping
-                shader.fragmentShader = shader.fragmentShader.replace(
-                    '#include <common>',
-                    `
-                    #include <common>
-                    varying vec3 vWorldPosition;
-                    varying vec3 vWorldNormal;
-                    uniform float uTime;
-                    uniform float uScale;
-                    `
-                );
-
-                // Replace the map fragment with triplanar logic
-                const triplanarLogic = `
-                    vec3 blending = abs(vWorldNormal);
-                    blending = normalize(max(blending, 0.00001)); // Avoid div by zero
-                    float b = (blending.x + blending.y + blending.z);
-                    blending /= b;
-
-                    vec3 coord = vWorldPosition * uScale;
-
-                    // Scrolling logic
-                    float scroll = ${isScrolling ? 'uTime * 2.0' : '0.0'};
-
-                    vec4 xaxis = texture2D(map, coord.yz + vec2(0.0, scroll));
-                    vec4 yaxis = texture2D(map, coord.xz + vec2(0.0, scroll));
-                    vec4 zaxis = texture2D(map, coord.xy + vec2(0.0, scroll));
-
-                    vec4 texColor = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
-
-                    diffuseColor *= texColor;
-                `;
-
-                shader.fragmentShader = shader.fragmentShader.replace(
-                    '#include <map_fragment>',
-                    triplanarLogic
-                );
-            };
-        }
-
-
-        const loadPart = (filename, textureType, name, isScrolling) => {
-            return new Promise((resolve, reject) => {
-                const path = `public/assets/${filename}`;
-                console.log(`Loading part: ${name} from ${path}`);
-
-                loader.load(path, (gltf) => {
-                    const mesh = gltf.scene;
-                    const texture = createProceduralTexture(textureType);
-
-                    mesh.traverse((child) => {
-                        if (child.isMesh) {
-                            const mat = new THREE.MeshStandardMaterial({
-                                map: texture,
-                                roughness: 0.8,
-                                metalness: 0.2
-                            });
-
-                            enhanceMaterialWithTriplanar(mat, isScrolling);
-
-                            child.material = mat;
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                        }
-                    });
-
-                    currentModelGroup.add(mesh);
-                    console.log(`Loaded ${name}`);
-                    resolve(mesh);
-                }, undefined, (error) => {
-                    console.error(`Error loading ${name}:`, error);
-                    reject(error);
-                });
-            });
-        };
 
         window.loadAsset = function(assetName) {
             console.log(`Loading asset: ${assetName}`);
@@ -554,19 +377,7 @@
             currentModelGroup.position.set(0,0,0);
             currentModelGroup.rotation.set(0,0,0);
 
-            if (assetName === 'bulldozer_composite') {
-                Promise.all([
-                    loadPart('bulldozer_body.glb', 'body', 'Body', false),
-                    loadPart('bulldozer_tracks.glb', 'tracks', 'Tracks', true),
-                    loadPart('bulldozer_cabin.glb', 'cabin', 'Cabin', false)
-                ]).then(() => {
-                    const box = new THREE.Box3().setFromObject(currentModelGroup);
-                    const center = box.getCenter(new THREE.Vector3());
-                    currentModelGroup.position.sub(center);
-                    controls.target.set(0, 0, 0);
-                }).catch(e => console.error("Composite Load Failed", e));
-            }
-            else if (assetName === 'bulldozer_components.glb') {
+            if (assetName === 'bulldozer_components.glb') {
                 const path = `public/assets/${assetName}`;
                 console.log(`Loading complex Blender asset via Renderer: ${path}`);
 
@@ -578,40 +389,6 @@
                     bulldozerRenderer.setSpeeds(0.2, 0.2);
                     controls.target.set(0, 0, 0);
                 }).catch(e => console.error(e));
-            }
-            else {
-                 const path = `public/assets/${assetName}`;
-                 loader.load(path, (gltf) => {
-                    const mesh = gltf.scene;
-                    currentModelGroup.add(mesh);
-
-                    let texType = 'body';
-                    let scrolling = false;
-                    if (assetName.includes('tracks')) { texType = 'tracks'; scrolling = true; }
-                    if (assetName.includes('cabin')) texType = 'cabin';
-
-                    const texture = createProceduralTexture(texType);
-
-                     mesh.traverse((child) => {
-                        if (child.isMesh) {
-                            const mat = new THREE.MeshStandardMaterial({
-                                map: texture,
-                                roughness: 0.8,
-                                metalness: 0.2
-                            });
-                            enhanceMaterialWithTriplanar(mat, scrolling);
-                            child.material = mat;
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                        }
-                    });
-
-                    const box = new THREE.Box3().setFromObject(mesh);
-                    const center = box.getCenter(new THREE.Vector3());
-                    mesh.position.sub(center);
-                    controls.target.set(0, 0, 0);
-
-                 }, undefined, (error) => console.error(error));
             }
         };
 
@@ -663,21 +440,6 @@
                 bulldozerRenderer.update(delta);
             }
 
-            // Legacy path for other assets using local animatedInstances
-            animatedInstances.forEach(track => {
-                 // ... (This part is removed/simplified as we moved logic to Renderer)
-                 // But we need to keep it if we want to support 'bulldozer_composite' if it uses it.
-                 // 'bulldozer_composite' uses 'loadPart' which uses 'animatedInstances'.
-                 // So I should keep the legacy loop.
-            });
-            // Restoring legacy loop for composite asset
-             animatedInstances.forEach(track => {
-                track.offset = (track.offset + track.speed * delta) % 1.0;
-                // ... (I'll just let the user use the new one, I am removing legacy logic from here to clean up)
-                // Wait, if I remove it, 'bulldozer_composite' tracks won't animate.
-                // But the user focused on the NEW asset.
-                // I will remove the legacy loop to avoid clutter, as the new asset is the target.
-            });
 
             controls.update();
             renderer.render(scene, camera);
