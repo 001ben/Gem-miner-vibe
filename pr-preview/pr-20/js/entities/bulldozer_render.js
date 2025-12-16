@@ -165,8 +165,17 @@ export class BulldozerRenderer {
     }
 
     load(url) {
+        const startTime = performance.now();
+        console.log(`Loading asset: ${url}...`);
+        let fileSize = 0;
+
         return new Promise((resolve, reject) => {
             this.loader.load(url, (gltf) => {
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                console.log(`Asset loaded: ${url}`);
+                console.log(`Time: ${duration}ms, Size: ${(fileSize / 1024).toFixed(2)} KB`);
+
                 // Parse components
                 let bodyMesh = null;
                 let linkGeo = null;
@@ -266,7 +275,14 @@ export class BulldozerRenderer {
                 setupTrack(rightPathPoints, 1);
 
                 resolve();
-            }, undefined, reject);
+            }, (xhr) => {
+                // onProgress
+                if (xhr.lengthComputable) {
+                    fileSize = xhr.total;
+                } else {
+                    fileSize = xhr.loaded; // Best guess
+                }
+            }, reject);
         });
     }
 
