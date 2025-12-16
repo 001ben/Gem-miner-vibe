@@ -184,9 +184,9 @@ export class BulldozerRenderer {
                 let rightPathPoints = null;
 
                 gltf.scene.traverse((child) => {
-                    console.log(`Node: ${child.name}, Type: ${child.type}, isMesh: ${child.isMesh}`);
-                    if (child.name.includes("Bulldozer_Body") && child.isMesh) {
-                        console.log("Found Bulldozer_Body mesh!");
+                    // console.log(`Node: ${child.name}, Type: ${child.type}, isMesh: ${child.isMesh}`);
+                    if (child.name.includes("Bulldozer_Body") && (child.isMesh || child.type === 'Group')) {
+                        console.log("Found Bulldozer_Body!");
                         bodyMesh = child.clone();
                     }
                     else if (child.name.includes("Asset_TrackLink") && child.isMesh) {
@@ -216,18 +216,36 @@ export class BulldozerRenderer {
                 // Setup Body
                 if (bodyMesh) {
                     console.log("Setting up body mesh...");
-                    bodyMesh.castShadow = true;
-                    bodyMesh.receiveShadow = true;
-                    // Apply Body Texture/Material logic if needed
-                    const tex = createProceduralTexture('body');
-                    const mat = new THREE.MeshStandardMaterial({
-                        map: tex,
+                    this.group.add(bodyMesh);
+
+                    const texBody = createProceduralTexture('body');
+                    const matBody = new THREE.MeshStandardMaterial({
+                        map: texBody,
                         roughness: 0.8,
                         metalness: 0.2
                     });
-                    enhanceMaterialWithTriplanar(mat, false, this.animatedMaterials);
-                    bodyMesh.material = mat;
-                    this.group.add(bodyMesh);
+                    enhanceMaterialWithTriplanar(matBody, false, this.animatedMaterials);
+
+                    const matGlass = new THREE.MeshPhysicalMaterial({
+                        color: 0xaaccff,
+                        metalness: 0.1,
+                        roughness: 0.1,
+                        transmission: 0.6,
+                        transparent: true
+                    });
+
+                    bodyMesh.traverse((c) => {
+                        if (c.isMesh) {
+                            c.castShadow = true;
+                            c.receiveShadow = true;
+                            // Check material name for Glass
+                            if (c.material && c.material.name && c.material.name.includes("Glass")) {
+                                c.material = matGlass;
+                            } else {
+                                c.material = matBody;
+                            }
+                        }
+                    });
                 } else {
                     console.warn("Bulldozer_Body mesh not found in GLB! Using fallback.");
                     const geo = new THREE.BoxGeometry(2.5, 1.5, 4.0); // Rough dimensions from Blender (Y is Z in Three?)
