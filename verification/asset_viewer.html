@@ -246,15 +246,17 @@
     </script>
 
     <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-        import { BulldozerRenderer } from '../js/entities/bulldozer_render.js';
+        (async () => {
+        try {
+            const THREE = await import('three');
+            const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+            const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
+            const { BulldozerRenderer } = await import('../js/entities/bulldozer_render.js');
 
-        console.log("Three.js imported successfully.");
+            console.log("Three.js & Modules imported successfully.");
 
-        // --- 3D Scene Setup ---
-        const scene = new THREE.Scene();
+            // --- 3D Scene Setup ---
+            const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x8899aa);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -663,6 +665,19 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        } catch (e) {
+            console.error("CRITICAL MODULE ERROR:", e);
+            const errDiv = document.getElementById('error-overlay');
+            if (errDiv) {
+                errDiv.style.display = 'flex';
+                const msg = document.createElement('p');
+                msg.style.marginTop = '20px';
+                msg.innerHTML = `<strong>Details:</strong> ${e.message}<br><small>(See console for full trace)</small>`;
+                errDiv.appendChild(msg);
+            }
+        }
+        })();
     </script>
 </body>
 </html>
