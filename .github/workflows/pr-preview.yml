@@ -51,6 +51,8 @@ jobs:
           sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
           # Rewrite import map to use ./node_modules for flat deployment structure
           sed -i 's|\.\./node_modules|\./node_modules|g' dist/index.html
+          # Rewrite js imports for flat deployment structure
+          sed -i 's|\.\./js|\./js|g' dist/index.html
           mkdir -p dist/public
           cp -r public/assets dist/public/
           # Copy dependencies for the viewer
