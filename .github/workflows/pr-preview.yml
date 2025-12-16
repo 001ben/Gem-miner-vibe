@@ -19,8 +19,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare Distribution
+      - name: Check for Asset Changes
         if: github.event.action != 'closed'
+        id: check_assets
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            assets:
+              - 'assets/source/**'
+              - 'scripts/build-assets.js'
+              - 'package.json'
+
+      - name: Install Dependencies
+        if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
+        run: |
+          sudo apt-get update && sudo apt-get install -y openscad blender python3-numpy
+          npm install
+
+      - name: Build Assets
+        if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
+        run: |
+          npm run build:assets
+          npm run build:blender
+
+      - name: Prepare Distribution (Assets)
+        if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
+        run: |
+          mkdir -p dist
+          cp verification/asset_viewer.html dist/index.html
+          mkdir -p dist/public
+          cp -r public/assets dist/public/
+          # Copy dependencies for the viewer
+          mkdir -p dist/node_modules/three/build
+          mkdir -p dist/node_modules/three/examples/jsm
+          cp node_modules/three/build/* dist/node_modules/three/build/
+          cp -r node_modules/three/examples/jsm/* dist/node_modules/three/examples/jsm/
+          touch dist/.nojekyll
+
+      - name: Prepare Distribution (Game)
+        if: github.event.action != 'closed' && steps.check_assets.outputs.assets != 'true'
         run: |
           mkdir -p dist
           cp index.html dist/
