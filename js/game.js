@@ -138,6 +138,17 @@ bulldozerRenderer.load('public/assets/bulldozer_components.glb').catch(err => {
     console.warn('Failed to load bulldozer assets:', msg);
 });
 
+// Debug Scale Listener
+const scaleInput = document.getElementById('debug-scale');
+if (scaleInput) {
+    scaleInput.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+            bulldozerRenderer.setScale(val);
+        }
+    });
+}
+
 createMap();
 createBulldozer();
 createCollector();
