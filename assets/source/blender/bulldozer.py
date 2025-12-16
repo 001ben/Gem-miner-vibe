@@ -43,8 +43,11 @@ def create_track_link(name, material):
     # Apply Material
     link.data.materials.append(material)
 
-    # Reset Transforms so (0,0,0) is the pivot
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    # Fix: Rotate 90 degrees on X so the "Top" face becomes the "Front" face (Z-forward)
+    link.rotation_euler = (math.radians(90), 0, 0)
+
+    # Reset Transforms so (0,0,0) is the pivot and rotation is baked
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
     return link
 
