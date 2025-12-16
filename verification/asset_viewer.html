@@ -111,8 +111,8 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "./node_modules/three/build/three.module.js",
-                "three/examples/jsm/": "./node_modules/three/examples/jsm/"
+                "three": "../node_modules/three/build/three.module.js",
+                "three/examples/jsm/": "../node_modules/three/examples/jsm/"
             }
         }
     </script>
@@ -546,8 +546,8 @@
                         if (!points || !linkGeo) return;
 
                         // Close the loop for CatmullRom
-                        const curve = new THREE.CatmullRomCurve3(points);
-                        curve.closed = true;
+                        // Use centripetal to avoid loops/overshoot on straight sections
+                        const curve = new THREE.CatmullRomCurve3(points, true, 'centripetal', 0.5);
 
                         const count = 50;
                         const mesh = new THREE.InstancedMesh(linkGeo, linkMat, count);
@@ -625,10 +625,15 @@
         const clock = new THREE.Clock();
         const dummy = new THREE.Object3D();
 
+        // Reusable vectors to prevent Garbage Collection stutter
+        const _position = new THREE.Vector3();
+        const _tangent = new THREE.Vector3();
+        const _lookAtTarget = new THREE.Vector3();
+        const _trackUp = new THREE.Vector3(1, 0, 0); // The Axle Axis (Side of bulldozer)
+
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
-            const time = clock.getElapsedTime(); // Use elapsed for smoother continuous scrol
 
             // 1. Update shader-based animations (scrolling texture)
             animatedMaterials.forEach(uniforms => {
@@ -637,31 +642,33 @@
 
             // 2. Update geometric animations (instanced tracks)
             animatedInstances.forEach(track => {
+                // Move the track offset
                 track.offset = (track.offset + track.speed * delta) % 1.0;
 
                 for (let i = 0; i < track.count; i++) {
-                    // Calculate t along the curve (0..1)
-                    // i / count gives us evenly spaced links
-                    // + offset moves them
+                    // Calculate position t (0..1)
                     const t = (i / track.count + track.offset) % 1.0;
 
-                    const position = track.curve.getPointAt(t);
-                    const tangent = track.curve.getTangentAt(t);
+                    // Get point/tangent without creating new objects (using copy)
+                    track.curve.getPointAt(t, _position);
+                    track.curve.getTangentAt(t, _tangent);
 
-                    dummy.position.copy(position);
-                    // Orient the link to follow the path
-                    // The up vector is roughly Y (0,1,0) for a flat bulldozer track,
-                    // but on the vertical sections of the stadium shape, tangent is Y.
-                    // We lookAt target = pos + tangent.
-                    dummy.lookAt(position.clone().add(tangent));
+                    // GIMBAL LOCK FIX:
+                    // Since tracks move along Y/Z, we force the "Up" reference to be X.
+                    // This prevents the flip when the track is flat on the ground.
+                    dummy.up.copy(_trackUp);
 
-                    // Depending on the model orientation, we might need to rotate the dummy
-                    // Track link model is created flat on Z?
-                    // We need to experiment. Usually lookAt aligns +Z with vector.
+                    dummy.position.copy(_position);
+
+                    // Calculate target without .clone()
+                    _lookAtTarget.copy(_position).add(_tangent);
+                    dummy.lookAt(_lookAtTarget);
 
                     dummy.updateMatrix();
                     track.mesh.setMatrixAt(i, dummy.matrix);
                 }
+
+                // Notify GPU
                 track.mesh.instanceMatrix.needsUpdate = true;
             });
 
