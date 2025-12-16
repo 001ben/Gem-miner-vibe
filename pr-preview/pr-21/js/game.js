@@ -8,6 +8,8 @@ import { updateUI, setupShop, showNotification } from './ui.js';
 import { createShopPads, checkShopCollisions } from './entities/shop.js';
 import { initInput } from './input.js';
 import { initConsole } from './console.js';
+import { BulldozerRenderer } from './entities/bulldozer_render.js';
+
 // Expose updateUI and showNotification
 window.updateUI = updateUI;
 window.showNotification = showNotification;
@@ -127,6 +129,13 @@ Events.on(engine, 'collisionStart', event => {
 
 // Start
 initThree();
+
+// Initialize custom renderers
+const bulldozerRenderer = new BulldozerRenderer(scene);
+bulldozerRenderer.load('public/assets/bulldozer_components.glb').catch(err => {
+    console.warn('Failed to load bulldozer assets:', err);
+});
+
 createMap();
 createBulldozer();
 createCollector();
@@ -143,7 +152,7 @@ Runner.run(runner, engine);
 function animate() {
     requestAnimationFrame(animate);
     const dozer = getBulldozer();
-    updateGraphics(dozer);
+    updateGraphics(dozer, bulldozerRenderer);
     window.bulldozer = dozer; // Expose for debugging/verification
     window.camera = camera; // Expose camera for verification
     window.bodyMeshMap = bodyMeshMap; // Expose mesh map for verification
