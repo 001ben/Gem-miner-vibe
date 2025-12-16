@@ -263,7 +263,10 @@ export class BulldozerRenderer {
 
                 // Setup Tracks
                 const setupTrack = (points, side) => {
-                    if (!points || !linkGeo) return;
+                    if (!points || points.length < 2 || !linkGeo) {
+                        console.warn(`Skipping track setup for side ${side}: Invalid points or geometry.`);
+                        return;
+                    }
                     const curve = new THREE.CatmullRomCurve3(points, true, 'centripetal', 0.5);
                     const count = 50;
 
