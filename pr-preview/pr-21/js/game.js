@@ -133,7 +133,9 @@ initThree();
 // Initialize custom renderers
 const bulldozerRenderer = new BulldozerRenderer(scene);
 bulldozerRenderer.load('public/assets/bulldozer_components.glb').catch(err => {
-    console.warn('Failed to load bulldozer assets:', err);
+    // Extract meaningful message if possible
+    const msg = (err && err.message) ? err.message : err;
+    console.warn('Failed to load bulldozer assets:', msg);
 });
 
 createMap();
