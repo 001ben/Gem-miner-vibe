@@ -157,7 +157,7 @@ export class BulldozerRenderer {
             spread: 1.6
         };
 
-        this.scale = 1.0;
+        this.scale = 100.0;
 
         // Reusable vectors
         this._position = new THREE.Vector3();
