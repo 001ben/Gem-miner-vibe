@@ -184,7 +184,9 @@
         window.addEventListener('error', (event) => {
             if (event.target && (event.target.tagName === 'SCRIPT' || event.target.tagName === 'IMG' || event.target.tagName === 'LINK')) {
                 const url = event.target.src || event.target.href || 'unknown source';
-                console.error(`Failed to load resource: ${url}`);
+                const tag = event.target.tagName;
+                const html = event.target.outerHTML ? event.target.outerHTML.substring(0, 100) : 'N/A';
+                console.error(`Failed to load resource: <${tag}> ${url}`, `Element: ${html}`);
             }
         }, true);
 
