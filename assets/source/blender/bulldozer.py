@@ -130,6 +130,7 @@ clear_scene()
 # 2. Materials
 mat_yellow = create_material("YellowPaint", (1.0, 0.6, 0.0, 1.0))
 mat_metal = create_material("DarkMetal", (0.2, 0.2, 0.2, 1.0))
+mat_glass = create_material("Glass", (0.2, 0.4, 0.6, 0.8), roughness=0.2)
 mat_path = create_material("DebugPath", (1.0, 0.0, 0.0, 1.0)) # Red for debug
 
 # 3. Create The Body (Static Rigid Mesh)
@@ -165,7 +166,22 @@ for i, pos in enumerate(positions):
     bpy.context.view_layer.objects.active = body
     bpy.ops.object.join()
 
-# Smart UV for the body (now including wheels)
+# Fix 4: Add Cabin (Finishing Touch)
+# Body top is at Z=1.75. Cabin height 1.2 centered at Z=2.35.
+# Located at the rear (Y=-1.0).
+bpy.ops.mesh.primitive_cube_add(size=1, location=(0, -1.0, 2.35))
+cabin = bpy.context.object
+cabin.name = "Cabin"
+cabin.scale = (2.0, 2.0, 1.2)
+cabin.data.materials.append(mat_glass)
+
+# Join Cabin to Body
+cabin.select_set(True)
+body.select_set(True)
+bpy.context.view_layer.objects.active = body
+bpy.ops.object.join()
+
+# Smart UV for the body (now including wheels and cabin)
 bpy.ops.object.mode_set(mode='EDIT')
 bpy.ops.mesh.select_all(action='SELECT')
 bpy.ops.uv.smart_project(angle_limit=66.0, island_margin=0.02)
