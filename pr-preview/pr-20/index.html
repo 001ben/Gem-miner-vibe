@@ -128,6 +128,35 @@
                 <label for="light-slider">Light Rotation:</label>
                 <input type="range" id="light-slider" min="0" max="360" value="45">
             </div>
+            <div class="control-row" style="flex-wrap: wrap;">
+                <span>Track Adj:</span>
+                <label>Up:</label>
+                <select id="track-up-axis" style="width: 80px;">
+                    <option value="x" selected>X (Axle)</option>
+                    <option value="y">Y (Sky)</option>
+                </select>
+                <label>X:</label>
+                <select id="track-rot-x" style="width: 50px;">
+                    <option value="0" selected>0</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
+                    <option value="270">270</option>
+                </select>
+                <label>Y:</label>
+                <select id="track-rot-y" style="width: 50px;">
+                    <option value="0" selected>0</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
+                    <option value="270">270</option>
+                </select>
+                <label>Z:</label>
+                <select id="track-rot-z" style="width: 50px;">
+                    <option value="0" selected>0</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
+                    <option value="270">270</option>
+                </select>
+            </div>
             <button id="toggle-console">Show Logs</button>
             <div style="color: white; background: rgba(0,0,0,0.5); padding: 5px;">
                 Touch/Drag to Rotate • Scroll/Pinch to Zoom
@@ -631,7 +660,30 @@
         const _position = new THREE.Vector3();
         const _tangent = new THREE.Vector3();
         const _lookAtTarget = new THREE.Vector3();
-        const _trackUp = new THREE.Vector3(1, 0, 0); // The Axle Axis (Side of bulldozer)
+        const _trackUpX = new THREE.Vector3(1, 0, 0);
+        const _trackUpY = new THREE.Vector3(0, 1, 0);
+
+        // Track UI State
+        const trackParams = {
+            up: _trackUpX,
+            rotX: 0,
+            rotY: 0,
+            rotZ: 0
+        };
+
+        function updateTrackParams() {
+            const upAxis = document.getElementById('track-up-axis').value;
+            trackParams.up = (upAxis === 'x') ? _trackUpX : _trackUpY;
+            trackParams.rotX = parseFloat(document.getElementById('track-rot-x').value) * Math.PI / 180;
+            trackParams.rotY = parseFloat(document.getElementById('track-rot-y').value) * Math.PI / 180;
+            trackParams.rotZ = parseFloat(document.getElementById('track-rot-z').value) * Math.PI / 180;
+        }
+
+        // Listeners for track params
+        ['track-up-axis', 'track-rot-x', 'track-rot-y', 'track-rot-z'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updateTrackParams);
+        });
+        updateTrackParams();
 
         function animate() {
             requestAnimationFrame(animate);
@@ -658,13 +710,18 @@
                     // GIMBAL LOCK FIX:
                     // Since tracks move along Y/Z, we force the "Up" reference to be X.
                     // This prevents the flip when the track is flat on the ground.
-                    dummy.up.copy(_trackUp);
+                    dummy.up.copy(trackParams.up);
 
                     dummy.position.copy(_position);
 
                     // Calculate target without .clone()
                     _lookAtTarget.copy(_position).add(_tangent);
                     dummy.lookAt(_lookAtTarget);
+
+                    // Apply UI corrections
+                    if (trackParams.rotX) dummy.rotateX(trackParams.rotX);
+                    if (trackParams.rotY) dummy.rotateY(trackParams.rotY);
+                    if (trackParams.rotZ) dummy.rotateZ(trackParams.rotZ);
 
                     dummy.updateMatrix();
                     track.mesh.setMatrixAt(i, dummy.matrix);
