@@ -258,11 +258,12 @@
         let currentModelGroup = new THREE.Group();
         scene.add(currentModelGroup);
 
-        // Track animated materials
+        // Track animated materials and instanced meshes
         const animatedMaterials = [];
+        const animatedInstances = []; // { mesh: InstancedMesh, curve: Curve, speed: float }
 
         const ASSETS = [
-            { id: 'bulldozer_blender.glb', label: 'Bulldozer (Blender)' },
+            { id: 'bulldozer_components.glb', label: 'Bulldozer (Animated Tracks)' },
             { id: 'bulldozer_composite', label: 'Bulldozer (OpenSCAD)' },
             { id: 'plow.glb', label: 'Plow' },
             { id: 'bulldozer_body.glb', label: 'Body (SCAD)' },
@@ -468,8 +469,9 @@
             while(currentModelGroup.children.length > 0){
                 currentModelGroup.remove(currentModelGroup.children[0]);
             }
-            // Clear animated materials
+            // Clear animations
             animatedMaterials.length = 0;
+            animatedInstances.length = 0;
             currentModelGroup.position.set(0,0,0);
             currentModelGroup.rotation.set(0,0,0);
 
@@ -485,27 +487,95 @@
                     controls.target.set(0, 0, 0);
                 }).catch(e => console.error("Composite Load Failed", e));
             }
-            else if (assetName === 'bulldozer_blender.glb') {
+            else if (assetName === 'bulldozer_components.glb') {
                 const path = `public/assets/${assetName}`;
-                 loader.load(path, (gltf) => {
-                    const mesh = gltf.scene;
-                    currentModelGroup.add(mesh);
+                console.log(`Loading complex Blender asset: ${path}`);
 
-                    // The Blender model already has materials exported with it (PBR)
-                    // We just enable shadows
-                     mesh.traverse((child) => {
-                        if (child.isMesh) {
-                            child.castShadow = true;
-                            child.receiveShadow = true;
+                loader.load(path, (gltf) => {
+                    // Extract components
+                    let bodyMesh = null;
+                    let linkGeo = null;
+                    let linkMat = null;
+                    let leftPathPoints = null;
+                    let rightPathPoints = null;
+
+                    // Parse GLTF children manually to find our specific named objects
+                    // Note: GLTF structure might have scenes/nodes.
+                    gltf.scene.traverse((child) => {
+                        console.log(`Found node: ${child.name} (${child.type})`);
+
+                        if (child.name.includes("Bulldozer_Body") && child.isMesh) {
+                            bodyMesh = child.clone();
+                        }
+                        else if (child.name.includes("Asset_TrackLink") && child.isMesh) {
+                            linkGeo = child.geometry;
+                            linkMat = child.material;
+                        }
+                        else if (child.name.includes("Asset_TrackPath_L")) {
+                            // Extract vertices from the line loop
+                            if (child.isMesh || child.isLine) {
+                                const attr = child.geometry.attributes.position;
+                                leftPathPoints = [];
+                                for (let i = 0; i < attr.count; i++) {
+                                    leftPathPoints.push(new THREE.Vector3().fromBufferAttribute(attr, i));
+                                }
+                            }
+                        }
+                        else if (child.name.includes("Asset_TrackPath_R")) {
+                             if (child.isMesh || child.isLine) {
+                                const attr = child.geometry.attributes.position;
+                                rightPathPoints = [];
+                                for (let i = 0; i < attr.count; i++) {
+                                    rightPathPoints.push(new THREE.Vector3().fromBufferAttribute(attr, i));
+                                }
+                            }
                         }
                     });
 
-                    const box = new THREE.Box3().setFromObject(mesh);
+                    // 1. Add Body
+                    if (bodyMesh) {
+                        bodyMesh.castShadow = true;
+                        bodyMesh.receiveShadow = true;
+                        currentModelGroup.add(bodyMesh);
+                    } else {
+                        console.error("Could not find Bulldozer_Body");
+                    }
+
+                    // 2. Create Instanced Tracks
+                    const setupTrack = (points, speed) => {
+                        if (!points || !linkGeo) return;
+
+                        // Close the loop for CatmullRom
+                        const curve = new THREE.CatmullRomCurve3(points);
+                        curve.closed = true;
+
+                        const count = 50;
+                        const mesh = new THREE.InstancedMesh(linkGeo, linkMat, count);
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // Update every frame
+
+                        currentModelGroup.add(mesh);
+
+                        animatedInstances.push({
+                            mesh: mesh,
+                            curve: curve,
+                            count: count,
+                            speed: speed, // 0-1 per second
+                            offset: 0
+                        });
+                    };
+
+                    setupTrack(leftPathPoints, 0.2);
+                    setupTrack(rightPathPoints, 0.2); // Same speed for now
+
+                    // Center view
+                    const box = new THREE.Box3().setFromObject(currentModelGroup);
                     const center = box.getCenter(new THREE.Vector3());
-                    mesh.position.sub(center);
+                    currentModelGroup.position.sub(center);
                     controls.target.set(0, 0, 0);
 
-                 }, undefined, (error) => console.error(error));
+                }, undefined, (error) => console.error(error));
             }
             else {
                  const path = `public/assets/${assetName}`;
@@ -545,7 +615,7 @@
 
         // Initialize
         const params = new URLSearchParams(window.location.search);
-        const initAsset = params.get('asset') || 'bulldozer_blender.glb'; // Default to Blender for showcase
+        const initAsset = params.get('asset') || 'bulldozer_components.glb';
         loadAsset(initAsset);
 
         window.setAngle = (angleDegrees) => {
@@ -553,14 +623,46 @@
         };
 
         const clock = new THREE.Clock();
+        const dummy = new THREE.Object3D();
 
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
+            const time = clock.getElapsedTime(); // Use elapsed for smoother continuous scrol
 
-            // Update scrolling textures
+            // 1. Update shader-based animations (scrolling texture)
             animatedMaterials.forEach(uniforms => {
                 uniforms.uTime.value += delta;
+            });
+
+            // 2. Update geometric animations (instanced tracks)
+            animatedInstances.forEach(track => {
+                track.offset = (track.offset + track.speed * delta) % 1.0;
+
+                for (let i = 0; i < track.count; i++) {
+                    // Calculate t along the curve (0..1)
+                    // i / count gives us evenly spaced links
+                    // + offset moves them
+                    const t = (i / track.count + track.offset) % 1.0;
+
+                    const position = track.curve.getPointAt(t);
+                    const tangent = track.curve.getTangentAt(t);
+
+                    dummy.position.copy(position);
+                    // Orient the link to follow the path
+                    // The up vector is roughly Y (0,1,0) for a flat bulldozer track,
+                    // but on the vertical sections of the stadium shape, tangent is Y.
+                    // We lookAt target = pos + tangent.
+                    dummy.lookAt(position.clone().add(tangent));
+
+                    // Depending on the model orientation, we might need to rotate the dummy
+                    // Track link model is created flat on Z?
+                    // We need to experiment. Usually lookAt aligns +Z with vector.
+
+                    dummy.updateMatrix();
+                    track.mesh.setMatrixAt(i, dummy.matrix);
+                }
+                track.mesh.instanceMatrix.needsUpdate = true;
             });
 
             controls.update();
