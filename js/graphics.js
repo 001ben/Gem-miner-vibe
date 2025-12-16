@@ -759,7 +759,7 @@ export function updateGraphics(bulldozer) {
                  return;
              }
 
-             if (part.label === 'chassis' && bulldozerRenderer) {
+             if (part.label === 'chassis' && bulldozerRenderer && bulldozerRenderer.isLoaded) {
                  // Use the high-fidelity renderer for the chassis/body
                  bulldozerRenderer.setPose(part.position, part.angle);
 
