@@ -157,6 +157,8 @@ export class BulldozerRenderer {
             spread: 1.6
         };
 
+        this.scale = 1.0;
+
         // Reusable vectors
         this._position = new THREE.Vector3();
         this._tangent = new THREE.Vector3();
@@ -310,9 +312,11 @@ export class BulldozerRenderer {
     setPose(position, angle) {
         this.group.position.set(position.x, 0, position.y);
         this.group.rotation.y = -angle; // MatterJS angle is -ThreeJS Y rotation?
-        // In asset_viewer, we didn't rotate parent.
-        // In graphics.js, mesh.rotation.y = -part.angle.
-        // So yes.
+        this.group.scale.setScalar(this.scale);
+    }
+
+    setScale(s) {
+        this.scale = s;
     }
 
     setSpeeds(leftSpeed, rightSpeed) {
