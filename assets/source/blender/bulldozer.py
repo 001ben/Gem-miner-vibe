@@ -43,11 +43,8 @@ def create_track_link(name, material):
     # Apply Material
     link.data.materials.append(material)
 
-    # Fix: Rotate 270 degrees on Z as requested by user
-    link.rotation_euler = (0, 0, math.radians(270))
-
     # Reset Transforms so (0,0,0) is the pivot
-    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
     return link
 
@@ -184,20 +181,10 @@ link.location = (3, 0, 0)
 # Create one path on the left
 path_l = create_track_path("Asset_TrackPath_L", radius=1.0, length=4.0)
 path_l.location = (-1.5, 0, 0.5) # Left Track Position
-# Bake location
-bpy.context.view_layer.objects.active = path_l
-path_l.select_set(True)
-bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-path_l.select_set(False)
 
 # Create one path on the right
 path_r = create_track_path("Asset_TrackPath_R", radius=1.0, length=4.0)
 path_r.location = (1.5, 0, 0.5)
-# Bake location
-bpy.context.view_layer.objects.active = path_r
-path_r.select_set(True)
-bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-path_r.select_set(False)
 
 # 5. Export
 os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
