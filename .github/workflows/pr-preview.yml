@@ -30,11 +30,14 @@ jobs:
               - 'scripts/build-blender-assets.js'
               - 'package.json'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies (Blender)
         if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
         run: |
           sudo apt-get update && sudo apt-get install -y blender python3-numpy
-          npm install
+
+      - name: Install Node Dependencies
+        if: github.event.action != 'closed'
+        run: npm ci
 
       - name: Build Assets
         if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'

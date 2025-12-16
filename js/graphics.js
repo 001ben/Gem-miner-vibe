@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { world } from './physics.js';
 import { state } from './state.js';
 import { getShopPads } from './entities/shop.js';
-import { BulldozerRenderer } from './entities/bulldozer_render.js';
 
 export let scene, camera, renderer;
 export const bodyMeshMap = new Map();
@@ -12,7 +11,6 @@ let trackTexture;
 let lastDozerPos = null;
 let coinPileGroup = null;
 let gemInstancedMesh;
-let bulldozerRenderer = null;
 const dummy = new THREE.Object3D();
 const MAX_GEMS = 2000;
 
@@ -85,11 +83,6 @@ export function initThree() {
     gemInstancedMesh.receiveShadow = true;
     scene.add(gemInstancedMesh);
 
-    // Initialize Bulldozer Renderer
-    bulldozerRenderer = new BulldozerRenderer(scene);
-    bulldozerRenderer.load('public/assets/bulldozer_components.glb').catch(err => {
-        console.warn('Failed to load bulldozer assets:', err);
-    });
 }
 
 function createCoinPile() {
@@ -729,7 +722,7 @@ function updateCoinPile() {
     });
 }
 
-export function updateGraphics(bulldozer) {
+export function updateGraphics(bulldozer, bulldozerRenderer) {
     const bodies = Matter.Composite.allBodies(world);
     const activeIds = new Set();
     const shopPads = getShopPads();
