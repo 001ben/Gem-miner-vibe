@@ -27,19 +27,18 @@ jobs:
           filters: |
             assets:
               - 'assets/source/**'
-              - 'scripts/build-assets.js'
+              - 'scripts/build-blender-assets.js'
               - 'package.json'
 
       - name: Install Dependencies
         if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
         run: |
-          sudo apt-get update && sudo apt-get install -y openscad blender python3-numpy
+          sudo apt-get update && sudo apt-get install -y blender python3-numpy
           npm install
 
       - name: Build Assets
         if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
         run: |
-          npm run build:assets
           npm run build:blender
 
       - name: Prepare Distribution (Assets)
@@ -47,8 +46,16 @@ jobs:
         run: |
           mkdir -p dist
           cp verification/asset_viewer.html dist/index.html
+          # Inject timestamp for asset viewer
+          sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
+          # Rewrite import map to use ./node_modules for flat deployment structure
+          sed -i 's|\.\./node_modules|\./node_modules|g' dist/index.html
+          # Rewrite js imports for flat deployment structure
+          sed -i 's|\.\./js|\./js|g' dist/index.html
           mkdir -p dist/public
           cp -r public/assets dist/public/
+          # Copy JS source for the viewer (needed for bulldozer_render.js)
+          cp -r js dist/
           # Copy dependencies for the viewer
           mkdir -p dist/node_modules/three/build
           mkdir -p dist/node_modules/three/examples/jsm

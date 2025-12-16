@@ -111,13 +111,23 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "./node_modules/three/build/three.module.js",
-                "three/examples/jsm/": "./node_modules/three/examples/jsm/"
+                "three": "../node_modules/three/build/three.module.js",
+                "three/examples/jsm/": "../node_modules/three/examples/jsm/"
             }
         }
     </script>
 </head>
 <body>
+    <div id="error-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: #ff5555; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; font-family: sans-serif;">
+        <h1 style="margin: 0 0 20px 0;">CRITICAL ERROR</h1>
+        <p style="text-align: center; max-width: 600px; line-height: 1.5;">
+            Failed to load resources. <br>
+            Please ensure you are running the web server from the <strong>Repository Root</strong> directory.<br>
+            (e.g., <code>python3 -m http.server</code> from the folder containing <code>verification/</code>, not inside it)
+        </p>
+        <button onclick="document.getElementById('error-overlay').style.display='none'" style="margin-top: 20px; padding: 10px 20px; background: #333; color: white; border: 1px solid #555; cursor: pointer;">Dismiss</button>
+    </div>
+
     <div id="ui-layer">
         <div id="top-bar">
             <!-- Tiles injected here -->
@@ -128,7 +138,41 @@
                 <label for="light-slider">Light Rotation:</label>
                 <input type="range" id="light-slider" min="0" max="360" value="45">
             </div>
-            <button id="toggle-console">Show Logs</button>
+            <div class="control-row" style="flex-wrap: wrap;">
+                <span>Track Adj:</span>
+                <label>Up:</label>
+                <select id="track-up-axis" style="width: 80px;">
+                    <option value="x" selected>X (Axle)</option>
+                    <option value="y">Y (Sky)</option>
+                </select>
+                <label>X:</label>
+                <select id="track-rot-x" style="width: 50px;">
+                    <option value="0" selected>0</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
+                    <option value="270">270</option>
+                </select>
+                <label>Y:</label>
+                <select id="track-rot-y" style="width: 50px;">
+                    <option value="0" selected>0</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
+                    <option value="270">270</option>
+                </select>
+                <label>Z:</label>
+                <select id="track-rot-z" style="width: 50px;">
+                    <option value="0">0</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
+                    <option value="270" selected>270</option>
+                </select>
+                <label>Spread:</label>
+                <input type="range" id="track-spread" min="-2" max="3" step="0.1" value="1.6" style="width: 80px;">
+            </div>
+            <div class="control-row">
+                <button id="toggle-console">Show Logs</button>
+                <button id="copy-console">Copy Logs</button>
+            </div>
             <div style="color: white; background: rgba(0,0,0,0.5); padding: 5px;">
                 Touch/Drag to Rotate • Scroll/Pinch to Zoom
             </div>
@@ -146,6 +190,16 @@
             isConsoleOpen = !isConsoleOpen;
             consoleContainer.style.display = isConsoleOpen ? 'block' : 'none';
             toggleBtn.textContent = isConsoleOpen ? 'Hide Logs' : 'Show Logs';
+        });
+
+        document.getElementById('copy-console').addEventListener('click', () => {
+            const text = consoleContainer.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copy-console');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = originalText, 2000);
+            }).catch(err => console.error('Failed to copy:', err));
         });
 
         function appendLog(message, type) {
@@ -183,8 +237,17 @@
 
         window.addEventListener('error', (event) => {
             if (event.target && (event.target.tagName === 'SCRIPT' || event.target.tagName === 'IMG' || event.target.tagName === 'LINK')) {
-                const url = event.target.src || event.target.href;
-                console.error(`Failed to load resource: ${url}`);
+                const url = event.target.src || event.target.href || 'unknown source';
+                const tag = event.target.tagName;
+                const html = event.target.outerHTML ? event.target.outerHTML.substring(0, 100) : 'N/A';
+                console.error(`Failed to load resource: <${tag}> ${url}`, `Element: ${html}`);
+
+                // Show error overlay
+                const errDiv = document.getElementById('error-overlay');
+                if (errDiv) {
+                    errDiv.style.display = 'flex';
+                    // Optional: Append specific error details if needed
+                }
             }
         }, true);
 
@@ -196,14 +259,28 @@
     </script>
 
     <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+        (async () => {
+        try {
+            const THREE = await import('three');
+            const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+            const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js');
+            const { BulldozerRenderer } = await import('../js/entities/bulldozer_render.js');
 
-        console.log("Three.js imported successfully.");
+            console.log("Three.js & Modules imported successfully.");
 
-        // --- 3D Scene Setup ---
-        const scene = new THREE.Scene();
+            // Log Timestamp
+            const timestampEl = document.querySelector('div[style*="Build:"]');
+            if (timestampEl) {
+                const timestamp = timestampEl.innerText.replace('Build: ', '').trim();
+                if (timestamp && !timestamp.includes("TIMESTAMP")) {
+                    console.log(`Preview Build Timestamp: ${timestamp}`);
+                } else {
+                    console.log("Preview Build Timestamp: Dev/Local");
+                }
+            }
+
+            // --- 3D Scene Setup ---
+            const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x8899aa);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -258,16 +335,14 @@
         let currentModelGroup = new THREE.Group();
         scene.add(currentModelGroup);
 
+        let bulldozerRenderer = null;
+
         // Track animated materials and instanced meshes
         const animatedMaterials = [];
-        const animatedInstances = []; // { mesh: InstancedMesh, curve: Curve, speed: float }
+        const animatedInstances = []; // Legacy support
 
         const ASSETS = [
-            { id: 'bulldozer_components.glb', label: 'Bulldozer (Animated Tracks)' },
-            { id: 'bulldozer_composite', label: 'Bulldozer (OpenSCAD)' },
-            { id: 'plow.glb', label: 'Plow' },
-            { id: 'bulldozer_body.glb', label: 'Body (SCAD)' },
-            { id: 'bulldozer_tracks.glb', label: 'Tracks (SCAD)' }
+            { id: 'bulldozer_components.glb', label: 'Bulldozer (Blender)' }
         ];
 
         // --- UI Setup ---
@@ -284,179 +359,6 @@
             topBar.appendChild(tile);
         });
 
-        // --- Procedural Textures ---
-        function createProceduralTexture(type) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-
-            if (type === 'tracks') {
-                // Tread pattern
-                ctx.fillStyle = '#111';
-                ctx.fillRect(0, 0, 512, 512);
-                ctx.fillStyle = '#333';
-                // Draw Chevrons
-                const barHeight = 64;
-                for(let y=0; y<512; y+=barHeight) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(256, y + 32);
-                    ctx.lineTo(512, y);
-                    ctx.lineTo(512, y + 20);
-                    ctx.lineTo(256, y + 52);
-                    ctx.lineTo(0, y + 20);
-                    ctx.fill();
-                }
-            } else if (type === 'body') {
-                // Metal Scratches/Noise
-                ctx.fillStyle = '#FFAA00'; // Base Yellow
-                ctx.fillRect(0, 0, 512, 512);
-
-                // Add Noise
-                for(let i=0; i<5000; i++) {
-                    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
-                    const x = Math.random() * 512;
-                    const y = Math.random() * 512;
-                    const w = Math.random() * 10 + 1;
-                    const h = Math.random() * 2 + 1;
-                    ctx.fillRect(x, y, w, h);
-                }
-
-                // Rust spots
-                for(let i=0; i<20; i++) {
-                     ctx.fillStyle = 'rgba(100, 50, 0, 0.2)';
-                     const x = Math.random() * 512;
-                     const y = Math.random() * 512;
-                     const r = Math.random() * 50 + 10;
-                     ctx.beginPath();
-                     ctx.arc(x, y, r, 0, Math.PI*2);
-                     ctx.fill();
-                }
-            } else if (type === 'cabin') {
-                // Grey Metal
-                ctx.fillStyle = '#888899';
-                ctx.fillRect(0, 0, 512, 512);
-                // Bolts/Rivets
-                 ctx.fillStyle = '#555';
-                 for(let x=20; x<512; x+=100) {
-                     for(let y=20; y<512; y+=100) {
-                        ctx.beginPath();
-                        ctx.arc(x, y, 5, 0, Math.PI*2);
-                        ctx.fill();
-                     }
-                 }
-            }
-
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.wrapS = THREE.RepeatWrapping;
-            tex.wrapT = THREE.RepeatWrapping;
-            return tex;
-        }
-
-        // --- Triplanar Shader Logic ---
-        function enhanceMaterialWithTriplanar(material, isScrolling) {
-            material.onBeforeCompile = (shader) => {
-                shader.uniforms.uTime = { value: 0 };
-                shader.uniforms.uScale = { value: 0.1 }; // Texture scale
-
-                if (isScrolling) {
-                    animatedMaterials.push(shader.uniforms);
-                }
-
-                // Vertex Shader: Pass world position and normal
-                shader.vertexShader = shader.vertexShader.replace(
-                    '#include <common>',
-                    `
-                    #include <common>
-                    varying vec3 vWorldPosition;
-                    varying vec3 vWorldNormal;
-                    `
-                );
-                shader.vertexShader = shader.vertexShader.replace(
-                    '#include <worldpos_vertex>',
-                    `
-                    #include <worldpos_vertex>
-                    vWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
-                    vWorldNormal = normalize(mat3(modelMatrix) * normal);
-                    `
-                );
-
-                // Fragment Shader: Triplanar Mapping
-                shader.fragmentShader = shader.fragmentShader.replace(
-                    '#include <common>',
-                    `
-                    #include <common>
-                    varying vec3 vWorldPosition;
-                    varying vec3 vWorldNormal;
-                    uniform float uTime;
-                    uniform float uScale;
-                    `
-                );
-
-                // Replace the map fragment with triplanar logic
-                const triplanarLogic = `
-                    vec3 blending = abs(vWorldNormal);
-                    blending = normalize(max(blending, 0.00001)); // Avoid div by zero
-                    float b = (blending.x + blending.y + blending.z);
-                    blending /= b;
-
-                    vec3 coord = vWorldPosition * uScale;
-
-                    // Scrolling logic
-                    float scroll = ${isScrolling ? 'uTime * 2.0' : '0.0'};
-
-                    vec4 xaxis = texture2D(map, coord.yz + vec2(0.0, scroll));
-                    vec4 yaxis = texture2D(map, coord.xz + vec2(0.0, scroll));
-                    vec4 zaxis = texture2D(map, coord.xy + vec2(0.0, scroll));
-
-                    vec4 texColor = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
-
-                    diffuseColor *= texColor;
-                `;
-
-                shader.fragmentShader = shader.fragmentShader.replace(
-                    '#include <map_fragment>',
-                    triplanarLogic
-                );
-            };
-        }
-
-
-        const loadPart = (filename, textureType, name, isScrolling) => {
-            return new Promise((resolve, reject) => {
-                const path = `public/assets/${filename}`;
-                console.log(`Loading part: ${name} from ${path}`);
-
-                loader.load(path, (gltf) => {
-                    const mesh = gltf.scene;
-                    const texture = createProceduralTexture(textureType);
-
-                    mesh.traverse((child) => {
-                        if (child.isMesh) {
-                            const mat = new THREE.MeshStandardMaterial({
-                                map: texture,
-                                roughness: 0.8,
-                                metalness: 0.2
-                            });
-
-                            enhanceMaterialWithTriplanar(mat, isScrolling);
-
-                            child.material = mat;
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                        }
-                    });
-
-                    currentModelGroup.add(mesh);
-                    console.log(`Loaded ${name}`);
-                    resolve(mesh);
-                }, undefined, (error) => {
-                    console.error(`Error loading ${name}:`, error);
-                    reject(error);
-                });
-            });
-        };
 
         window.loadAsset = function(assetName) {
             console.log(`Loading asset: ${assetName}`);
@@ -475,141 +377,18 @@
             currentModelGroup.position.set(0,0,0);
             currentModelGroup.rotation.set(0,0,0);
 
-            if (assetName === 'bulldozer_composite') {
-                Promise.all([
-                    loadPart('bulldozer_body.glb', 'body', 'Body', false),
-                    loadPart('bulldozer_tracks.glb', 'tracks', 'Tracks', true),
-                    loadPart('bulldozer_cabin.glb', 'cabin', 'Cabin', false)
-                ]).then(() => {
-                    const box = new THREE.Box3().setFromObject(currentModelGroup);
-                    const center = box.getCenter(new THREE.Vector3());
-                    currentModelGroup.position.sub(center);
-                    controls.target.set(0, 0, 0);
-                }).catch(e => console.error("Composite Load Failed", e));
-            }
-            else if (assetName === 'bulldozer_components.glb') {
+            if (assetName === 'bulldozer_components.glb') {
                 const path = `public/assets/${assetName}`;
-                console.log(`Loading complex Blender asset: ${path}`);
+                console.log(`Loading complex Blender asset via Renderer: ${path}`);
 
-                loader.load(path, (gltf) => {
-                    // Extract components
-                    let bodyMesh = null;
-                    let linkGeo = null;
-                    let linkMat = null;
-                    let leftPathPoints = null;
-                    let rightPathPoints = null;
+                bulldozerRenderer = new BulldozerRenderer(scene);
+                // We add the renderer's group to our currentModelGroup so we can manage it
+                currentModelGroup.add(bulldozerRenderer.group);
 
-                    // Parse GLTF children manually to find our specific named objects
-                    // Note: GLTF structure might have scenes/nodes.
-                    gltf.scene.traverse((child) => {
-                        console.log(`Found node: ${child.name} (${child.type})`);
-
-                        if (child.name.includes("Bulldozer_Body") && child.isMesh) {
-                            bodyMesh = child.clone();
-                        }
-                        else if (child.name.includes("Asset_TrackLink") && child.isMesh) {
-                            linkGeo = child.geometry;
-                            linkMat = child.material;
-                        }
-                        else if (child.name.includes("Asset_TrackPath_L")) {
-                            // Extract vertices from the line loop
-                            if (child.isMesh || child.isLine) {
-                                const attr = child.geometry.attributes.position;
-                                leftPathPoints = [];
-                                for (let i = 0; i < attr.count; i++) {
-                                    leftPathPoints.push(new THREE.Vector3().fromBufferAttribute(attr, i));
-                                }
-                            }
-                        }
-                        else if (child.name.includes("Asset_TrackPath_R")) {
-                             if (child.isMesh || child.isLine) {
-                                const attr = child.geometry.attributes.position;
-                                rightPathPoints = [];
-                                for (let i = 0; i < attr.count; i++) {
-                                    rightPathPoints.push(new THREE.Vector3().fromBufferAttribute(attr, i));
-                                }
-                            }
-                        }
-                    });
-
-                    // 1. Add Body
-                    if (bodyMesh) {
-                        bodyMesh.castShadow = true;
-                        bodyMesh.receiveShadow = true;
-                        currentModelGroup.add(bodyMesh);
-                    } else {
-                        console.error("Could not find Bulldozer_Body");
-                    }
-
-                    // 2. Create Instanced Tracks
-                    const setupTrack = (points, speed) => {
-                        if (!points || !linkGeo) return;
-
-                        // Close the loop for CatmullRom
-                        const curve = new THREE.CatmullRomCurve3(points);
-                        curve.closed = true;
-
-                        const count = 50;
-                        const mesh = new THREE.InstancedMesh(linkGeo, linkMat, count);
-                        mesh.castShadow = true;
-                        mesh.receiveShadow = true;
-                        mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // Update every frame
-
-                        currentModelGroup.add(mesh);
-
-                        animatedInstances.push({
-                            mesh: mesh,
-                            curve: curve,
-                            count: count,
-                            speed: speed, // 0-1 per second
-                            offset: 0
-                        });
-                    };
-
-                    setupTrack(leftPathPoints, 0.2);
-                    setupTrack(rightPathPoints, 0.2); // Same speed for now
-
-                    // Center view
-                    const box = new THREE.Box3().setFromObject(currentModelGroup);
-                    const center = box.getCenter(new THREE.Vector3());
-                    currentModelGroup.position.sub(center);
+                bulldozerRenderer.load(path).then(() => {
+                    bulldozerRenderer.setSpeeds(0.2, 0.2);
                     controls.target.set(0, 0, 0);
-
-                }, undefined, (error) => console.error(error));
-            }
-            else {
-                 const path = `public/assets/${assetName}`;
-                 loader.load(path, (gltf) => {
-                    const mesh = gltf.scene;
-                    currentModelGroup.add(mesh);
-
-                    let texType = 'body';
-                    let scrolling = false;
-                    if (assetName.includes('tracks')) { texType = 'tracks'; scrolling = true; }
-                    if (assetName.includes('cabin')) texType = 'cabin';
-
-                    const texture = createProceduralTexture(texType);
-
-                     mesh.traverse((child) => {
-                        if (child.isMesh) {
-                            const mat = new THREE.MeshStandardMaterial({
-                                map: texture,
-                                roughness: 0.8,
-                                metalness: 0.2
-                            });
-                            enhanceMaterialWithTriplanar(mat, scrolling);
-                            child.material = mat;
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                        }
-                    });
-
-                    const box = new THREE.Box3().setFromObject(mesh);
-                    const center = box.getCenter(new THREE.Vector3());
-                    mesh.position.sub(center);
-                    controls.target.set(0, 0, 0);
-
-                 }, undefined, (error) => console.error(error));
+                }).catch(e => console.error(e));
             }
         };
 
@@ -625,45 +404,42 @@
         const clock = new THREE.Clock();
         const dummy = new THREE.Object3D();
 
+        // Reusable vectors to prevent Garbage Collection stutter
+        const _trackUpX = new THREE.Vector3(1, 0, 0);
+        const _trackUpY = new THREE.Vector3(0, 1, 0);
+
+        function updateTrackParams() {
+            if (!bulldozerRenderer) return;
+            const upAxis = document.getElementById('track-up-axis').value;
+            bulldozerRenderer.trackParams.up = (upAxis === 'x') ? _trackUpX : _trackUpY;
+            bulldozerRenderer.trackParams.rotX = parseFloat(document.getElementById('track-rot-x').value) * Math.PI / 180;
+            bulldozerRenderer.trackParams.rotY = parseFloat(document.getElementById('track-rot-y').value) * Math.PI / 180;
+            bulldozerRenderer.trackParams.rotZ = parseFloat(document.getElementById('track-rot-z').value) * Math.PI / 180;
+            bulldozerRenderer.trackParams.spread = parseFloat(document.getElementById('track-spread').value);
+        }
+
+        // Listeners for track params
+        ['track-up-axis', 'track-rot-x', 'track-rot-y', 'track-rot-z', 'track-spread'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updateTrackParams);
+            if(id === 'track-spread') document.getElementById(id).addEventListener('input', updateTrackParams);
+        });
+
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
-            const time = clock.getElapsedTime(); // Use elapsed for smoother continuous scrol
 
             // 1. Update shader-based animations (scrolling texture)
             animatedMaterials.forEach(uniforms => {
                 uniforms.uTime.value += delta;
             });
 
-            // 2. Update geometric animations (instanced tracks)
-            animatedInstances.forEach(track => {
-                track.offset = (track.offset + track.speed * delta) % 1.0;
+            // 2. Update geometric animations via Renderer
+            if (bulldozerRenderer) {
+                // Sync params first (could be optimized)
+                updateTrackParams();
+                bulldozerRenderer.update(delta);
+            }
 
-                for (let i = 0; i < track.count; i++) {
-                    // Calculate t along the curve (0..1)
-                    // i / count gives us evenly spaced links
-                    // + offset moves them
-                    const t = (i / track.count + track.offset) % 1.0;
-
-                    const position = track.curve.getPointAt(t);
-                    const tangent = track.curve.getTangentAt(t);
-
-                    dummy.position.copy(position);
-                    // Orient the link to follow the path
-                    // The up vector is roughly Y (0,1,0) for a flat bulldozer track,
-                    // but on the vertical sections of the stadium shape, tangent is Y.
-                    // We lookAt target = pos + tangent.
-                    dummy.lookAt(position.clone().add(tangent));
-
-                    // Depending on the model orientation, we might need to rotate the dummy
-                    // Track link model is created flat on Z?
-                    // We need to experiment. Usually lookAt aligns +Z with vector.
-
-                    dummy.updateMatrix();
-                    track.mesh.setMatrixAt(i, dummy.matrix);
-                }
-                track.mesh.instanceMatrix.needsUpdate = true;
-            });
 
             controls.update();
             renderer.render(scene, camera);
@@ -675,6 +451,19 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        } catch (e) {
+            console.error("CRITICAL MODULE ERROR:", e);
+            const errDiv = document.getElementById('error-overlay');
+            if (errDiv) {
+                errDiv.style.display = 'flex';
+                const msg = document.createElement('p');
+                msg.style.marginTop = '20px';
+                msg.innerHTML = `<strong>Details:</strong> ${e.message}<br><small>(See console for full trace)</small>`;
+                errDiv.appendChild(msg);
+            }
+        }
+        })();
     </script>
 </body>
 </html>
