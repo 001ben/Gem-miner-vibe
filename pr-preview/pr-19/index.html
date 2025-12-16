@@ -67,6 +67,14 @@
             align-items: flex-start;
         }
 
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 14px;
+        }
+
         button {
             background: #333;
             color: #fff;
@@ -74,6 +82,10 @@
             padding: 5px 10px;
             cursor: pointer;
             font-family: inherit;
+        }
+
+        input[type=range] {
+            width: 200px;
         }
 
         #console-container {
@@ -112,6 +124,10 @@
         </div>
 
         <div id="bottom-bar">
+            <div class="control-row">
+                <label for="light-slider">Light Rotation:</label>
+                <input type="range" id="light-slider" min="0" max="360" value="45">
+            </div>
             <button id="toggle-console">Show Logs</button>
             <div style="color: white; background: rgba(0,0,0,0.5); padding: 5px;">
                 Touch/Drag to Rotate • Scroll/Pinch to Zoom
@@ -213,7 +229,7 @@
         scene.add(ambientLight);
 
         const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        dirLight.position.set(50, 100, 50);
+        // Initial pos will be set by updateLight
         dirLight.castShadow = true;
         dirLight.shadow.mapSize.width = 1024;
         dirLight.shadow.mapSize.height = 1024;
@@ -221,6 +237,21 @@
         dirLight.shadow.bias = -0.0005;
         dirLight.shadow.normalBias = 0.05;
         scene.add(dirLight);
+
+        // Light Controls
+        const lightSlider = document.getElementById('light-slider');
+        function updateLight() {
+            const angle = lightSlider.value * (Math.PI / 180);
+            const radius = 80; // Distance
+            const height = 100;
+
+            dirLight.position.x = Math.sin(angle) * radius;
+            dirLight.position.z = Math.cos(angle) * radius;
+            dirLight.position.y = height;
+            dirLight.lookAt(0, 0, 0);
+        }
+        lightSlider.addEventListener('input', updateLight);
+        updateLight(); // Init
 
         // --- Asset Management ---
         const loader = new GLTFLoader();
