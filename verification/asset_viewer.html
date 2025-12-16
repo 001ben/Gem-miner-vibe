@@ -183,7 +183,7 @@
 
         window.addEventListener('error', (event) => {
             if (event.target && (event.target.tagName === 'SCRIPT' || event.target.tagName === 'IMG' || event.target.tagName === 'LINK')) {
-                const url = event.target.src || event.target.href;
+                const url = event.target.src || event.target.href || 'unknown source';
                 console.error(`Failed to load resource: ${url}`);
             }
         }, true);
