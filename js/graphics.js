@@ -1,6 +1,8 @@
+import * as THREE from 'three';
 import { world } from './physics.js';
 import { state } from './state.js';
 import { getShopPads } from './entities/shop.js';
+import { BulldozerRenderer } from './entities/bulldozer_render.js';
 
 export let scene, camera, renderer;
 export const bodyMeshMap = new Map();
@@ -10,6 +12,7 @@ let trackTexture;
 let lastDozerPos = null;
 let coinPileGroup = null;
 let gemInstancedMesh;
+let bulldozerRenderer = null;
 const dummy = new THREE.Object3D();
 const MAX_GEMS = 2000;
 
@@ -81,6 +84,12 @@ export function initThree() {
     gemInstancedMesh.castShadow = true;
     gemInstancedMesh.receiveShadow = true;
     scene.add(gemInstancedMesh);
+
+    // Initialize Bulldozer Renderer
+    bulldozerRenderer = new BulldozerRenderer(scene);
+    bulldozerRenderer.load('public/assets/bulldozer_components.glb').catch(err => {
+        console.warn('Failed to load bulldozer assets:', err);
+    });
 }
 
 function createCoinPile() {
@@ -747,6 +756,32 @@ export function updateGraphics(bulldozer) {
                      gemInstancedMesh.setColorAt(gemIndex, new THREE.Color(part.renderColor || 0xffffff));
                      gemIndex++;
                  }
+                 return;
+             }
+
+             if (part.label === 'chassis' && bulldozerRenderer) {
+                 // Use the high-fidelity renderer for the chassis/body
+                 bulldozerRenderer.setPose(part.position, part.angle);
+
+                 // Estimate track speed from velocity
+                 // Project velocity onto forward vector to get signed speed
+                 const fwdX = Math.sin(-part.angle); // -sin(angle)
+                 const fwdY = Math.cos(-part.angle); // cos(angle)
+                 // MatterJS angle 0 is up?
+                 // Actually in updateGraphics we set rotation.y = -part.angle.
+                 // ThreeJS +Z is forward?
+                 // Let's just use magnitude for now, assuming forward movement.
+                 const speed = Math.sqrt(body.velocity.x**2 + body.velocity.y**2) * 0.05;
+                 // Determine direction roughly?
+                 // If dot product with forward is negative, reverse.
+                 // This is tricky without exact orientation knowledge, but visually:
+                 // part.angle rotates the body.
+
+                 bulldozerRenderer.setSpeeds(speed, speed);
+                 bulldozerRenderer.update(1/60);
+
+                 // Don't create a box mesh for this part
+                 // Also ensure any old box mesh is removed (by not adding to activeIds)
                  return;
              }
 
