@@ -49,6 +49,8 @@ jobs:
           cp verification/asset_viewer.html dist/index.html
           # Inject timestamp for asset viewer
           sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
+          # Rewrite import map to use ./node_modules for flat deployment structure
+          sed -i 's|\.\./node_modules|\./node_modules|g' dist/index.html
           mkdir -p dist/public
           cp -r public/assets dist/public/
           # Copy dependencies for the viewer
