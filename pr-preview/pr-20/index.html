@@ -156,6 +156,8 @@
                     <option value="180">180</option>
                     <option value="270">270</option>
                 </select>
+                <label>Spread:</label>
+                <input type="range" id="track-spread" min="-2" max="2" step="0.1" value="0" style="width: 80px;">
             </div>
             <button id="toggle-console">Show Logs</button>
             <div style="color: white; background: rgba(0,0,0,0.5); padding: 5px;">
@@ -573,7 +575,7 @@
                     }
 
                     // 2. Create Instanced Tracks
-                    const setupTrack = (points, speed) => {
+                    const setupTrack = (points, speed, side) => {
                         if (!points || !linkGeo) return;
 
                         // Close the loop for CatmullRom
@@ -593,12 +595,13 @@
                             curve: curve,
                             count: count,
                             speed: speed, // 0-1 per second
-                            offset: 0
+                            offset: 0,
+                            side: side
                         });
                     };
 
-                    setupTrack(leftPathPoints, 0.2);
-                    setupTrack(rightPathPoints, 0.2); // Same speed for now
+                    setupTrack(leftPathPoints, 0.2, -1);
+                    setupTrack(rightPathPoints, 0.2, 1); // Same speed for now
 
                     // Center view
                     const box = new THREE.Box3().setFromObject(currentModelGroup);
@@ -668,7 +671,8 @@
             up: _trackUpX,
             rotX: 0,
             rotY: 0,
-            rotZ: 0
+            rotZ: 0,
+            spread: 0
         };
 
         function updateTrackParams() {
@@ -677,11 +681,13 @@
             trackParams.rotX = parseFloat(document.getElementById('track-rot-x').value) * Math.PI / 180;
             trackParams.rotY = parseFloat(document.getElementById('track-rot-y').value) * Math.PI / 180;
             trackParams.rotZ = parseFloat(document.getElementById('track-rot-z').value) * Math.PI / 180;
+            trackParams.spread = parseFloat(document.getElementById('track-spread').value);
         }
 
         // Listeners for track params
-        ['track-up-axis', 'track-rot-x', 'track-rot-y', 'track-rot-z'].forEach(id => {
+        ['track-up-axis', 'track-rot-x', 'track-rot-y', 'track-rot-z', 'track-spread'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateTrackParams);
+            if(id === 'track-spread') document.getElementById(id).addEventListener('input', updateTrackParams);
         });
         updateTrackParams();
 
@@ -722,6 +728,11 @@
                     if (trackParams.rotX) dummy.rotateX(trackParams.rotX);
                     if (trackParams.rotY) dummy.rotateY(trackParams.rotY);
                     if (trackParams.rotZ) dummy.rotateZ(trackParams.rotZ);
+
+                    if (trackParams.spread) {
+                        // Spread moves tracks away from center along Up axis
+                        dummy.position.addScaledVector(trackParams.up, trackParams.spread * track.side);
+                    }
 
                     dummy.updateMatrix();
                     track.mesh.setMatrixAt(i, dummy.matrix);
