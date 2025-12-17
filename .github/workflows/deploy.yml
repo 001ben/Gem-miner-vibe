@@ -18,35 +18,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Prepare Distribution
-        run: |
-          mkdir -p dist
-          cp index.html dist/
-          # Inject timestamp
-          sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
-          cp style.css dist/
-          cp -r js dist/
-          cp VERSION dist/
-          cp -r assets dist/ 2>/dev/null || true
-          
-          # Copy dependencies
-          mkdir -p dist/node_modules/three/build
-          cp node_modules/three/build/three.module.js dist/node_modules/three/build/
-          mkdir -p dist/node_modules/three/examples
-          cp -r node_modules/three/examples/jsm dist/node_modules/three/examples/
-          mkdir -p dist/node_modules/matter-js/build
-          cp node_modules/matter-js/build/matter.min.js dist/node_modules/matter-js/build/
-          
-          touch dist/.nojekyll
+      - name: Build Distribution
+        run: task build:dist
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
