@@ -22,27 +22,23 @@ export function createBulldozer() {
         Composite.remove(world, bulldozer);
     }
 
-    const bodySize = 40 + (state.dozerLevel * 5);
-    // Linear growth is fine, user complained about levels 3-4 stopping growth.
-    // At Level 1: 40 + 5*1 = 45. Plow: 45*1.2 + 40 = 54 + 40 = 94.
-    // Level 2: 94 + 40 = 134.
-    // Level 3: 174.
-    // Level 4: 214.
-    // It should grow.
-    // However, maybe visual scaling is capped? No.
-    // Let's verify startXLeft uses this.
-    const plowWidth = bodySize * 1.2 + (state.plowLevel * 40);
-    const plowHeight = 22; // Thicker than original (10) but not "weird" (30). Compromise.
+    // Massive 10x Scale
+    const bodySize = (40 + (state.dozerLevel * 5)) * 10;
+
+    // Scale plow adders and dimensions
+    const plowWidth = bodySize * 1.2 + (state.plowLevel * 400);
+    const plowHeight = 220;
 
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { label: 'chassis' });
-    const plowOffset = -(bodySize/2 + plowHeight/2 - 5);
+    // Scale offset constant (5 -> 50)
+    const plowOffset = -(bodySize/2 + plowHeight/2 - 50);
     const plow = Bodies.rectangle(0, plowOffset, plowWidth, plowHeight, { label: 'plow' });
 
     let parts = [chassis, plow];
 
     if (state.plowLevel >= 3) {
-        const wingLength = 30;
-        const wingWidth = 10;
+        const wingLength = 300;
+        const wingWidth = 100;
         // Angles: -135 deg for left (Up-Left), -45 deg for right (Up-Right)
         // This makes them flare outwards like a funnel.
         const angleLeft = -3 * Math.PI / 4;

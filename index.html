@@ -19,6 +19,27 @@
             </div>
             <div style="display: flex; gap: 10px;">
                 <button id="btn-console-toggle" style="pointer-events: auto;">Show Logs</button>
+                <button id="btn-tex-debug-toggle" style="pointer-events: auto; background: #3498db; border: 1px solid #fff;">Tex Debug</button>
+            </div>
+        </div>
+
+        <div id="texture-debug-panel" class="hidden">
+            <h3>Texture Settings</h3>
+            <div class="control-row">
+                <label>Scale (Repeat): <span id="val-scale">0.5</span></label>
+                <input type="range" id="inp-scale" min="0.1" max="2.0" step="0.05" value="0.5">
+            </div>
+            <div class="control-row">
+                <label>Offset X: <span id="val-offx">0.0</span></label>
+                <input type="range" id="inp-offx" min="-1.0" max="1.0" step="0.01" value="0.0">
+            </div>
+            <div class="control-row">
+                <label>Offset Y: <span id="val-offy">0.0</span></label>
+                <input type="range" id="inp-offy" min="-1.0" max="1.0" step="0.01" value="0.0">
+            </div>
+            <div class="control-row">
+                <label>Rotation: <span id="val-rot">90</span></label>
+                <input type="range" id="inp-rot" min="0" max="360" step="1" value="90">
             </div>
         </div>
 
