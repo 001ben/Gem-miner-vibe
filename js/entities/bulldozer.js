@@ -23,14 +23,6 @@ export function createBulldozer() {
     }
 
     const bodySize = 40 + (state.dozerLevel * 5);
-    // Linear growth is fine, user complained about levels 3-4 stopping growth.
-    // At Level 1: 40 + 5*1 = 45. Plow: 45*1.2 + 40 = 54 + 40 = 94.
-    // Level 2: 94 + 40 = 134.
-    // Level 3: 174.
-    // Level 4: 214.
-    // It should grow.
-    // However, maybe visual scaling is capped? No.
-    // Let's verify startXLeft uses this.
     const plowWidth = bodySize * 1.2 + (state.plowLevel * 40);
     const plowHeight = 22; // Thicker than original (10) but not "weird" (30). Compromise.
 
