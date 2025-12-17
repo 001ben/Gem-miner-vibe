@@ -1,0 +1,7 @@
+verification/asset_viewer.html
+verification/screenshot_assets.js
+verification/verify_isolated_model.py
+scripts/build-blender-assets.js
+assets/source/blender/bulldozer.py
+.github/workflows/pr-preview.yml
+.github/workflows/deploy.yml
