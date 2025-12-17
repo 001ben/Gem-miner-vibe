@@ -162,6 +162,8 @@ export class BulldozerRenderer {
         this._tangent = new THREE.Vector3();
         this._lookAtTarget = new THREE.Vector3();
         this.dummy = new THREE.Object3D();
+
+        this.isLoaded = false;
     }
 
     load(url) {
@@ -292,6 +294,7 @@ export class BulldozerRenderer {
                 setupTrack(leftPathPoints, -1);
                 setupTrack(rightPathPoints, 1);
 
+                this.isLoaded = true;
                 resolve();
             }, (xhr) => {
                 // onProgress
