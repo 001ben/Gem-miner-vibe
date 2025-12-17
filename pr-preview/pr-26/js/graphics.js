@@ -76,6 +76,8 @@ export function initThree() {
     bulldozerTexture.colorSpace = THREE.SRGBColorSpace;
     bulldozerTexture.center.set(0.5, 0.5);
     bulldozerTexture.rotation = Math.PI / 2; // Rotate to align with car body
+    bulldozerTexture.repeat.set(0.8, 0.8);
+    bulldozerTexture.offset.set(0.1, 0.1);
 
     createCoinPile();
 
@@ -490,7 +492,13 @@ export function removeBodyMesh(bodyId) {
     if (mesh) {
         scene.remove(mesh);
         if (mesh.geometry) mesh.geometry.dispose();
-        if (mesh.material) mesh.material.dispose();
+        if (mesh.material) {
+            if (Array.isArray(mesh.material)) {
+                mesh.material.forEach(m => m.dispose());
+            } else {
+                mesh.material.dispose();
+            }
+        }
         bodyMeshMap.delete(bodyId);
     }
 }
