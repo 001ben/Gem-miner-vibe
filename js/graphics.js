@@ -79,6 +79,9 @@ export function initThree() {
     bulldozerTexture.repeat.set(0.5, 0.5);
     bulldozerTexture.offset.set(0, 0); // Center pivot handles the centering
 
+    // Expose for Debug UI
+    window.bulldozerTexture = bulldozerTexture;
+
     createCoinPile();
 
     // Gem Instanced Mesh
