@@ -30,7 +30,7 @@ jobs:
       - name: Install Task
         uses: go-task/setup-task@v1
         with:
-          version: '3.x'
+          version: "3.x"
 
       - name: Install System Dependencies (Blender)
         if: github.event.action != 'closed'
@@ -59,7 +59,7 @@ jobs:
           cp -r assets dist/ 2>/dev/null || true
           # Copy generated public assets
           mkdir -p dist/public
-          cp -r public/assets dist/public/
+          cp -r assets dist/public/
           # Copy dependencies
           mkdir -p dist/node_modules/three/build
           mkdir -p dist/node_modules/three/examples/jsm
