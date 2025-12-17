@@ -20,6 +20,7 @@ jobs:
 
       - name: Prepare Distribution
         run: |
+          npm ci
           mkdir -p dist
           cp index.html dist/
           # Inject timestamp
@@ -28,6 +29,10 @@ jobs:
           cp -r js dist/
           cp VERSION dist/
           cp -r assets dist/ 2>/dev/null || true
+          mkdir -p dist/node_modules/three/build
+          mkdir -p dist/node_modules/three/examples/jsm
+          cp node_modules/three/build/* dist/node_modules/three/build/
+          cp -r node_modules/three/examples/jsm/* dist/node_modules/three/examples/jsm/
           touch dist/.nojekyll
 
       - name: Deploy to GitHub Pages
