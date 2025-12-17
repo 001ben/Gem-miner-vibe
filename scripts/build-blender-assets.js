@@ -4,7 +4,7 @@ const { execSync } = require('child_process');
 
 // Config
 const SRC_DIR = './assets/source/blender';
-const OUT_DIR = './public/assets';
+const OUT_DIR = './assets';
 
 if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 

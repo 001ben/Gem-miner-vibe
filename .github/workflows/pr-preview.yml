@@ -20,51 +20,32 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check for Asset Changes
-        if: github.event.action != 'closed'
-        id: check_assets
         uses: dorny/paths-filter@v2
+        id: filter
         with:
           filters: |
             assets:
-              - 'assets/source/**'
-              - 'scripts/build-blender-assets.js'
-              - 'package.json'
+              - 'assets/source/blender/**'
 
-      - name: Install Dependencies
-        if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
-        run: |
-          sudo apt-get update && sudo apt-get install -y blender python3-numpy
-          npm install
+      - name: Install Task
+        uses: go-task/setup-task@v1
+        with:
+          version: "3.x"
+
+      - name: Install System Dependencies (Blender)
+        if: github.event.action != 'closed'
+        run: task deps:system
+
+      - name: Install Node Dependencies
+        if: github.event.action != 'closed'
+        run: npm ci
 
       - name: Build Assets
-        if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
-        run: |
-          npm run build:blender
+        if: github.event.action != 'closed'
+        run: task build:assets
 
-      - name: Prepare Distribution (Assets)
-        if: github.event.action != 'closed' && steps.check_assets.outputs.assets == 'true'
-        run: |
-          mkdir -p dist
-          cp verification/asset_viewer.html dist/index.html
-          # Inject timestamp for asset viewer
-          sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
-          # Rewrite import map to use ./node_modules for flat deployment structure
-          sed -i 's|\.\./node_modules|\./node_modules|g' dist/index.html
-          # Rewrite js imports for flat deployment structure
-          sed -i 's|\.\./js|\./js|g' dist/index.html
-          mkdir -p dist/public
-          cp -r public/assets dist/public/
-          # Copy JS source for the viewer (needed for bulldozer_render.js)
-          cp -r js dist/
-          # Copy dependencies for the viewer
-          mkdir -p dist/node_modules/three/build
-          mkdir -p dist/node_modules/three/examples/jsm
-          cp node_modules/three/build/* dist/node_modules/three/build/
-          cp -r node_modules/three/examples/jsm/* dist/node_modules/three/examples/jsm/
-          touch dist/.nojekyll
-
-      - name: Prepare Distribution (Game)
-        if: github.event.action != 'closed' && steps.check_assets.outputs.assets != 'true'
+      - name: Prepare Distribution
+        if: github.event.action != 'closed'
         run: |
           mkdir -p dist
           cp index.html dist/
@@ -72,9 +53,24 @@ jobs:
           sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
           cp style.css dist/
           cp -r js dist/
+          cp -r verification dist/
           cp VERSION dist/
+          # Copy repo assets
           cp -r assets dist/ 2>/dev/null || true
+          # Copy generated public assets
+          mkdir -p dist/public
+          cp -r assets dist/public/
+          # Copy dependencies
+          mkdir -p dist/node_modules/three/build
+          mkdir -p dist/node_modules/three/examples/jsm
+          cp node_modules/three/build/* dist/node_modules/three/build/
+          cp -r node_modules/three/examples/jsm/* dist/node_modules/three/examples/jsm/
           touch dist/.nojekyll
+
+          if [ "${{ steps.filter.outputs.assets }}" == "true" ]; then
+            echo "Assets changed. Redirecting preview to Asset Viewer."
+            echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=verification/asset_viewer.html" /></head><body><p>Redirecting to <a href="verification/asset_viewer.html">Asset Viewer</a>...</p></body></html>' > dist/index.html
+          fi
 
       - name: Deploy Preview
         uses: rossjrw/pr-preview-action@v1

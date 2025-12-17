@@ -5,6 +5,7 @@ import { createCollector } from './collector.js';
 import { createMap } from './map.js';
 import { showNotification, updateUI } from '../ui.js';
 import { spawnParticles, spawnFloatingText } from '../graphics.js';
+import { rebuildBulldozerRenderer } from '../game.js';
 
 // Shop Pads
 // These are sensor bodies placed on the map.
@@ -132,6 +133,7 @@ function handleShopInteraction(pad) {
             state.dozerLevel++;
             costs.dozer = Math.floor(costs.dozer * 1.5);
             createBulldozer();
+            rebuildBulldozerRenderer();
             spawnFloatingText("Engine Up!", { x: pad.x, y: pad.y }, '#f39c12');
             showNotification(`Engine Upgraded to Level ${state.dozerLevel}!`);
         } else if (pad.type === 'plow') {

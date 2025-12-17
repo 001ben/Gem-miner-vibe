@@ -58,7 +58,7 @@ async function updateVersionDisplay() {
 }
 
 // Shop Functions - Exposed via window for HTML onclick or we attach them
-export function setupShop() {
+export function initUI() {
     updateVersionDisplay();
     // Shop logic is now handled by physical pads (js/entities/shop.js)
 }
