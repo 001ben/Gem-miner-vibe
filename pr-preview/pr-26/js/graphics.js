@@ -74,6 +74,8 @@ export function initThree() {
     const texLoader = new THREE.TextureLoader();
     bulldozerTexture = texLoader.load('assets/bulldozer.svg');
     bulldozerTexture.colorSpace = THREE.SRGBColorSpace;
+    bulldozerTexture.center.set(0.5, 0.5);
+    bulldozerTexture.rotation = Math.PI / 2; // Rotate to align with car body
 
     createCoinPile();
 
@@ -284,7 +286,8 @@ export function createMesh(body) {
             color: 0xffffff,
             map: bulldozerTexture,
             roughness: 0.5,
-            metalness: 0.1
+            metalness: 0.1,
+            transparent: true // Enable transparency for the SVG
         });
 
         // Face order: Right, Left, Top, Bottom, Front, Back
@@ -876,7 +879,13 @@ export function updateGraphics(bulldozer) {
         if (!activeIds.has(id)) {
             scene.remove(mesh);
             if (mesh.geometry) mesh.geometry.dispose();
-            if (mesh.material) mesh.material.dispose();
+            if (mesh.material) {
+                if (Array.isArray(mesh.material)) {
+                    mesh.material.forEach(m => m.dispose());
+                } else {
+                    mesh.material.dispose();
+                }
+            }
             bodyMeshMap.delete(id);
         }
     }
