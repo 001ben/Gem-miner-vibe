@@ -9,6 +9,7 @@ export const bodyMeshMap = new Map();
 export const particles = [];
 const tracks = [];
 let trackTexture;
+let bulldozerTexture;
 let lastDozerPos = null;
 let coinPileGroup = null;
 let gemInstancedMesh;
@@ -68,6 +69,19 @@ export function initThree() {
     scene.add(plane);
 
     createTrackTexture();
+
+    // Load Bulldozer SVG
+    const texLoader = new THREE.TextureLoader();
+    bulldozerTexture = texLoader.load('assets/bulldozer.svg');
+    bulldozerTexture.colorSpace = THREE.SRGBColorSpace;
+    bulldozerTexture.center.set(0.5, 0.5);
+    bulldozerTexture.rotation = Math.PI / 2; // Rotate to align with car body
+    bulldozerTexture.repeat.set(0.5, 0.5);
+    bulldozerTexture.offset.set(0, 0); // Center pivot handles the centering
+
+    // Expose for Debug UI
+    window.bulldozerTexture = bulldozerTexture;
+
     createCoinPile();
 
     // Gem Instanced Mesh
@@ -87,9 +101,10 @@ export function initThree() {
 
     // Initialize Bulldozer Renderer
     bulldozerRenderer = new BulldozerRenderer(scene);
-    bulldozerRenderer.load('public/assets/bulldozer_components.glb').catch(err => {
-        console.warn('Failed to load bulldozer assets:', err);
-    });
+    // GLB is missing, using SVG texture fallback in createMesh instead
+    // bulldozerRenderer.load('public/assets/bulldozer_components.glb').catch(err => {
+    //     console.warn('Failed to load bulldozer assets:', err);
+    // });
 }
 
 function createCoinPile() {
@@ -270,14 +285,35 @@ export function createMesh(body) {
         mesh.position.y = 30;
     } else if (label === 'chassis') {
         const geo = new THREE.BoxGeometry(w, 20, h);
-        const mat = new THREE.MeshStandardMaterial({ color: 0xf39c12 }); // Bulldozer yellow
-        mesh = new THREE.Mesh(geo, mat);
+
+        const sideMat = new THREE.MeshStandardMaterial({ color: 0xf39c12 });
+        const topMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            map: bulldozerTexture,
+            roughness: 0.5,
+            metalness: 0.1,
+            transparent: true // Enable transparency for the SVG
+        });
+
+        // Face order: Right, Left, Top, Bottom, Front, Back
+        const mats = [
+            sideMat, // Right
+            sideMat, // Left
+            topMat,  // Top
+            sideMat, // Bottom
+            sideMat, // Front
+            sideMat  // Back
+        ];
+
+        mesh = new THREE.Mesh(geo, mats);
         mesh.position.y = 10;
-        const cabGeo = new THREE.BoxGeometry(w * 0.6, 15, h * 0.6);
-        const cabMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-        const cab = new THREE.Mesh(cabGeo, cabMat);
-        cab.position.y = 17.5;
-        mesh.add(cab);
+
+        // Procedural cabin removed to show texture
+        // const cabGeo = new THREE.BoxGeometry(w * 0.6, 15, h * 0.6);
+        // const cabMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        // const cab = new THREE.Mesh(cabGeo, cabMat);
+        // cab.position.y = 17.5;
+        // mesh.add(cab);
     } else if (label === 'plow') {
         let geo;
         if (state.plowLevel >= 6) {
@@ -459,7 +495,13 @@ export function removeBodyMesh(bodyId) {
     if (mesh) {
         scene.remove(mesh);
         if (mesh.geometry) mesh.geometry.dispose();
-        if (mesh.material) mesh.material.dispose();
+        if (mesh.material) {
+            if (Array.isArray(mesh.material)) {
+                mesh.material.forEach(m => m.dispose());
+            } else {
+                mesh.material.dispose();
+            }
+        }
         bodyMeshMap.delete(bodyId);
     }
 }
@@ -848,7 +890,13 @@ export function updateGraphics(bulldozer) {
         if (!activeIds.has(id)) {
             scene.remove(mesh);
             if (mesh.geometry) mesh.geometry.dispose();
-            if (mesh.material) mesh.material.dispose();
+            if (mesh.material) {
+                if (Array.isArray(mesh.material)) {
+                    mesh.material.forEach(m => m.dispose());
+                } else {
+                    mesh.material.dispose();
+                }
+            }
             bodyMeshMap.delete(id);
         }
     }

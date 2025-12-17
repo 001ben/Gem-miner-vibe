@@ -61,4 +61,42 @@ async function updateVersionDisplay() {
 export function setupShop() {
     updateVersionDisplay();
     // Shop logic is now handled by physical pads (js/entities/shop.js)
+
+    // Texture Debug Setup
+    const btnTex = document.getElementById('btn-tex-debug-toggle');
+    const panelTex = document.getElementById('texture-debug-panel');
+
+    if (btnTex && panelTex) {
+        btnTex.onclick = () => {
+            panelTex.classList.toggle('hidden');
+        };
+
+        const inpScale = document.getElementById('inp-scale');
+        const inpOffX = document.getElementById('inp-offx');
+        const inpOffY = document.getElementById('inp-offy');
+        const inpRot = document.getElementById('inp-rot');
+
+        const updateTex = () => {
+            if (window.bulldozerTexture) {
+                const s = parseFloat(inpScale.value);
+                const x = parseFloat(inpOffX.value);
+                const y = parseFloat(inpOffY.value);
+                const r = parseFloat(inpRot.value);
+
+                window.bulldozerTexture.repeat.set(s, s);
+                window.bulldozerTexture.offset.set(x, y);
+                window.bulldozerTexture.rotation = r * Math.PI / 180;
+
+                document.getElementById('val-scale').innerText = s.toFixed(2);
+                document.getElementById('val-offx').innerText = x.toFixed(2);
+                document.getElementById('val-offy').innerText = y.toFixed(2);
+                document.getElementById('val-rot').innerText = r.toFixed(0);
+            }
+        };
+
+        inpScale.oninput = updateTex;
+        inpOffX.oninput = updateTex;
+        inpOffY.oninput = updateTex;
+        inpRot.oninput = updateTex;
+    }
 }
