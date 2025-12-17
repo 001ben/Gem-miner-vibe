@@ -77,7 +77,7 @@ export function initThree() {
     bulldozerTexture.center.set(0.5, 0.5);
     bulldozerTexture.rotation = Math.PI / 2; // Rotate to align with car body
     bulldozerTexture.repeat.set(0.5, 0.5);
-    bulldozerTexture.offset.set(0.25, 0.25);
+    bulldozerTexture.offset.set(0, 0); // Center pivot handles the centering
 
     createCoinPile();
 
