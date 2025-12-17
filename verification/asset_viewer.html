@@ -342,7 +342,8 @@
         const animatedInstances = []; // Legacy support
 
         const ASSETS = [
-            { id: 'bulldozer_components.glb', label: 'Bulldozer (Blender)' }
+            { id: 'bulldozer_components.glb', label: 'Bulldozer (Blender)' },
+            { id: 'bulldozer_texture.png', label: 'Texture (2D)' }
         ];
 
         // --- UI Setup ---
@@ -377,8 +378,23 @@
             currentModelGroup.position.set(0,0,0);
             currentModelGroup.rotation.set(0,0,0);
 
-            if (assetName === 'bulldozer_components.glb') {
-                const path = `public/assets/${assetName}`;
+            const path = `../assets/${assetName}`;
+
+            if (assetName.endsWith('.png')) {
+                console.log(`Loading texture: ${path}`);
+                new THREE.TextureLoader().load(path, (tex) => {
+                    // tex.colorSpace = THREE.SRGBColorSpace; 
+                    const aspect = tex.image.width / tex.image.height;
+                    const geo = new THREE.PlaneGeometry(30 * aspect, 30);
+                    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+                    const mesh = new THREE.Mesh(geo, mat);
+                    // mesh.rotation.x = -Math.PI / 2; // Flat on ground? Or billboard?
+                    // Let's stand it up
+                    currentModelGroup.add(mesh);
+                    controls.target.set(0, 0, 0);
+                });
+            }
+            else if (assetName === 'bulldozer_components.glb') {
                 console.log(`Loading complex Blender asset via Renderer: ${path}`);
 
                 bulldozerRenderer = new BulldozerRenderer(scene);
