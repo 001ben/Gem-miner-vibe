@@ -899,12 +899,13 @@ export function updateGraphics(bulldozer) {
     }
 
     if (bulldozer) {
-        const baseHeight = 1500;
-        const zoomLevel = (state.dozerLevel - 1) * 100; // Reduced zoom multiplier
+        // Massive Camera for Massive Dozer
+        const baseHeight = 15000;
+        const zoomLevel = (state.dozerLevel - 1) * 1000;
         const targetY = baseHeight + zoomLevel;
         camera.position.y = targetY;
         camera.position.x = bulldozer.position.x;
-        camera.position.z = bulldozer.position.y + 500;
+        camera.position.z = bulldozer.position.y + 5000; // Scaled offset
         camera.lookAt(bulldozer.position.x, 0, bulldozer.position.y);
 
         if (!lastDozerPos) {
