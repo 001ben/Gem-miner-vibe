@@ -32,45 +32,22 @@ jobs:
         with:
           version: "3.x"
 
-      - name: Install System Dependencies (Blender)
+      - name: Setup Node.js
         if: github.event.action != 'closed'
-        run: task deps:system
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Install Node Dependencies
+      - name: Build Distribution
         if: github.event.action != 'closed'
-        run: npm ci
+        run: task build:dist
 
-      - name: Build Assets
-        if: github.event.action != 'closed'
-        run: task build:assets
-
-      - name: Prepare Distribution
-        if: github.event.action != 'closed'
+      - name: Asset Viewer Redirect
+        if: github.event.action != 'closed' && steps.filter.outputs.assets == 'true'
         run: |
-          mkdir -p dist
-          cp index.html dist/
-          # Inject timestamp
-          sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
-          cp style.css dist/
-          cp -r js dist/
-          cp -r verification dist/
-          cp VERSION dist/
-          # Copy repo assets
-          cp -r assets dist/ 2>/dev/null || true
-          # Copy generated public assets
-          mkdir -p dist/public
-          cp -r assets dist/public/
-          # Copy dependencies
-          mkdir -p dist/node_modules/three/build
-          mkdir -p dist/node_modules/three/examples/jsm
-          cp node_modules/three/build/* dist/node_modules/three/build/
-          cp -r node_modules/three/examples/jsm/* dist/node_modules/three/examples/jsm/
-          touch dist/.nojekyll
-
-          if [ "${{ steps.filter.outputs.assets }}" == "true" ]; then
-            echo "Assets changed. Redirecting preview to Asset Viewer."
-            echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=verification/asset_viewer.html" /></head><body><p>Redirecting to <a href="verification/asset_viewer.html">Asset Viewer</a>...</p></body></html>' > dist/index.html
-          fi
+          echo "Assets changed. Redirecting preview to Asset Viewer."
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=verification/asset_viewer.html" /></head><body><p>Redirecting to <a href="verification/asset_viewer.html">Asset Viewer</a>...</p></body></html>' > dist/index.html
 
       - name: Deploy Preview
         uses: rossjrw/pr-preview-action@v1
