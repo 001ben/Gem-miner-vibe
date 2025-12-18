@@ -55,7 +55,7 @@ tasks:
     desc: Start the main game server
     deps: [build:assets]
     cmds:
-      - bun x http-server -p 3000 -o /index.html
+      - bun x http-server -p 3000 -c-1 -o /index.html
 
   damp:viewer:
     desc: Start the DAMP asset viewer server

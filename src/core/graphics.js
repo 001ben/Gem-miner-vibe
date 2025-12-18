@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { world } from './physics.js';
 import { state } from './state.js';
 import { getShopPads } from '../entities/shop.js';
@@ -11,14 +12,15 @@ let trackTexture;
 let dirtTexture;
 let lastDozerPos = null;
 let coinPileGroup = null;
-let gemInstancedMesh;
+let coinStacksGroup = null; // Separate group for dynamic coins
+const gemInstancedMeshes = {}; // Map of colorHex -> InstancedMesh
 const dummy = new THREE.Object3D();
-const MAX_GEMS = 2000;
+const MAX_GEMS_PER_TYPE = 1000;
 
 // Bank Area Configuration
-const BANK_POS = { x: 400, y: 400 }; // Moved away from wall (Collector is at 0, 400)
+const BANK_POS = { x: -400, y: 400 }; // Near Shop Area
 const COINS_PER_STACK = 100;
-const PILE_RADIUS = 80;
+const PILE_RADIUS = 30; // Reduced to 1/3rd for tighter piles
 
 export function initThree() {
   scene = new THREE.Scene();
@@ -29,14 +31,20 @@ export function initThree() {
   const aspect = window.innerWidth / window.innerHeight;
   camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
   // Initial position, updated later
-  camera.position.set(0, 1500, 100); 
+  camera.position.set(0, 1500, 100);
   camera.lookAt(0, 0, 0);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   document.getElementById('game-container').appendChild(renderer.domElement);
+
+  // Environment Map (for realistic reflections)
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
   // Lights
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.9); // Balanced ambient
@@ -62,11 +70,11 @@ export function initThree() {
 
   // Ground
   const planeGeo = new THREE.PlaneGeometry(10000, 10000);
-  // Brighter, textured sand/dirt
-  const planeMat = new THREE.MeshStandardMaterial({ 
-    color: 0xbaa080, 
+  // Darker, "dirtier" sand/dirt
+  const planeMat = new THREE.MeshStandardMaterial({
+    color: 0x665544, // Darker brownish-grey
     map: dirtTexture,
-    roughness: 0.9,
+    roughness: 0.95, // Very rough
     metalness: 0.0
   });
   const plane = new THREE.Mesh(planeGeo, planeMat);
@@ -75,28 +83,69 @@ export function initThree() {
   plane.receiveShadow = true;
   scene.add(plane);
 
-  // Gem Instanced Mesh
-  const gemGeo = new THREE.IcosahedronGeometry(1, 0);
-  const gemMat = new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    roughness: 0.1,
-    metalness: 0.5,
-    emissive: 0x444444, // Darker emissive to retain facets
-    emissiveIntensity: 0.45 // Lower glow
+  // Gem Instanced Meshes (Mapped by Color)
+  const gemMatBase = {
+    roughness: 0.05,
+    metalness: 0.9,
+    emissive: 0x222222,
+    emissiveIntensity: 0.3
+  };
+
+  const mappings = [
+    { color: '#00FFFF', geo: new THREE.IcosahedronGeometry(1, 0) },
+    { color: '#FF00FF', geo: new THREE.IcosahedronGeometry(1, 0) },
+    { color: '#FFFF00', geo: new THREE.DodecahedronGeometry(1) },
+    { color: '#00FF00', geo: new THREE.OctahedronGeometry(1) }
+  ];
+
+  mappings.forEach(({ color, geo }) => {
+    const mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ ...gemMatBase, color: new THREE.Color(color) }), MAX_GEMS_PER_TYPE);
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+    gemInstancedMeshes[color] = mesh;
   });
-  gemInstancedMesh = new THREE.InstancedMesh(gemGeo, gemMat, MAX_GEMS);
-  gemInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  gemInstancedMesh.castShadow = true;
-  gemInstancedMesh.receiveShadow = true;
-  scene.add(gemInstancedMesh);
-
 }
-
 function createCoinPile() {
-  // A group for the coin pile grid
+  // A group for the bank area
   coinPileGroup = new THREE.Group();
   coinPileGroup.position.set(BANK_POS.x, 0, BANK_POS.y);
   scene.add(coinPileGroup);
+
+  // Sub-group for actual coins
+  coinStacksGroup = new THREE.Group();
+  coinPileGroup.add(coinStacksGroup);
+
+  // Bank Mat (Visual Base)
+  const matRadius = PILE_RADIUS * 1.3; // Tighter margin
+  const matGeo = new THREE.CircleGeometry(matRadius, 32);
+  const matMat = new THREE.MeshStandardMaterial({
+    color: 0x111111,
+    roughness: 0.4,
+    metalness: 0.5,
+    side: THREE.DoubleSide
+  });
+  const matMesh = new THREE.Mesh(matGeo, matMat);
+  matMesh.rotation.x = -Math.PI / 2;
+  matMesh.position.y = 0.1; // Back to a natural level
+  matMesh.receiveShadow = true;
+  coinPileGroup.add(matMesh);
+
+  // Mat Border (Gold Ring)
+  const ringGeo = new THREE.TorusGeometry(matRadius, 1.5, 8, 64);
+  const ringMat = new THREE.MeshStandardMaterial({
+    color: 0xffd700,
+    metalness: 0.9,
+    roughness: 0.1,
+    emissive: 0xffd700,
+    emissiveIntensity: 0.2
+  });
+  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+  ringMesh.rotation.x = -Math.PI / 2;
+  ringMesh.position.y = 0.2;
+  coinPileGroup.add(ringMesh);
+  console.log("[DEBUG] Bank Mat created at:", BANK_POS);
 }
 
 // Map to store textures for pads to avoid recreation if text doesn't change
@@ -160,12 +209,12 @@ function createDirtTexture() {
     const y = Math.random() * 512;
     const size = Math.random() * 2 + 1;
     const shade = Math.random() * 40 - 20;
-    
+
     // Convert base hex to RGB and apply shade
     const r = Math.max(0, Math.min(255, 170 + shade));
     const g = Math.max(0, Math.min(255, 140 + shade));
     const b = Math.max(0, Math.min(255, 102 + shade));
-    
+
     ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
     ctx.fillRect(x, y, size, size);
   }
@@ -196,7 +245,7 @@ function createTrackTexture() {
   }
 
   // Add some noise or dirt
-  ctx.fillStyle = 'rgba(50, 40, 30, 0.1)';
+  ctx.fillStyle = 'rgba(25, 20, 15, 0.2)';
   ctx.fillRect(0, 0, 64, 64);
 
   trackTexture = new THREE.CanvasTexture(canvas);
@@ -402,14 +451,22 @@ export function createMesh(body) {
     const mat = new THREE.MeshStandardMaterial({
       color: 0x00ff00,
       emissive: 0x00ff00,
-      emissiveIntensity: 0.5,
-      roughness: 0.2
+      emissiveIntensity: 0.2, // High neon intensity
+      roughness: 0.2,
+      metalness: 0.8
     });
     mesh = new THREE.Mesh(geo, mat);
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = 2;
     const innerGeo = new THREE.CircleGeometry(r, 32);
-    const innerMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+    const innerMat = new THREE.MeshStandardMaterial({
+      color: 0x00ff00,
+      emissive: 0x00ff00,
+      emissiveIntensity: 1.0,
+      transparent: true,
+      opacity: 0.3,
+      side: THREE.DoubleSide
+    });
     const inner = new THREE.Mesh(innerGeo, innerMat);
     mesh.add(inner);
   } else if (label && label.startsWith('shop_pad')) {
@@ -624,7 +681,11 @@ export function spawnParticles(pos, color, type = 'normal') {
 
   for (let i = 0; i < count; i++) {
     const geo = new THREE.BoxGeometry(size, size, size);
-    const mat = new THREE.MeshBasicMaterial({ color: color });
+    const mat = new THREE.MeshStandardMaterial({
+      color: color,
+      roughness: 0.6,
+      metalness: 0.2
+    });
     const mesh = new THREE.Mesh(geo, mat);
 
     mesh.position.set(pos.x, 10, pos.y);
@@ -704,11 +765,11 @@ export function spawnCoinDrop(amount, startPos) {
 }
 
 function updateCoinPile() {
-  if (!coinPileGroup) return;
+  if (!coinStacksGroup) return;
 
   // Calculate desired number of stacks
   const targetStacks = Math.floor(state.money / COINS_PER_STACK);
-  const currentStacks = coinPileGroup.children.length;
+  const currentStacks = coinStacksGroup.children.length;
 
   // Add stacks
   if (currentStacks < targetStacks) {
@@ -723,8 +784,8 @@ function updateCoinPile() {
       const x = r * Math.cos(theta);
       const z = r * Math.sin(theta);
 
-      // Create stack mesh
-      const geo = new THREE.CylinderGeometry(5, 5, 10, 8);
+      // Create stack mesh (Taller for more "vertical" feel)
+      const geo = new THREE.CylinderGeometry(5, 5, 20, 8);
       const mat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
       const mesh = new THREE.Mesh(geo, mat);
 
@@ -733,12 +794,12 @@ function updateCoinPile() {
       mesh.rotation.z = (Math.random() - 0.5) * 0.5;
       mesh.rotation.y = Math.random() * Math.PI;
 
-      mesh.position.set(x, 5, z);
+      mesh.position.set(x, 10, z); // Half of height 20
 
       mesh.scale.set(0.1, 0.1, 0.1);
       mesh.userData.targetScale = 1.0;
 
-      coinPileGroup.add(mesh);
+      coinStacksGroup.add(mesh);
     }
   }
 
@@ -746,15 +807,15 @@ function updateCoinPile() {
   if (currentStacks > targetStacks) {
     const removeCount = Math.min(currentStacks - targetStacks, 10);
     for (let i = 0; i < removeCount; i++) {
-      const child = coinPileGroup.children[coinPileGroup.children.length - 1];
-      coinPileGroup.remove(child);
+      const child = coinStacksGroup.children[coinStacksGroup.children.length - 1];
+      coinStacksGroup.remove(child);
       if (child.geometry) child.geometry.dispose();
       if (child.material) child.material.dispose();
     }
   }
 
   // Animate growing stacks
-  coinPileGroup.children.forEach(child => {
+  coinStacksGroup.children.forEach(child => {
     if (child.userData.targetScale) {
       child.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
     }
@@ -766,66 +827,57 @@ export function updateGraphics(bulldozer, bulldozerRenderer) {
   const activeIds = new Set();
   const shopPads = getShopPads();
 
-  let gemIndex = 0;
+  // Reset counters for each color type
+  const typeIndices = {};
+  Object.keys(gemInstancedMeshes).forEach(color => typeIndices[color] = 0);
 
   bodies.forEach(body => {
-    const parts = (body.parts && body.parts.length > 1) ? body.parts.slice(1) : [body];
-    parts.forEach(part => {
-      if (part.label === 'gem') {
-        if (gemIndex < MAX_GEMS) {
-          dummy.position.set(part.position.x, 0, part.position.y);
-          // Adjust Y to sit on ground: radius is scale
-          // part.circleRadius is the radius.
-          const r = part.circleRadius || 10;
-          dummy.position.y = r;
+    // 1. Handle Bulldozer (Compound Body)
+    if (body.label === 'bulldozer') {
+      if (bulldozerRenderer && bulldozerRenderer.isLoaded) {
+        // Update the high-fidelity renderer for the chassis/body
+        bulldozerRenderer.setPose(body.position, body.angle);
 
-          dummy.rotation.set(0, -part.angle, 0);
-
-          dummy.scale.setScalar(r);
-          dummy.updateMatrix();
-
-          gemInstancedMesh.setMatrixAt(gemIndex, dummy.matrix);
-          gemInstancedMesh.setColorAt(gemIndex, new THREE.Color(part.renderColor || 0xffffff));
-          gemIndex++;
-        }
-        return;
-      }
-
-      if (part.label === 'chassis' && bulldozerRenderer && bulldozerRenderer.isLoaded) {
-        // Use the high-fidelity renderer for the chassis/body
-        bulldozerRenderer.setPose(part.position, part.angle);
-
-        // Estimate track speed from velocity
-        // Project velocity onto forward vector to get signed speed
-        // Bulldozer "Forward" in MatterJS is -Y relative to angle?
-        // Wait, in input.js: angle = bulldozer.angle - Math.PI/2; force = (cos(angle), sin(angle)).
-        // So "Forward" is -90 degrees from angle 0.
-        // If Angle=0, Forward is (0, -1).
-        // Let's calculate the Forward vector based on `part.angle`.
-        // Forward vector D = (cos(angle - PI/2), sin(angle - PI/2))
-        // = (sin(angle), -cos(angle))
-
-        const angle = part.angle - Math.PI / 2;
+        const angle = body.angle - Math.PI / 2;
         const fwdX = Math.cos(angle);
         const fwdY = Math.sin(angle);
-
-        // Project velocity onto forward vector
         const dot = body.velocity.x * fwdX + body.velocity.y * fwdY;
-
         const speed = dot * 0.05;
 
-        // Calculate scale based on level (Base size + 15% per level)
-        // Physics size calculation is: 40 + (level * 5). Base is 40.
-        // Level 1: 45. Level 2: 50. Growth is ~12%.
-        // Let's use 1.0 + (level-1) * 0.15 for visual impact.
         const visualScale = 1.0 + (state.dozerLevel - 1) * 0.15;
-        bulldozerRenderer.setScale(visualScale * 10.0); // Renderer base scale is 10.0
+        bulldozerRenderer.setScale(visualScale * 10.0);
 
         bulldozerRenderer.setSpeeds(speed, speed);
         bulldozerRenderer.update(1 / 60);
+      }
 
-        // Don't create a box mesh for this part
-        // Also ensure any old box mesh is removed (by not adding to activeIds)
+      // Continue to process parts, but skip the chassis as it is handled above
+    }
+
+    // 2. Handle Other Bodies (Parts or Single)
+    const parts = (body.parts && body.parts.length > 1) ? body.parts.slice(1) : [body];
+    parts.forEach(part => {
+      // Skip chassis mesh creation as it's handled by BulldozerRenderer
+      if (part.label === 'chassis') return;
+
+      if (part.label === 'gem') {
+        const color = part.gemColorHex;
+        const index = typeIndices[color];
+        const mesh = gemInstancedMeshes[color];
+
+        if (mesh && index < MAX_GEMS_PER_TYPE) {
+          dummy.position.set(part.position.x, 0, part.position.y);
+          const r = part.circleRadius || 10;
+          dummy.position.y = r;
+          dummy.rotation.set(0, -part.angle, 0);
+          dummy.scale.setScalar(r);
+          dummy.updateMatrix();
+
+          mesh.setMatrixAt(index, dummy.matrix);
+          // Note: Material color is already set per InstancedMesh, 
+          // but we could use setColorAt if we wanted variation within a type.
+          typeIndices[color]++;
+        }
         return;
       }
 
@@ -901,7 +953,7 @@ export function updateGraphics(bulldozer, bulldozerRenderer) {
     // Mobile check: Zoom out on small screens (width <= 768)
     const isMobile = window.innerWidth <= 768;
     const baseHeight = isMobile ? 800 : 500;
-    
+
     const zoomLevel = (state.dozerLevel - 1) * 50; // Reduced zoom multiplier
     const targetY = baseHeight + zoomLevel;
     const targetOffsetZ = targetY / 1.732; // this targets a 60 degree perspective angle
@@ -920,7 +972,7 @@ export function updateGraphics(bulldozer, bulldozerRenderer) {
       if (dist > 20) {
         const width = 40 + (state.dozerLevel * 5);
         spawnTrackSegment(bulldozer.position, bulldozer.angle, width);
-        spawnParticles(bulldozer.position, 0x9b7653, 'dust');
+        spawnParticles(bulldozer.position, 0x3d2b1f, 'dust'); // Much darker brown
         lastDozerPos = { ...bulldozer.position };
       }
     }
@@ -929,11 +981,15 @@ export function updateGraphics(bulldozer, bulldozerRenderer) {
   updateCoinPile();
   updateParticles();
 
-  gemInstancedMesh.count = gemIndex;
-  if (gemInstancedMesh.count > 0) {
-    gemInstancedMesh.instanceMatrix.needsUpdate = true;
-    gemInstancedMesh.instanceColor.needsUpdate = true;
-  }
+  // Update all gem types
+  Object.keys(gemInstancedMeshes).forEach(color => {
+    const mesh = gemInstancedMeshes[color];
+    const count = typeIndices[color];
+    mesh.count = count;
+    if (count > 0) {
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+  });
 
   renderer.render(scene, camera);
 }
