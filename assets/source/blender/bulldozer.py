@@ -4,7 +4,7 @@ import os
 import random
 
 # --- Configuration ---
-# We assume the script is run from the repo root, so we target public/assets
+# We assume the script is run from the repo root, so we target assets/
 OUTPUT_PATH = os.path.join(os.getcwd(), "assets", "bulldozer_components.glb")
 
 # --- Helper Functions ---
