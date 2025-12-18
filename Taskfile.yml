@@ -47,6 +47,30 @@ tasks:
       - assets/bulldozer_components.glb
       - assets/bulldozer_texture.png
 
+  build:dist:
+    desc: Build the production distribution
+    deps: [deps:node, build:assets]
+    cmds:
+      - rm -rf dist
+      - mkdir -p dist
+      - cp index.html dist/
+      - cp style.css dist/
+      - cp -r js dist/
+      - cp -r verification dist/
+      - cp VERSION dist/
+      - cp -r assets dist/
+      - rm -rf dist/assets/source
+      # Copy dependencies
+      - mkdir -p dist/node_modules/three/build
+      - cp node_modules/three/build/three.module.js dist/node_modules/three/build/
+      - mkdir -p dist/node_modules/three/examples
+      - cp -r node_modules/three/examples/jsm dist/node_modules/three/examples/
+      - mkdir -p dist/node_modules/matter-js/build
+      - cp node_modules/matter-js/build/matter.min.js dist/node_modules/matter-js/build/
+      - touch dist/.nojekyll
+      # Timestamp injection (Linux/GNU sed compatible)
+      - sh -c "sed -i \"s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g\" dist/index.html"
+
   dev:
     desc: Start the main game server
     deps: [deps:node, build:assets]

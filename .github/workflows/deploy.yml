@@ -18,17 +18,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare Distribution
-        run: |
-          mkdir -p dist
-          cp index.html dist/
-          # Inject timestamp
-          sed -i "s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g" dist/index.html
-          cp style.css dist/
-          cp -r js dist/
-          cp VERSION dist/
-          cp -r assets dist/ 2>/dev/null || true
-          touch dist/.nojekyll
+      - name: Install Task
+        uses: go-task/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Build Distribution
+        run: task build:dist
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
