@@ -54,8 +54,7 @@ tasks:
       - cp index.html dist/
       - cp style.css dist/
       - cp -r js dist/
-      - mkdir -p dist/verification
-      - cp verification/asset_viewer.html dist/verification/
+      - cp -r viewer dist/
       - cp VERSION dist/
       - cp -r assets dist/
       - rm -rf dist/assets/source

@@ -83,6 +83,23 @@ async function reloadBulldozer() {
         renderGlobalUI(); // Re-render global UI to pick up new config defaults
         renderComponentUI();
         controls.target.set(0, 0, 0);
+
+        // Delayed inspection for debugging textures
+        setTimeout(() => {
+            console.log("🔍 [DEBUG] 10s Material Inspection:");
+            if (bulldozerRenderer) {
+                bulldozerRenderer.animatedInstances.forEach(inst => {
+                    const m = inst.mesh.material;
+                    console.log(`Component: ${inst.mesh.name}`);
+                    console.log(` - Material:`, m);
+                    console.log(` - Texture Map:`, m.map);
+                    if (m.map) {
+                        console.log(` - Texture Image:`, m.map.image);
+                        console.log(` - Texture Version:`, m.map.version);
+                    }
+                });
+            }
+        }, 10000);
     } catch (e) {
         console.error("❌ Failed to load bulldozer:", e);
     }

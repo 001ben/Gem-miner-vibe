@@ -2,6 +2,8 @@ node_modules/
 dist/
 .task/
 public/assets/
+assets/textures/
+viewer/assets/
 *.obj
 *.glb
 .DS_Store
