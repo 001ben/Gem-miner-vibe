@@ -33,18 +33,16 @@ jobs:
           version: "3.x"
 
       - name: Setup Node.js
-        if: github.event.action != 'closed'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Build Distribution
-        if: github.event.action != 'closed'
         run: task build:dist
 
       - name: Asset Viewer Redirect
-        if: github.event.action != 'closed' && steps.filter.outputs.assets == 'true'
+        if: steps.filter.outputs.assets == 'true'
         run: |
           echo "Assets changed. Redirecting preview to Asset Viewer."
           echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=verification/asset_viewer.html" /></head><body><p>Redirecting to <a href="verification/asset_viewer.html">Asset Viewer</a>...</p></body></html>' > dist/index.html
@@ -53,3 +51,4 @@ jobs:
         uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: dist
+          remove-on-close: true
