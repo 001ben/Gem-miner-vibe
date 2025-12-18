@@ -362,7 +362,8 @@ export class BulldozerRenderer {
         }
 
         for (let i = 0; i < track.count; i++) {
-          const t = (i / track.count + track.offset) % 1.0;
+          let t = (i / track.count + track.offset) % 1.0;
+          if (t < 0) t += 1.0; // Ensure t is positive [0, 1]
 
           // Safety check for curve sampling
           const point = track.curve.getPointAt(t, this._position);
