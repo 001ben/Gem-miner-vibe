@@ -25,8 +25,8 @@ jobs:
         with:
           filters: |
             assets:
-              - 'assets/source/blender/**'
-              - 'assets/source/textures/**'
+              - 'pipeline/blender/**'
+              - 'pipeline/textures/**'
               - 'assets/configs/**'
 
       - name: Install Task
@@ -41,7 +41,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Build Distribution
         run: task build:dist
@@ -50,7 +49,7 @@ jobs:
         if: steps.changes.outputs.assets == 'true'
         run: |
           echo "Assets changed. Redirecting preview to DAMP Asset Director."
-          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=viewer/index.html" /></head><body><p>Redirecting to <a href="viewer/index.html">DAMP Asset Director</a>...</p></body></html>' > dist/index.html
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=tools/viewer/index.html" /></head><body><p>Redirecting to <a href="tools/viewer/index.html">DAMP Asset Director</a>...</p></body></html>' > dist/index.html
 
       - name: Deploy Preview
         uses: rossjrw/pr-preview-action@v1
