@@ -14,7 +14,7 @@ const state = {
 // --- Scene Setup ---
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x222222);
+scene.background = new THREE.Color(0xaaccff);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(12, 10, 12);
@@ -130,7 +130,7 @@ function renderGlobalUI() {
     sceneGroup.innerHTML = `
         <label>VIEWER BACKGROUND</label>
         <div class="slider-row">
-            <input type="color" id="bg-color" value="#222222">
+            <input type="color" id="bg-color" value="#aaccff">
         </div>
     `;
     scrollContent.appendChild(sceneGroup);

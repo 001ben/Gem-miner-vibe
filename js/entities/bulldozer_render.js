@@ -6,7 +6,7 @@ function enhanceMaterialWithTriplanar(material) {
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uScale = { value: 0.1 };
     shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>\nvarying vec3 vWorldPosition;\nvarying vec3 vWorldNormal;`);
-    shader.vertexShader = shader.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>\nvWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvWorldNormal = normalize(mat3(modelMatrix) * normal);`);
+    shader.vertexShader = shader.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>\nvarying vec3 vWorldPosition;\nvarying vec3 vWorldNormal;\nvWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvWorldNormal = normalize(mat3(modelMatrix) * normal);`);
     shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>\nvarying vec3 vWorldPosition;\nvarying vec3 vWorldNormal;\nuniform float uScale;`);
     const triplanarLogic = `
             vec3 blending = abs(vWorldNormal);
@@ -89,13 +89,10 @@ export class BulldozerRenderer {
     if (configUrlOrObj) {
         if (typeof configUrlOrObj === 'string') {
             try {
-                const bustedUrl = cb(configUrlOrObj);
-                const resp = await fetch(bustedUrl);
-                if (resp.ok) {
-                    this.config = await resp.json();
-                }
+                const resp = await fetch(cb(configUrlOrObj));
+                if (resp.ok) this.config = await resp.json();
             } catch (e) {
-                console.warn("[WARN] Failed to load bulldozer config", e);
+                console.warn("[WARN] Failed to load config", e);
             }
         } else {
             this.config = configUrlOrObj;
@@ -118,17 +115,11 @@ export class BulldozerRenderer {
 
         // Setup Body
         if (bodyMeshNode) {
-          console.log(`[DEBUG] Found body node: ${bodyMeshNode.name}`);
           const body = bodyMeshNode.clone();
           body.name = "Bulldozer_Body"; 
           this.group.add(body);
-          
-          // Use original blender positions to maintain assembly alignment
-          // body.position.set(0, 0, 0); 
-
           body.traverse(async (c) => {
             if (c.isMesh) {
-              console.log(`[DEBUG] Found body sub-mesh: ${c.name} | Material: ${c.material.name}`);
               c.castShadow = c.receiveShadow = true;
               await this.applyMaterial(c);
             }
@@ -148,7 +139,6 @@ export class BulldozerRenderer {
             }
             const curve = new THREE.CatmullRomCurve3(points, true, 'centripetal', 0.5);
             const count = 50;
-            
             const linkGeo = trackLinkNode.geometry.clone();
             trackLinkNode.updateMatrixWorld(true);
             linkGeo.applyMatrix4(trackLinkNode.matrixWorld); 
@@ -160,7 +150,6 @@ export class BulldozerRenderer {
             const mesh = new THREE.InstancedMesh(linkGeo, new THREE.MeshStandardMaterial(), count);
             mesh.name = side < 0 ? "Instanced_Track_L" : "Instanced_Track_R";
             this.group.add(mesh);
-            
             await this.applyMaterial(mesh);
             this.animatedInstances.push({ mesh, curve, count, speed: 0, offset: 0, side });
           };
@@ -178,61 +167,43 @@ export class BulldozerRenderer {
     const name = overrideName || mesh.name;
     const matName = mesh.material ? mesh.material.name : "";
     
-    // Try to find settings by Mesh Name, then by Material Name
-    let settings = (this.config && this.config.components) ? (this.config.components[name] || this.config.components[matName]) : null;
-
-    // Special case mapping for joined meshes (Blender joining Cabin to Body)
-    // PREFER material name if mesh name is generic (e.g. CubeXXX)
-    if (name.includes("Cube") || name.includes("Wheel") || !settings) {
-        if (this.config && this.config.components) {
-            if (matName.includes("Yellow")) settings = this.config.components["Bulldozer_Body"];
-            else if (matName.includes("Glass")) settings = this.config.components["Cabin"];
-            else if (matName.includes("Metal") || matName === "") settings = this.config.components["Bulldozer_Body"];
+    // Determine which config entry to use
+    let configKey = name;
+    if (this.config && this.config.components) {
+        if (this.config.components[name]) configKey = name;
+        else if (this.config.components[matName]) configKey = matName;
+        else if (matName.includes("Yellow")) configKey = "Bulldozer_Body";
+        else if (matName.includes("Glass")) configKey = "Cabin";
+        else if (name.includes("Cube") || name.includes("Wheel") || matName.includes("Metal") || matName === "") {
+            configKey = "Bulldozer_Body";
+        } else if (name.includes("Track")) {
+            configKey = "Asset_TrackLink";
         }
     }
-
-    if (!settings && name.includes("Track")) {
-        settings = this.config?.components?.["Asset_TrackLink"];
-    }
-
-    console.log(`[DEBUG] applyMaterial for: ${name} (Mat: ${matName}) | Settings found: ${!!settings}`);
+    
+    const settings = (this.config && this.config.components) ? this.config.components[configKey] : null;
+    console.log(`[DEBUG] applyMaterial: ${name} (Mat: ${matName}) mapped to: ${configKey} | Found: ${!!settings}`);
 
     const cb = (u) => {
         if (!u || u === 'None') return u;
         if (u.startsWith('http')) return u;
-        const separator = u.includes('?') ? '&' : '?';
-        return `${u}${separator}cb=${Date.now()}`;
+        return `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
     };
 
-    // 1. Determine Base Material
+    // 1. Base Material selection
     let material;
     if (settings && settings.preset && this.materialPresets[settings.preset]) {
-        console.log(`[DEBUG] Applying preset: ${settings.preset} to ${name}`);
         material = this.materialPresets[settings.preset].clone();
-    } else if (name.includes("Glass") || name.includes("Cabin") || matName.includes("Glass")) {
-        console.log(`[DEBUG] Glass Material applied to: ${name} (Mat: ${matName})`);
+    } else if (configKey === "Cabin" || matName.includes("Glass")) {
         material = this.materialPresets["Glass"].clone();
-    } else if (name.includes("Track")) {
-        console.log(`[DEBUG] Fallback Track for: ${name}`);
+    } else if (configKey === "Asset_TrackLink" || name.includes("Track")) {
         material = this.materialPresets["Track"].clone();
     } else {
-        const params = {
-            color: (settings && settings.color) ? settings.color : 0xffffff,
-            roughness: (settings && settings.roughness !== undefined) ? settings.roughness : 0.8,
-            metalness: (settings && settings.metalness !== undefined) ? settings.metalness : 0.2,
-            transparent: (settings && (settings.transparent || settings.transmission > 0)) || false,
-            opacity: (settings && settings.opacity !== undefined) ? settings.opacity : 1.0
-        };
-        if (settings && settings.transmission !== undefined && settings.transmission > 0) {
-            material = new THREE.MeshPhysicalMaterial({ ...params, transmission: settings.transmission, ior: settings.ior || 1.5, thickness: 0.05 });
-        } else {
-            material = new THREE.MeshStandardMaterial(params);
-        }
+        material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.2 });
     }
-    
     mesh.material = material;
 
-    // 2. Apply Overrides
+    // 2. Overrides
     if (settings) {
         if (settings.color) material.color.set(settings.color);
         if (settings.roughness !== undefined) material.roughness = settings.roughness;
@@ -240,16 +211,12 @@ export class BulldozerRenderer {
         if (settings.transmission !== undefined && material.isMeshPhysicalMaterial) material.transmission = settings.transmission;
         if (settings.ior !== undefined && material.isMeshPhysicalMaterial) material.ior = settings.ior;
     
-        // 3. Apply Texture
+        // 3. Texture
         if (settings.textureId && settings.textureId !== 'None') {
             const path = settings.textureId.startsWith('http') ? settings.textureId : `assets/textures/${settings.textureId}`;
-            const bustedPath = cb(path);
-            console.log(`[DEBUG] Loading texture for ${name}: ${bustedPath}`);
-            this.texLoader.load(bustedPath, (tex) => {
-                console.log(`[DEBUG] Texture successfully loaded for ${name}`);
+            this.texLoader.load(cb(path), (tex) => {
                 tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
                 tex.colorSpace = THREE.SRGBColorSpace;
-                
                 if (settings.uvTransform) {
                     const uv = settings.uvTransform;
                     if (uv.scale !== undefined) tex.repeat.set(uv.scale, uv.scale);
@@ -259,10 +226,7 @@ export class BulldozerRenderer {
                 }
                 mesh.material.map = tex;
                 mesh.material.needsUpdate = true;
-                material.needsUpdate = true;
                 if (mesh.isInstancedMesh) mesh.instanceMatrix.needsUpdate = true;
-            }, undefined, (e) => {
-                console.error(`[ERROR] Failed to load texture for ${name}: ${bustedPath}`, e);
             });
         }
     }
