@@ -17,3 +17,4 @@ These documents are preserved for historical context but describe deprecated wor
 *   `ASSET_PIPELINE.md` - The old OpenSCAD workflow.
 *   `SCAD_VS_BLENDER.md` - Decision record comparing the two approaches.
 *   `GRAPHICS_DESIGN.md` - Analysis of the legacy "Programmer Art" rendering system.
+*   `BULLDOZER_RENDER_FRAMEWORKS_TUTORIAL.md` - Early exploration of rendering frameworks.
