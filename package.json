@@ -4,7 +4,6 @@
     "three": "^0.182.0"
   },
   "devDependencies": {
-    "playwright": "^1.57.0"
   },
   "scripts": {
     "start": "task dev",
