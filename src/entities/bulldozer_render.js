@@ -70,6 +70,12 @@ export class BulldozerRenderer {
         color: 0xffffff,
         roughness: 0.9,
         metalness: 0.0
+      }),
+      "YellowMetallic": new THREE.MeshStandardMaterial({
+        name: "YellowMetallic",
+        color: 0xf39c12, // Industrial Orange-Yellow
+        metalness: 0.7,
+        roughness: 0.2
       })
     };
   }
