@@ -20,30 +20,34 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check for Asset Changes
-        uses: dorny/paths-filter@v2
-        id: filter
+        uses: dorny/paths-filter@v3
+        id: changes
         with:
           filters: |
             assets:
               - 'assets/source/blender/**'
+              - 'assets/source/textures/**'
+              - 'assets/configs/**'
 
       - name: Install Task
         uses: go-task/setup-task@v1
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: '20'
+          cache: 'npm'
 
       - name: Build Distribution
         run: task build:dist
 
       - name: Asset Viewer Redirect
-        if: steps.filter.outputs.assets == 'true'
+        if: steps.changes.outputs.assets == 'true'
         run: |
           echo "Assets changed. Redirecting preview to DAMP Asset Director."
           echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=viewer/index.html" /></head><body><p>Redirecting to <a href="viewer/index.html">DAMP Asset Director</a>...</p></body></html>' > dist/index.html
