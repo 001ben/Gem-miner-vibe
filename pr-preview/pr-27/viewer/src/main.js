@@ -8,7 +8,7 @@ const state = {
     configId: 'bulldozer_mapping.json',
     config: null,
     catalog: null,
-    animationSpeed: 0.2
+    animationSpeed: 0.02
 };
 
 // --- Scene Setup ---
@@ -17,7 +17,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xaaccff);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(12, 10, 12);
+camera.position.set(30, 25, 30);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -34,8 +34,11 @@ controls.enableDamping = true;
 // Lighting
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-dirLight.position.set(10, 20, 15);
 dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+dirLight.shadow.bias = -0.0005;
+dirLight.shadow.normalBias = 0.05;
 scene.add(dirLight);
 
 // --- Asset Logic ---
@@ -79,6 +82,9 @@ async function reloadBulldozer() {
         console.log(`[DEBUG] Loading model: ${modelPath}`);
         await bulldozerRenderer.load(cb(modelPath), state.config);
         
+        // Ensure animation starts with current state speed
+        bulldozerRenderer.setSpeeds(state.animationSpeed, state.animationSpeed);
+        
         discoverComponents();
         renderGlobalUI(); // Re-render global UI to pick up new config defaults
         renderComponentUI();
@@ -111,12 +117,15 @@ function discoverComponents() {
     const foundIds = new Set();
     bulldozerRenderer.group.traverse(obj => {
         const dampId = obj.userData.damp_id;
-        if (dampId && !foundIds.has(dampId)) {
-            console.log(`[CONTRACT] UI identifying component: ${dampId}`);
-            foundIds.add(dampId);
+        const matDampId = (obj.material && obj.material.userData) ? obj.material.userData.damp_id : null;
+        
+        const effectiveId = dampId || matDampId;
+        if (effectiveId && !foundIds.has(effectiveId)) {
+            console.log(`[CONTRACT] UI identifying component: ${effectiveId}`);
+            foundIds.add(effectiveId);
             
-            if (!state.config.components[dampId]) {
-                state.config.components[dampId] = {
+            if (!state.config.components[effectiveId]) {
+                state.config.components[effectiveId] = {
                     color: '#ffffff',
                     roughness: 0.8, metalness: 0.2,
                     textureId: 'None',
@@ -140,11 +149,35 @@ function renderGlobalUI() {
         <div class="slider-row">
             <input type="color" id="bg-color" value="#aaccff">
         </div>
+        <label>LIGHT ROTATION</label>
+        <div class="slider-row">
+            <input type="range" id="light-rot" min="0" max="360" step="1" value="45">
+            <span id="val-light-rot">45°</span>
+        </div>
     `;
     scrollContent.appendChild(sceneGroup);
+
+    const updateLight = (angleDeg) => {
+        const angle = angleDeg * (Math.PI / 180);
+        const radius = 80;
+        dirLight.position.x = Math.sin(angle) * radius;
+        dirLight.position.z = Math.cos(angle) * radius;
+        dirLight.position.y = 100; // Increased height
+        dirLight.lookAt(0, 0, 0);
+    };
+
     document.getElementById('bg-color').addEventListener('input', (e) => {
         scene.background.set(e.target.value);
     });
+
+    document.getElementById('light-rot').addEventListener('input', (e) => {
+        const val = e.target.value;
+        document.getElementById('val-light-rot').textContent = val + '°';
+        updateLight(parseFloat(val));
+    });
+
+    // Initial positioning
+    updateLight(45);
 
     // 1. Asset & Config Selection
     const assetGroup = document.createElement('div');

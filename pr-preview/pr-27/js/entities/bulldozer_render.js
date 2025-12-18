@@ -173,7 +173,7 @@ export class BulldozerRenderer {
             }
             this.group.add(mesh);
             await this.applyMaterial(mesh);
-            this.animatedInstances.push({ mesh, curve, count, speed: 0, offset: 0, side });
+            this.animatedInstances.push({ mesh, curve, count, speed: 0.02, offset: 0, side });
           };
           await setupTrack(pathLNode, -1);
           await setupTrack(pathRNode, 1);
