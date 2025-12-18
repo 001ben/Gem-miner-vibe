@@ -89,34 +89,23 @@ async function reloadBulldozer() {
 function discoverComponents() {
     if (!bulldozerRenderer || !state.config) return;
     
-    const foundNames = [];
+    const foundIds = new Set();
     bulldozerRenderer.group.traverse(obj => {
-        if (obj.isMesh || obj.isInstancedMesh) {
-            const name = obj.name;
-            const matName = obj.material ? obj.material.name : "";
+        const dampId = obj.userData.damp_id;
+        if (dampId && !foundIds.has(dampId)) {
+            console.log(`[CONTRACT] UI identifying component: ${dampId}`);
+            foundIds.add(dampId);
             
-            // SKIP discovery for generic names that the renderer already maps to main components
-            if (name.includes("Cube") || name.includes("Wheel")) {
-                if (matName.includes("Yellow") || matName.includes("Glass") || matName.includes("Metal") || matName === "") {
-                    return; // Skip generic sub-mesh
-                }
-            }
-
-            if (name && !state.config.components[name]) {
-                console.log(`[DEBUG] Discovered component: ${name}`);
-                state.config.components[name] = {
+            if (!state.config.components[dampId]) {
+                state.config.components[dampId] = {
                     color: '#ffffff',
                     roughness: 0.8, metalness: 0.2,
                     textureId: 'None',
                     uvTransform: { scale: 1, rotation: 0, offset: [0, 0] }
                 };
-            } else if (name && state.config.components[name] && !state.config.components[name].uvTransform) {
-                state.config.components[name].uvTransform = { scale: 1, rotation: 0, offset: [0, 0] };
             }
-            if (name) foundNames.push(name);
         }
     });
-    console.log("[DEBUG] Components identified for UI:", foundNames);
 }
 
 function renderGlobalUI() {
@@ -182,17 +171,21 @@ function renderGlobalUI() {
     const alignGroup = document.createElement('div');
     alignGroup.className = 'control-group';
     alignGroup.style.marginTop = '20px';
+    
+    const initialVert = state.config?.assembly?.tracks?.verticalOffset ?? -0.53;
+    const initialSpread = state.config?.assembly?.tracks?.spread ?? 0.15;
+
     alignGroup.innerHTML = `
         <label>TRACK ALIGNMENT</label>
         <div class="slider-row">
             <label>Vertical</label>
-            <input type="range" id="track-vert" min="-2" max="2" step="0.01" value="-0.53">
-            <span id="val-track-vert">-0.53</span>
+            <input type="range" id="track-vert" min="-2" max="2" step="0.01" value="${initialVert}">
+            <span id="val-track-vert">${initialVert}</span>
         </div>
         <div class="slider-row">
             <label>Spread</label>
-            <input type="range" id="track-spread" min="-2" max="2" step="0.01" value="0.15">
-            <span id="val-track-spread">0.15</span>
+            <input type="range" id="track-spread" min="-2" max="2" step="0.01" value="${initialSpread}">
+            <span id="val-track-spread">${initialSpread}</span>
         </div>
     `;
     scrollContent.appendChild(alignGroup);

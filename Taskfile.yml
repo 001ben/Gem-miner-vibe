@@ -48,6 +48,11 @@ tasks:
       - assets/bulldozer_texture.png
       - viewer/assets/catalog.json
 
+  build:verify:
+    desc: Verify GLB hierarchy and DAMP contract tags
+    cmds:
+      - node scripts/verify-glb.js
+
   build:dist:
     desc: Build the production distribution
     deps: [deps:node, build:assets]

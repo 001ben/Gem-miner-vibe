@@ -4,6 +4,7 @@
     "three": "^0.182.0"
   },
   "devDependencies": {
+    "jsdom": "^27.3.0"
   },
   "scripts": {
     "start": "task dev",

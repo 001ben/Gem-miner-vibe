@@ -38,8 +38,24 @@ async function main() {
         }
     }
 
-    // 2. Copy Generated Assets to Viewer
-    console.log("\n🚚 [2/5] Copying 3D Assets to Viewer...");
+    // 2. Run Texture Generation Scripts
+    console.log("\n🎨 [2/5] Generating Textures (Python)...");
+    if (fs.existsSync(TEXTURES_SRC_DIR)) {
+        const texFiles = fs.readdirSync(TEXTURES_SRC_DIR).filter(f => f.endsWith('.py'));
+        for (const file of texFiles) {
+            const inputPath = path.join(TEXTURES_SRC_DIR, file);
+            console.log(`   Running ${file}...`);
+            try {
+                // Use blender --python for texture gen too because it has the math/image libs
+                execSync(`blender --background --python "${inputPath}"`, { stdio: 'inherit' });
+            } catch (e) {
+                console.error(`   ❌ Failed to run texture script ${file}.`);
+            }
+        }
+    }
+
+    // 3. Copy Generated Assets to Viewer
+    console.log("\n🚚 [3/5] Copying 3D Assets to Viewer...");
     if (fs.existsSync(GENERATED_ASSETS_DIR)) {
         const glbs = fs.readdirSync(GENERATED_ASSETS_DIR).filter(f => f.endsWith('.glb'));
         for (const glb of glbs) {
@@ -48,17 +64,9 @@ async function main() {
         }
     }
 
-    // 3. Copy Textures
-    console.log("\n🎨 [3/5] Copying Textures...");
-    // Copy from source/textures if it exists
-    if (fs.existsSync(TEXTURES_SRC_DIR)) {
-        const pngs = fs.readdirSync(TEXTURES_SRC_DIR).filter(f => f.endsWith('.png'));
-        for (const png of pngs) {
-            fs.copyFileSync(path.join(TEXTURES_SRC_DIR, png), path.join(TEXTURES_OUT_DIR, png));
-            console.log(`   Copied source texture: ${png}`);
-        }
-    }
-
+    // 4. Copy Textures
+    console.log("\n🎨 [4/5] Copying Textures...");
+    // ...
     // Also copy generated textures from assets/textures/
     const GENERATED_TEXTURES_DIR = path.join(GENERATED_ASSETS_DIR, 'textures');
     if (fs.existsSync(GENERATED_TEXTURES_DIR)) {
@@ -69,8 +77,8 @@ async function main() {
         }
     }
 
-    // 4. Copy Configs
-    console.log("\n⚙️ [4/5] Copying Configs...");
+    // 5. Copy Configs
+    console.log("\n⚙️ [5/5] Copying Configs...");
     if (fs.existsSync(CONFIGS_SRC_DIR)) {
         const jsons = fs.readdirSync(CONFIGS_SRC_DIR).filter(f => f.endsWith('.json'));
         for (const json of jsons) {
@@ -79,8 +87,8 @@ async function main() {
         }
     }
 
-    // 5. Generate Catalog
-    console.log("\n📖 [5/5] Generating Catalog...");
+    // 6. Generate Catalog
+    console.log("\n📖 [6/6] Generating Catalog...");
     const catalog = {
         models: fs.existsSync(ASSETS_OUT_DIR) ? fs.readdirSync(ASSETS_OUT_DIR).filter(f => f.endsWith('.glb')) : [],
         textures: fs.existsSync(TEXTURES_OUT_DIR) ? fs.readdirSync(TEXTURES_OUT_DIR).filter(f => f.endsWith('.png')) : [],
