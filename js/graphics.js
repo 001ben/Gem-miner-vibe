@@ -8,6 +8,7 @@ export const bodyMeshMap = new Map();
 export const particles = [];
 const tracks = [];
 let trackTexture;
+let dirtTexture;
 let lastDozerPos = null;
 let coinPileGroup = null;
 let gemInstancedMesh;
@@ -38,10 +39,10 @@ export function initThree() {
   document.getElementById('game-container').appendChild(renderer.domElement);
 
   // Lights
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0); // Full ambient light
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9); // Balanced ambient
   scene.add(ambientLight);
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5); // Stronger sun
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.3); // Slightly softer sun
   dirLight.position.set(200, 1000, 500);
   dirLight.castShadow = true;
   dirLight.shadow.mapSize.width = 2048;
@@ -55,27 +56,33 @@ export function initThree() {
   dirLight.shadow.camera.bottom = -d;
   scene.add(dirLight);
 
+  createDirtTexture();
+  createTrackTexture();
+  createCoinPile();
+
   // Ground
   const planeGeo = new THREE.PlaneGeometry(10000, 10000);
-  // Brighter, warmer sand/dirt color
-  const planeMat = new THREE.MeshStandardMaterial({ color: 0xc2a278, roughness: 0.8 });
+  // Brighter, textured sand/dirt
+  const planeMat = new THREE.MeshStandardMaterial({ 
+    color: 0xbaa080, 
+    map: dirtTexture,
+    roughness: 0.9,
+    metalness: 0.0
+  });
   const plane = new THREE.Mesh(planeGeo, planeMat);
   plane.rotation.x = -Math.PI / 2;
   plane.position.y = -2;
   plane.receiveShadow = true;
   scene.add(plane);
 
-  createTrackTexture();
-  createCoinPile();
-
   // Gem Instanced Mesh
   const gemGeo = new THREE.IcosahedronGeometry(1, 0);
   const gemMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
-    roughness: 0.05,
-    metalness: 0.4,
-    emissive: 0xffffff, // White emissive to boost vividness
-    emissiveIntensity: 0.6 // Higher glow
+    roughness: 0.1,
+    metalness: 0.5,
+    emissive: 0x444444, // Darker emissive to retain facets
+    emissiveIntensity: 0.45 // Lower glow
   });
   gemInstancedMesh = new THREE.InstancedMesh(gemGeo, gemMat, MAX_GEMS);
   gemInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -135,6 +142,38 @@ function getPadTexture(title, cost) {
   const texture = new THREE.CanvasTexture(canvas);
   padTextures.set(key, texture);
   return texture;
+}
+
+function createDirtTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Base color
+  ctx.fillStyle = '#aa8c66';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Add noise/dirt spots
+  for (let i = 0; i < 20000; i++) {
+    const x = Math.random() * 512;
+    const y = Math.random() * 512;
+    const size = Math.random() * 2 + 1;
+    const shade = Math.random() * 40 - 20;
+    
+    // Convert base hex to RGB and apply shade
+    const r = Math.max(0, Math.min(255, 170 + shade));
+    const g = Math.max(0, Math.min(255, 140 + shade));
+    const b = Math.max(0, Math.min(255, 102 + shade));
+    
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.fillRect(x, y, size, size);
+  }
+
+  dirtTexture = new THREE.CanvasTexture(canvas);
+  dirtTexture.wrapS = THREE.RepeatWrapping;
+  dirtTexture.wrapT = THREE.RepeatWrapping;
+  dirtTexture.repeat.set(50, 50); // Repeat across the large plane
 }
 
 function createTrackTexture() {
