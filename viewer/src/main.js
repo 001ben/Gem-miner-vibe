@@ -1,409 +1,252 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { createRoot } from 'react-dom/client';
+import { html } from 'htm/react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { BulldozerRenderer } from 'bulldozer-render';
 
-// --- State Management ---
-const state = {
-    assetId: 'bulldozer_components.glb',
-    configId: 'bulldozer_mapping.json',
-    config: null,
-    catalog: null,
-    animationSpeed: 0.02
-};
+const cb = (u) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
 
-// --- Scene Setup ---
-const container = document.getElementById('canvas-container');
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xaaccff);
+// --- Components ---
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(30, 25, 30);
+const Slider = ({ label, min, max, step, value, onChange, unit = '' }) => html`
+    <div className="slider-row">
+        <label>${label}</label>
+        <input type="range" min=${min} max=${max} step=${step} value=${value} onChange=${e => onChange(parseFloat(e.target.value))} />
+        <span>${value}${unit}</span>
+    </div>
+`;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-container.appendChild(renderer.domElement);
+const ComponentAccordion = ({ name, data, textures, onUpdate }) => {
+    const [expanded, setExpanded] = useState(false);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-
-// Lighting
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-dirLight.castShadow = true;
-dirLight.shadow.mapSize.width = 2048;
-dirLight.shadow.mapSize.height = 2048;
-dirLight.shadow.bias = -0.0005;
-dirLight.shadow.normalBias = 0.05;
-scene.add(dirLight);
-
-// --- Asset Logic ---
-let bulldozerRenderer = null;
-const clock = new THREE.Clock();
-
-async function loadCatalog() {
-    try {
-        console.log("[DEBUG] Loading catalog...");
-        const cb = (u) => `${u}?cb=${Date.now()}`;
-        const resp = await fetch(cb('assets/catalog.json'));
-        state.catalog = await resp.json();
-        console.log("[DEBUG] Catalog loaded:", state.catalog);
-        renderGlobalUI();
-        await reloadBulldozer();
-    } catch (e) {
-        console.error("Failed to load catalog:", e);
-    }
-}
-
-async function reloadBulldozer() {
-    console.log(`[DEBUG] reloadBulldozer: ${state.assetId} | config: ${state.configId}`);
-    if (bulldozerRenderer) bulldozerRenderer.destroy();
-    
-    bulldozerRenderer = new BulldozerRenderer(scene);
-    bulldozerRenderer.setScale(5.0); 
-
-    try {
-        const cb = (u) => `${u}?cb=${Date.now()}`;
-        if (state.configId !== 'None') {
-            const configPath = `assets/configs/${state.configId}`;
-            console.log(`[DEBUG] Fetching config: ${configPath}`);
-            const resp = await fetch(cb(configPath));
-            state.config = await resp.json();
-            console.log("[DEBUG] Loaded state.config:", state.config);
-        } else {
-            state.config = { components: {} };
-        }
-
-        const modelPath = `assets/${state.assetId}`;
-        console.log(`[DEBUG] Loading model: ${modelPath}`);
-        await bulldozerRenderer.load(cb(modelPath), state.config);
-        
-        // Ensure animation starts with current state speed
-        bulldozerRenderer.setSpeeds(state.animationSpeed, state.animationSpeed);
-        
-        discoverComponents();
-        renderGlobalUI(); // Re-render global UI to pick up new config defaults
-        renderComponentUI();
-        controls.target.set(0, 0, 0);
-
-        // Delayed inspection for debugging textures
-        setTimeout(() => {
-            console.log("🔍 [DEBUG] 10s Material Inspection:");
-            if (bulldozerRenderer) {
-                bulldozerRenderer.animatedInstances.forEach(inst => {
-                    const m = inst.mesh.material;
-                    console.log(`Component: ${inst.mesh.name}`);
-                    console.log(` - Material:`, m);
-                    console.log(` - Texture Map:`, m.map);
-                    if (m.map) {
-                        console.log(` - Texture Image:`, m.map.image);
-                        console.log(` - Texture Version:`, m.map.version);
-                    }
-                });
-            }
-        }, 10000);
-    } catch (e) {
-        console.error("❌ Failed to load bulldozer:", e);
-    }
-}
-
-function discoverComponents() {
-    if (!bulldozerRenderer || !state.config) return;
-    
-    const foundIds = new Set();
-    bulldozerRenderer.group.traverse(obj => {
-        const dampId = obj.userData.damp_id;
-        const matDampId = (obj.material && obj.material.userData) ? obj.material.userData.damp_id : null;
-        
-        const effectiveId = dampId || matDampId;
-        if (effectiveId && !foundIds.has(effectiveId)) {
-            console.log(`[CONTRACT] UI identifying component: ${effectiveId}`);
-            foundIds.add(effectiveId);
-            
-            if (!state.config.components[effectiveId]) {
-                state.config.components[effectiveId] = {
-                    color: '#ffffff',
-                    roughness: 0.8, metalness: 0.2,
-                    textureId: 'None',
-                    uvTransform: { scale: 1, rotation: 0, offset: [0, 0] }
-                };
-            }
-        }
-    });
-}
-
-function renderGlobalUI() {
-    const scrollContent = document.querySelector('.scroll-content');
-    if (!scrollContent) return;
-    scrollContent.innerHTML = '';
-
-    // 0. Scene Controls
-    const sceneGroup = document.createElement('div');
-    sceneGroup.className = 'control-group';
-    sceneGroup.innerHTML = `
-        <label>VIEWER BACKGROUND</label>
-        <div class="slider-row">
-            <input type="color" id="bg-color" value="#aaccff">
-        </div>
-        <label>LIGHT ROTATION</label>
-        <div class="slider-row">
-            <input type="range" id="light-rot" min="0" max="360" step="1" value="45">
-            <span id="val-light-rot">45°</span>
-        </div>
-    `;
-    scrollContent.appendChild(sceneGroup);
-
-    const updateLight = (angleDeg) => {
-        const angle = angleDeg * (Math.PI / 180);
-        const radius = 80;
-        dirLight.position.x = Math.sin(angle) * radius;
-        dirLight.position.z = Math.cos(angle) * radius;
-        dirLight.position.y = 100; // Increased height
-        dirLight.lookAt(0, 0, 0);
+    const update = (key, val) => {
+        onUpdate(name, { ...data, [key]: val });
     };
 
-    document.getElementById('bg-color').addEventListener('input', (e) => {
-        scene.background.set(e.target.value);
-    });
+    const updateUV = (key, val) => {
+        const newUV = { ...(data.uvTransform || { scale: 1, rotation: 0, offset: [0,0] }), [key]: val };
+        update('uvTransform', newUV);
+    };
 
-    document.getElementById('light-rot').addEventListener('input', (e) => {
-        const val = e.target.value;
-        document.getElementById('val-light-rot').textContent = val + '°';
-        updateLight(parseFloat(val));
-    });
+    return html`
+        <div className=${`component-item ${expanded ? 'expanded' : ''}`}>
+            <div className="component-header" onClick=${() => setExpanded(!expanded)}>
+                <span>${name}</span>
+                <span className="tex-info">${data.textureId || 'None'}</span>
+            </div>
+            ${expanded && html`
+                <div className="component-content">
+                    <label>Color</label>
+                    <input type="color" value=${data.color || '#ffffff'} onChange=${e => update('color', e.target.value)} />
+                    
+                    <${Slider} label="Roughness" min=${0} max=${1} step=${0.01} value=${data.roughness ?? 0.8} onChange=${v => update('roughness', v)} />
+                    <${Slider} label="Metalness" min=${0} max=${1} step=${0.01} value=${data.metalness ?? 0.2} onChange=${v => update('metalness', v)} />
+                    <${Slider} label="Transmission" min=${0} max=${1} step=${0.01} value=${data.transmission ?? 0} onChange=${v => update('transmission', v)} />
+                    <${Slider} label="IOR" min=${1} max=${2.33} step=${0.01} value=${data.ior ?? 1.5} onChange=${v => update('ior', v)} />
 
-    // Initial positioning
-    updateLight(45);
+                    <label>Texture</label>
+                    <select value=${data.textureId || 'None'} onChange=${e => update('textureId', e.target.value)}>
+                        <option value="None">None</option>
+                        ${textures.map(t => html`<option key=${t} value=${t}>${t}</option>`)}
+                    </select>
 
-    // 1. Asset & Config Selection
-    const assetGroup = document.createElement('div');
-    assetGroup.className = 'control-group';
-    assetGroup.innerHTML = `
-        <label>MODEL (.glb)</label>
-        <select id="asset-select"></select>
-        <label>MAPPING (.json)</label>
-        <select id="config-select"></select>
-    `;
-    scrollContent.appendChild(assetGroup);
-
-    const assetSel = document.getElementById('asset-select');
-    state.catalog.models.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m; opt.textContent = m;
-        if (m === state.assetId) opt.selected = true;
-        assetSel.appendChild(opt);
-    });
-    assetSel.addEventListener('change', (e) => { state.assetId = e.target.value; reloadBulldozer(); });
-
-    const configSel = document.getElementById('config-select');
-    configSel.innerHTML = '<option value="None">None</option>';
-    state.catalog.configs.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c; opt.textContent = c;
-        if (c === state.configId) opt.selected = true;
-        configSel.appendChild(opt);
-    });
-    configSel.addEventListener('change', (e) => { state.configId = e.target.value; reloadBulldozer(); });
-
-    // Component List Container
-    const compListHeader = document.createElement('label');
-    compListHeader.textContent = 'COMPONENTS';
-    compListHeader.style.marginTop = '15px';
-    scrollContent.appendChild(compListHeader);
-
-    const compList = document.createElement('div');
-    compList.id = 'component-list';
-    scrollContent.appendChild(compList);
-
-    // Track Alignment Controls
-    const alignGroup = document.createElement('div');
-    alignGroup.className = 'control-group';
-    alignGroup.style.marginTop = '20px';
-    
-    const initialVert = state.config?.assembly?.tracks?.verticalOffset ?? -0.53;
-    const initialSpread = state.config?.assembly?.tracks?.spread ?? 0.15;
-
-    alignGroup.innerHTML = `
-        <label>TRACK ALIGNMENT</label>
-        <div class="slider-row">
-            <label>Vertical</label>
-            <input type="range" id="track-vert" min="-2" max="2" step="0.01" value="${initialVert}">
-            <span id="val-track-vert">${initialVert}</span>
-        </div>
-        <div class="slider-row">
-            <label>Spread</label>
-            <input type="range" id="track-spread" min="-2" max="2" step="0.01" value="${initialSpread}">
-            <span id="val-track-spread">${initialSpread}</span>
+                    <${Slider} label="Scale" min=${0.1} max=${20} step=${0.1} value=${data.uvTransform?.scale ?? 1.0} onChange=${v => updateUV('scale', v)} />
+                    <${Slider} label="Rotation" min=${0} max=${360} step=${1} value=${Math.round((data.uvTransform?.rotation ?? 0) * (180/Math.PI))} unit="°" 
+                            onChange=${v => updateUV('rotation', v * (Math.PI/180))} />
+                    <${Slider} label="Offset X" min=${-2} max=${2} step=${0.01} value=${data.uvTransform?.offset?.[0] ?? 0} onChange=${v => updateUV('offset', [v, data.uvTransform?.offset?.[1] ?? 0])} />
+                    <${Slider} label="Offset Y" min=${-2} max=${2} step=${0.01} value=${data.uvTransform?.offset?.[1] ?? 0} onChange=${v => updateUV('offset', [data.uvTransform?.offset?.[0] ?? 0, v])} />
+                </div>
+            `}
         </div>
     `;
-    scrollContent.appendChild(alignGroup);
-
-    document.getElementById('track-vert').addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        document.getElementById('val-track-vert').textContent = val;
-        if (bulldozerRenderer) bulldozerRenderer.trackParams.verticalOffset = val;
-    });
-
-    document.getElementById('track-spread').addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        document.getElementById('val-track-spread').textContent = val;
-        if (bulldozerRenderer) bulldozerRenderer.trackParams.spread = val;
-    });
-
-    // Animation Speed
-    const animGroup = document.createElement('div');
-    animGroup.className = 'control-group';
-    animGroup.style.marginTop = '20px';
-    animGroup.innerHTML = `
-        <label>ANIMATION</label>
-        <div class="slider-row">
-            <label>Track Speed</label>
-            <input type="range" id="anim-speed" min="-0.5" max="0.5" step="0.01" value="${state.animationSpeed}">
-            <span id="val-anim-speed">${state.animationSpeed}</span>
-        </div>
-    `;
-    scrollContent.appendChild(animGroup);
-
-    document.getElementById('anim-speed').addEventListener('input', (e) => {
-        state.animationSpeed = parseFloat(e.target.value);
-        document.getElementById('val-anim-speed').textContent = e.target.value;
-        if (bulldozerRenderer) bulldozerRenderer.setSpeeds(state.animationSpeed, state.animationSpeed);
-    });
-}
-
-function renderComponentUI() {
-    const compList = document.getElementById('component-list');
-    if (!compList) return;
-    compList.innerHTML = '';
-
-    const components = Object.keys(state.config.components).sort();
-    components.forEach(name => {
-        const comp = state.config.components[name];
-        const item = document.createElement('div');
-        item.className = 'component-item';
-        
-        const header = document.createElement('div');
-        header.className = 'component-header';
-        header.innerHTML = `
-            <span>${name}</span>
-            <span class="tex-info">${comp.textureId || 'None'}</span>
-        `;
-        item.appendChild(header);
-
-        const content = document.createElement('div');
-        content.className = 'component-content';
-        
-        content.innerHTML = `
-            <label>Color</label>
-            <input type="color" class="comp-color" value="${comp.color || '#ffffff'}">
-            <div class="slider-row">
-                <label>Roughness</label>
-                <input type="range" class="comp-roughness" min="0" max="1" step="0.01" value="${comp.roughness ?? 0.8}">
-            </div>
-            <div class="slider-row">
-                <label>Metalness</label>
-                <input type="range" class="comp-metalness" min="0" max="1" step="0.01" value="${comp.metalness ?? 0.2}">
-            </div>
-            <div class="slider-row">
-                <label>Transmission</label>
-                <input type="range" class="comp-trans" min="0" max="1" step="0.01" value="${comp.transmission ?? 0}">
-            </div>
-            <div class="slider-row">
-                <label>IOR</label>
-                <input type="range" class="comp-ior" min="1" max="2.33" step="0.01" value="${comp.ior ?? 1.5}">
-            </div>
-            <label>Texture</label>
-            <select class="comp-tex-select">
-                <option value="None">None</option>
-                ${state.catalog.textures.map(t => `<option value="${t}" ${comp.textureId === t ? 'selected' : ''}>${t}</option>`).join('')}
-            </select>
-            <div class="slider-row">
-                <label>Scale</label>
-                <input type="range" class="comp-tex-scale" min="0.1" max="20" step="0.1" value="${comp.uvTransform?.scale ?? 1.0}">
-            </div>
-            <div class="slider-row">
-                <label>Rotation</label>
-                <input type="range" class="comp-tex-rot" min="0" max="360" step="1" value="${Math.round((comp.uvTransform?.rotation ?? 0) * (180/Math.PI))}">
-            </div>
-            <div class="slider-row">
-                <label>Offset X</label>
-                <input type="range" class="comp-tex-offx" min="-2" max="2" step="0.01" value="${comp.uvTransform?.offset[0] ?? 0}">
-            </div>
-            <div class="slider-row">
-                <label>Offset Y</label>
-                <input type="range" class="comp-tex-offy" min="-2" max="2" step="0.01" value="${comp.uvTransform?.offset[1] ?? 0}">
-            </div>
-        `;
-
-        item.appendChild(content);
-        compList.appendChild(item);
-
-        header.onclick = () => {
-            const isExpanded = item.classList.contains('expanded');
-            document.querySelectorAll('.component-item').forEach(i => i.classList.remove('expanded'));
-            if (!isExpanded) item.classList.add('expanded');
-        };
-
-        const updateComp = async () => {
-            comp.color = content.querySelector('.comp-color').value;
-            comp.roughness = parseFloat(content.querySelector('.comp-roughness').value);
-            comp.metalness = parseFloat(content.querySelector('.comp-metalness').value);
-            comp.transmission = parseFloat(content.querySelector('.comp-trans').value);
-            comp.ior = parseFloat(content.querySelector('.comp-ior').value);
-            comp.textureId = content.querySelector('.comp-tex-select').value;
-            header.querySelector('.tex-info').textContent = comp.textureId;
-
-            if (!comp.uvTransform) comp.uvTransform = { scale: 1, rotation: 0, offset: [0,0] };
-            comp.uvTransform.scale = parseFloat(content.querySelector('.comp-tex-scale').value);
-            comp.uvTransform.rotation = parseFloat(content.querySelector('.comp-tex-rot').value) * (Math.PI/180);
-            comp.uvTransform.offset = [
-                parseFloat(content.querySelector('.comp-tex-offx').value),
-                parseFloat(content.querySelector('.comp-tex-offy').value)
-            ];
-
-            const mesh = bulldozerRenderer.group.getObjectByName(name) || 
-                         (name.includes("Track") ? bulldozerRenderer.animatedInstances.find(t => t.mesh.name === name)?.mesh : null);
-            if (mesh) await bulldozerRenderer.applyMaterial(mesh);
-        };
-
-        content.querySelectorAll('input, select').forEach(el => el.addEventListener('input', updateComp));
-    });
-}
-
-// UI Toggles & Export
-document.getElementById('ui-toggle').onclick = () => {
-    const container = document.getElementById('ui-container');
-    container.classList.toggle('collapsed');
-    document.getElementById('ui-toggle').style.right = container.classList.contains('collapsed') ? '10px' : '310px';
 };
 
-document.getElementById('btn-copy').onclick = () => {
-    navigator.clipboard.writeText(JSON.stringify(state.config, null, 2)).then(() => {
-        const btn = document.getElementById('btn-copy');
-        btn.textContent = "Copied!";
-        setTimeout(() => btn.textContent = "Copy Config JSON", 2000);
-    });
+const App = () => {
+    const [catalog, setCatalog] = useState({ models: [], textures: [], configs: [] });
+    const [assetId, setAssetId] = useState('bulldozer_components.glb');
+    const [configId, setConfigId] = useState('bulldozer_mapping.json');
+    const [config, setConfig] = useState(null);
+    const [bg, setBg] = useState('#aaccff');
+    const [lightRot, setLightRot] = useState(45);
+    const [animSpeed, setAnimSpeed] = useState(0.02);
+    const [collapsed, setCollapsed] = useState(false);
+
+    const sceneRef = useRef(null);
+    const dirLightRef = useRef(null);
+    const dozerRef = useRef(null);
+
+    // 1. Initialize Three.js (Run once)
+    useEffect(() => {
+        const container = document.getElementById('canvas-container');
+        if (!container) return;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(bg);
+        sceneRef.current = scene;
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(30, 25, 30);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.set(2048, 2048);
+        dirLight.shadow.bias = -0.0005;
+        dirLight.shadow.normalBias = 0.05;
+        scene.add(dirLight);
+        dirLightRef.current = dirLight;
+
+        const clock = new THREE.Clock();
+        const animate = () => {
+            requestAnimationFrame(animate);
+            if (dozerRef.current) dozerRef.current.update(clock.getDelta());
+            controls.update();
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        window.onresize = () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+
+        // Fetch Catalog
+        fetch(cb('assets/catalog.json'))
+            .then(r => r.json())
+            .then(data => {
+                setCatalog(data);
+            });
+    }, []);
+
+    // 2. Sync Light Position
+    useEffect(() => {
+        if (!dirLightRef.current) return;
+        const angle = lightRot * (Math.PI / 180);
+        const radius = 80;
+        dirLightRef.current.position.set(Math.sin(angle) * radius, 100, Math.cos(angle) * radius);
+        dirLightRef.current.lookAt(0, 0, 0);
+    }, [lightRot]);
+
+    // 3. Sync Background Color
+    useEffect(() => {
+        if (sceneRef.current) sceneRef.current.background.set(bg);
+    }, [bg]);
+
+    // 4. Load/Reload Model and Config
+    useEffect(() => {
+        const load = async () => {
+            if (!sceneRef.current) return;
+            if (dozerRef.current) dozerRef.current.destroy();
+            
+            const dozer = new BulldozerRenderer(sceneRef.current);
+            dozer.setScale(5.0);
+            dozerRef.current = dozer;
+
+            let conf = { components: {} };
+            if (configId !== 'None') {
+                try {
+                    const resp = await fetch(cb(`assets/configs/${configId}`));
+                    conf = await resp.json();
+                } catch(e) { console.error("Config fetch failed", e); }
+            }
+            
+            await dozer.load(cb(`assets/${assetId}`), conf);
+            
+            // Auto-discover Contract IDs
+            dozer.group.traverse(obj => {
+                const id = obj.userData.damp_id || (obj.material?.userData?.damp_id);
+                if (id && !conf.components[id]) {
+                    conf.components[id] = { color: '#ffffff', roughness: 0.8, metalness: 0.2, textureId: 'None', uvTransform: { scale: 1, rotation: 0, offset: [0,0] }};
+                }
+            });
+
+            setConfig(conf);
+            dozer.setSpeeds(animSpeed, animSpeed);
+        };
+        load();
+    }, [assetId, configId]);
+
+    const onComponentUpdate = (id, data) => {
+        const newConfig = { ...config, components: { ...config.components, [id]: data } };
+        setConfig(newConfig);
+        if (dozerRef.current) {
+            dozerRef.current.config = newConfig;
+            dozerRef.current.group.traverse(obj => {
+                const objId = obj.userData.damp_id || (obj.material?.userData?.damp_id);
+                if (objId === id) dozerRef.current.applyMaterial(obj);
+            });
+        }
+    };
+
+    const copyConfig = () => {
+        navigator.clipboard.writeText(JSON.stringify(config, null, 2));
+        alert("Config copied to clipboard!");
+    };
+
+    return html`
+        <div className="director-ui-wrapper">
+            <button id="ui-toggle" style=${{ right: collapsed ? '10px' : '310px' }} onClick=${() => setCollapsed(!collapsed)}>☰</button>
+            <div id="ui-container" className=${collapsed ? 'collapsed' : ''}>
+                <div className="panel-header">DAMP Asset Director</div>
+                <div className="scroll-content">
+                    <div className="control-group">
+                        <label>VIEWER BACKGROUND</label>
+                        <input type="color" value=${bg} onChange=${e => setBg(e.target.value)} />
+                        <label>LIGHT ROTATION</label>
+                        <${Slider} min=${0} max=${360} step=${1} value=${lightRot} onChange=${setLightRot} unit="°" />
+                    </div>
+
+                    <div className="control-group">
+                        <label>MODEL (.glb)</label>
+                        <select value=${assetId} onChange=${e => setAssetId(e.target.value)}>
+                            ${catalog.models.map(m => html`<option key=${m} value=${m}>${m}</option>`)}
+                        </select>
+                        <label>MAPPING (.json)</label>
+                        <select value=${configId} onChange=${e => setConfigId(e.target.value)}>
+                            <option value="None">None</option>
+                            ${catalog.configs.map(c => html`<option key=${c} value=${c}>${c}</option>`)}
+                        </select>
+                    </div>
+
+                    <label>COMPONENTS</label>
+                    <div id="component-list">
+                        ${config && Object.keys(config.components).sort().map(id => html`
+                            <${ComponentAccordion} 
+                                key=${id} 
+                                name=${id} 
+                                data=${config.components[id]} 
+                                textures=${catalog.textures}
+                                onUpdate=${onComponentUpdate} 
+                            />
+                        `)}
+                    </div>
+
+                    <div className="control-group" style=${{ marginTop: '20px' }}>
+                        <label>ANIMATION</label>
+                        <${Slider} label="Track Speed" min=${-0.5} max=${0.5} step=${0.01} value=${animSpeed} 
+                                onChange=${v => { setAnimSpeed(v); dozerRef.current?.setSpeeds(v, v); }} />
+                    </div>
+                </div>
+                <div className="actions">
+                    <button className="action-btn" onClick=${copyConfig}>Copy Config JSON</button>
+                </div>
+            </div>
+        </div>
+    `;
 };
 
-// --- Loop ---
-function animate() {
-    requestAnimationFrame(animate);
-    const delta = clock.getDelta();
-    if (bulldozerRenderer) bulldozerRenderer.update(delta);
-    controls.update();
-    renderer.render(scene, camera);
-}
-
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-// Init
-loadCatalog();
-animate();
+const root = createRoot(document.getElementById('ui-root'));
+root.render(html`<${App} />`);

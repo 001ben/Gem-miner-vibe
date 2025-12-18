@@ -22,6 +22,7 @@
             flex-direction: column;
             transition: transform 0.3s ease;
             transform: translateX(0);
+            z-index: 10;
         }
 
         #ui-container.collapsed {
@@ -79,10 +80,8 @@
         .component-content {
             padding: 10px;
             background: #252525;
-            display: none;
         }
 
-        .component-item.expanded .component-content { display: block; }
         .component-item.expanded .component-header { background: #007acc; color: white; }
         .component-item.expanded .tex-info { color: #eee; }
 
@@ -120,7 +119,7 @@
         }
         .slider-row label { flex: 1; margin: 0; }
         .slider-row input[type=range] { flex: 2; }
-        .slider-row span { width: 30px; font-size: 11px; text-align: right; }
+        .slider-row span { width: 40px; font-size: 11px; text-align: right; }
 
         /* Action Buttons */
         .actions {
@@ -146,12 +145,16 @@
         button.secondary:hover { background: #555; }
 
     </style>
-    <!-- Dynamic Import Map for Cache Busting internal scripts -->
+    <!-- Dynamic Import Map -->
     <script>
         {
             const v = Date.now();
             const map = {
                 "imports": {
+                    "react": "https://esm.sh/react@18",
+                    "react-dom": "https://esm.sh/react-dom@18",
+                    "react-dom/client": "https://esm.sh/react-dom@18/client",
+                    "htm/react": "https://esm.sh/htm@3.1.1/react?external=react",
                     "three": "https://unpkg.com/three@0.182.0/build/three.module.js",
                     "three/examples/jsm/": "https://unpkg.com/three@0.182.0/examples/jsm/",
                     "bulldozer-render": `../js/entities/bulldozer_render.js?v=${v}`,
@@ -167,23 +170,10 @@
 </head>
 <body>
     <div id="canvas-container"></div>
+    <div id="ui-root"></div>
 
-    <button id="ui-toggle">☰</button>
-
-    <div id="ui-container">
-        <div class="panel-header">DAMP Director</div>
-        <div class="scroll-content">
-            <div style="padding: 20px; text-align: center; color: #888;">Initializing...</div>
-        </div>
-
-        <div class="actions">
-            <button class="action-btn" id="btn-copy">Copy Config JSON</button>
-        </div>
-    </div>
-
-    <script>
+    <script type="module">
         {
-            // Load main module with cache busting
             const s = document.createElement('script');
             s.type = 'module';
             s.src = `./src/main.js?v=${Date.now()}`;

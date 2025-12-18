@@ -8,28 +8,14 @@ This allows you to generate assets using Python code (keeping the "Programmer" w
 
 1.  **Source:** Python scripts (`.py`) located in `assets/source/blender/`.
 2.  **Engine:** Blender (headless mode).
-3.  **Compilation:** `scripts/build-blender-assets.js` runs Blender to execute the script and export `.glb`.
+3.  **Compilation:** `task assets:geometry` (via Taskfile) runs Blender to execute the script and export `.glb`.
 4.  **Result:** Game-ready assets with **UVs** and **Materials**.
-
-## Comparison
-
-| Feature | OpenSCAD Pipeline | Blender Pipeline |
-| :--- | :--- | :--- |
-| **Geometry** | CSG (Boolean Volumes) | Mesh (Verts/Faces) |
-| **UV Mapping** | None (Requires Triplanar Shader) | **Automatic (Smart UV Project)** |
-| **Materials** | Solid Colors Only (mostly) | Full PBR Support |
-| **Complexity** | Simple text file | Requires Blender installed |
 
 ## How to use
 
 1.  Create a python script in `assets/source/blender/my_asset.py`.
 2.  Use the `bpy` library to generate geometry.
-3.  Run `npm run build:blender`.
-
-## Selecting the Right Model
-
-*   **Use OpenSCAD** for simple mechanical parts (brackets, gears) where texture direction doesn't matter.
-*   **Use Blender** for the main vehicle body, characters, or anything that needs a "Texture" (Dirt, Rust, Logos).
+3.  Run `task build:assets`.
 
 ## Example Blender Script
 

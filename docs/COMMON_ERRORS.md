@@ -17,16 +17,17 @@ This error occurs when the browser cannot resolve one of the JavaScript modules 
 
 **Solution:**
 1.  **Local Development:**
-    -   Always run the web server from the **Repository Root**:
+    -   Use the Taskfile commands to start the viewer from the correct root:
         ```bash
-        # Good
-        cd gem-miner-bulldozer
-        python3 -m http.server
-        # Open http://localhost:8000/verification/asset_viewer.html
+        # New React Viewer
+        task damp:viewer
+        
+        # Legacy Viewer
+        task viewer
         ```
     -   Ensure dependencies are installed:
         ```bash
-        npm install
+        task deps:node
         ```
 2.  **Deployment:**
     -   Check the `pr-preview.yml` workflow to ensure it copies `js/` and `node_modules/` to the `dist/` folder and rewrites paths (`sed`) in `index.html`.
@@ -37,10 +38,9 @@ This error occurs when the browser cannot resolve one of the JavaScript modules 
 The 3D assets have not been built locally.
 
 **Solution:**
-Run the asset build scripts:
+Run the asset build task:
 ```bash
-npm run build:assets
-npm run build:blender # Requires Blender installed
+task build:assets
 ```
 Note: The asset viewer handles this gracefully by logging a warning, but the model will not appear.
 
