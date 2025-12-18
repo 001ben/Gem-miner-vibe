@@ -90,34 +90,33 @@ function discoverComponents() {
     if (!bulldozerRenderer || !state.config) return;
     
     const foundNames = [];
-    const meshesToUpdate = [];
-
     bulldozerRenderer.group.traverse(obj => {
         if (obj.isMesh || obj.isInstancedMesh) {
             const name = obj.name;
+            const matName = obj.material ? obj.material.name : "";
+            
+            // SKIP discovery for generic names that the renderer already maps to main components
+            if (name.includes("Cube") || name.includes("Wheel")) {
+                if (matName.includes("Yellow") || matName.includes("Glass") || matName.includes("Metal") || matName === "") {
+                    return; // Skip generic sub-mesh
+                }
+            }
+
             if (name && !state.config.components[name]) {
-                console.log(`[DEBUG] Discovered new component: ${name}`);
+                console.log(`[DEBUG] Discovered component: ${name}`);
                 state.config.components[name] = {
                     color: '#ffffff',
-                    roughness: 0.8,
-                    metalness: 0.2,
+                    roughness: 0.8, metalness: 0.2,
                     textureId: 'None',
                     uvTransform: { scale: 1, rotation: 0, offset: [0, 0] }
                 };
-                meshesToUpdate.push(obj);
             } else if (name && state.config.components[name] && !state.config.components[name].uvTransform) {
                 state.config.components[name].uvTransform = { scale: 1, rotation: 0, offset: [0, 0] };
-                meshesToUpdate.push(obj);
             }
             if (name) foundNames.push(name);
         }
     });
-
-    meshesToUpdate.forEach(mesh => {
-        bulldozerRenderer.applyMaterial(mesh);
-    });
-
-    console.log("[DEBUG] All discovered components:", foundNames);
+    console.log("[DEBUG] Components identified for UI:", foundNames);
 }
 
 function renderGlobalUI() {
