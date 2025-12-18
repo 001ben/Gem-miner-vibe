@@ -3,7 +3,8 @@
   "assembly": {
     "tracks": {
       "verticalOffset": 0.00,
-      "spread": 1.66
+      "spread": 1.66,
+      "rotZ": 1.5708
     }
   },
   "components": {

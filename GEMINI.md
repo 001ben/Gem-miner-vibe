@@ -51,6 +51,9 @@ We successfully transitioned from an **Implicit Pipeline** (guessing mesh names 
 6.  **NO to Internal Import Maps**: I tried to map `core/` and `entities/` via `importmap` to "fix" the structure split.
     *   *Correction*: "Let's whack a mole the errors independently."
     *   *Lesson*: Don't mask path issues with specifier mappings; fix the source imports to use standard relative paths.
+7.  **NO to "Summary First" Workflow**: I summarized changes multiple times before actually calling the tool to apply them.
+    *   *Correction*: "Apply changes to the file and THEN summarise your changes."
+    *   *Lesson*: The tool call is the primary action; the text output is the confirmation of that action.
 
 ---
 

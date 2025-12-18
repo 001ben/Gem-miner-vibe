@@ -38,7 +38,7 @@ export class BulldozerRenderer {
       up: new THREE.Vector3(1, 0, 0), // Axle
       rotX: 0,
       rotY: 0,
-      rotZ: Math.PI * 1.5, // 270 deg
+      rotZ: Math.PI * 0.5, // 90 deg (flipped to point grousers out)
       spread: 0.15,
       verticalOffset: -0.53
     };
@@ -105,7 +105,8 @@ export class BulldozerRenderer {
       if (tracks) {
         if (tracks.spread !== undefined) this.trackParams.spread = tracks.spread;
         if (tracks.verticalOffset !== undefined) this.trackParams.verticalOffset = tracks.verticalOffset;
-        console.log(`[CONTRACT] Applied assembly offsets: Spread=${this.trackParams.spread}, Vert=${this.trackParams.verticalOffset}`);
+        if (tracks.rotZ !== undefined) this.trackParams.rotZ = tracks.rotZ;
+        console.log(`[CONTRACT] Applied assembly offsets: Spread=${this.trackParams.spread}, Vert=${this.trackParams.verticalOffset}, RotZ=${this.trackParams.rotZ}`);
       }
     }
 
@@ -290,7 +291,7 @@ export class BulldozerRenderer {
   update(delta) {
     if (!this.isLoaded) return;
     this.animatedInstances.forEach(track => {
-      if (Math.abs(track.speed) > 0.001) track.offset = (track.offset + track.speed * delta) % 1.0;
+      if (Math.abs(track.speed) > 0.001) track.offset = (track.offset - track.speed * delta) % 1.0;
       for (let i = 0; i < track.count; i++) {
         let t = (i / 50 + track.offset) % 1.0;
         if (t < 0) t += 1.0;
