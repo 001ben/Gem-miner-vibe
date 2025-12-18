@@ -7,3 +7,4 @@ viewer/assets/
 *.obj
 *.glb
 .DS_Store
+package-lock.json
