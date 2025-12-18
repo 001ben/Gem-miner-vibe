@@ -21,14 +21,14 @@ const PILE_RADIUS = 80;
 
 export function initThree() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x8899aa); // Lighter sky
-  // Fog for depth - Increased far plane to prevent washed out look at high zoom
-  scene.fog = new THREE.Fog(0x8899aa, 500, 10000);
+  scene.background = new THREE.Color(0xaaccff); // Brighter, more vivid sky
+  // Fog for depth
+  scene.fog = new THREE.Fog(0xaaccff, 500, 10000);
 
   const aspect = window.innerWidth / window.innerHeight;
   camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
   // Initial position, updated later
-  camera.position.set(0, 1500, 100); // Higher and steeper angle
+  camera.position.set(0, 1500, 100); 
   camera.lookAt(0, 0, 0);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -38,10 +38,10 @@ export function initThree() {
   document.getElementById('game-container').appendChild(renderer.domElement);
 
   // Lights
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Brighter ambient
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0); // Full ambient light
   scene.add(ambientLight);
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.2); // Brighter sun
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.5); // Stronger sun
   dirLight.position.set(200, 1000, 500);
   dirLight.castShadow = true;
   dirLight.shadow.mapSize.width = 2048;
@@ -57,8 +57,8 @@ export function initThree() {
 
   // Ground
   const planeGeo = new THREE.PlaneGeometry(10000, 10000);
-  // Construction site dirt color
-  const planeMat = new THREE.MeshStandardMaterial({ color: 0x9b7653, roughness: 1.0 });
+  // Brighter, warmer sand/dirt color
+  const planeMat = new THREE.MeshStandardMaterial({ color: 0xc2a278, roughness: 0.8 });
   const plane = new THREE.Mesh(planeGeo, planeMat);
   plane.rotation.x = -Math.PI / 2;
   plane.position.y = -2;
@@ -72,10 +72,10 @@ export function initThree() {
   const gemGeo = new THREE.IcosahedronGeometry(1, 0);
   const gemMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
-    roughness: 0.1,
-    metalness: 0.5,
-    emissive: 0x222222, // Slight neutral glow
-    emissiveIntensity: 0.4
+    roughness: 0.05,
+    metalness: 0.4,
+    emissive: 0xffffff, // White emissive to boost vividness
+    emissiveIntensity: 0.6 // Higher glow
   });
   gemInstancedMesh = new THREE.InstancedMesh(gemGeo, gemMat, MAX_GEMS);
   gemInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
