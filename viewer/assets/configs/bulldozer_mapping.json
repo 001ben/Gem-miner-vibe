@@ -1,0 +1,49 @@
+{
+  "assetId": "bulldozer_components.glb",
+  "components": {
+    "Bulldozer_Body": {
+      "textureId": "bulldozer_texture.png",
+      "roughness": 0.8,
+      "metalness": 0.2,
+      "uvTransform": {
+        "scale": 1.0,
+        "rotation": 0.0,
+        "offset": [0.0, 0.0]
+      }
+    },
+    "Instanced_Track_L": {
+      "preset": "Track",
+      "textureId": "tracks_texture.png",
+      "uvTransform": {
+        "scale": 1.0,
+        "rotation": 0.0,
+        "offset": [0.0, 0.0]
+      }
+    },
+    "Instanced_Track_R": {
+      "preset": "Track",
+      "textureId": "tracks_texture.png",
+      "uvTransform": {
+        "scale": 1.0,
+        "rotation": 0.0,
+        "offset": [0.0, 0.0]
+      }
+    },
+    "Asset_TrackLink": {
+      "preset": "Track",
+      "textureId": "tracks_texture.png",
+      "uvTransform": {
+        "scale": 1.0,
+        "rotation": 0.0,
+        "offset": [0.0, 0.0]
+      }
+    },
+    "Cabin": {
+      "preset": "Glass"
+    },
+    "Wheel_0": { "textureId": "bulldozer_texture.png", "roughness": 0.8, "metalness": 0.2 },
+    "Wheel_1": { "textureId": "bulldozer_texture.png", "roughness": 0.8, "metalness": 0.2 },
+    "Wheel_2": { "textureId": "bulldozer_texture.png", "roughness": 0.8, "metalness": 0.2 },
+    "Wheel_3": { "textureId": "bulldozer_texture.png", "roughness": 0.8, "metalness": 0.2 }
+  }
+}

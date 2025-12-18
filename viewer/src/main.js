@@ -1,23 +1,14 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { BulldozerRenderer } from 'bulldozer-render';
 
 // --- State Management ---
 const state = {
-    assetId: null,
-    textureId: null,
-    material: {
-        color: '#ffffff',
-        roughness: 0.5,
-        metalness: 0.0
-    },
-    transform: {
-        scale: 1.0,
-        rotation: 0,
-        offsetX: 0.0,
-        offsetY: 0.0
-    }
+    assetId: 'bulldozer_components.glb',
+    configId: 'bulldozer_mapping.json',
+    config: null,
+    catalog: null,
+    animationSpeed: 0.2
 };
 
 // --- Scene Setup ---
@@ -25,247 +16,340 @@ const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x222222);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(3, 2, 3);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(12, 10, 12);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
-// Updated to modern color space API
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 // Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-scene.add(ambientLight);
-
-const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-dirLight.position.set(5, 10, 7.5);
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(10, 20, 15);
+dirLight.castShadow = true;
 scene.add(dirLight);
 
-// Environment (Optional, for reflections)
-// new RGBELoader().load('path/to/hdr', (texture) => { ... });
-
 // --- Asset Logic ---
-const gltfLoader = new GLTFLoader();
-const texLoader = new THREE.TextureLoader();
-
-let currentMesh = null;
-let currentTexture = null;
+let bulldozerRenderer = null;
+const clock = new THREE.Clock();
 
 async function loadCatalog() {
     try {
-        const resp = await fetch('assets/catalog.json');
-        const catalog = await resp.json();
-        populateUI(catalog);
+        console.log("[DEBUG] Loading catalog...");
+        const cb = (u) => `${u}?cb=${Date.now()}`;
+        const resp = await fetch(cb('assets/catalog.json'));
+        state.catalog = await resp.json();
+        console.log("[DEBUG] Catalog loaded:", state.catalog);
+        renderGlobalUI();
+        await reloadBulldozer();
     } catch (e) {
         console.error("Failed to load catalog:", e);
     }
 }
 
-async function loadModel(filename) {
-    if (!filename) return;
-    state.assetId = filename;
-
-    // Clear old model
-    if (currentMesh) {
-        scene.remove(currentMesh);
-        currentMesh = null;
-    }
+async function reloadBulldozer() {
+    console.log(`[DEBUG] reloadBulldozer: ${state.assetId} | config: ${state.configId}`);
+    if (bulldozerRenderer) bulldozerRenderer.destroy();
+    
+    bulldozerRenderer = new BulldozerRenderer(scene);
+    bulldozerRenderer.setScale(5.0); 
 
     try {
-        const gltf = await gltfLoader.loadAsync(`assets/${filename}`);
-        const model = gltf.scene;
+        const cb = (u) => `${u}?cb=${Date.now()}`;
+        if (state.configId !== 'None') {
+            const configPath = `assets/configs/${state.configId}`;
+            console.log(`[DEBUG] Fetching config: ${configPath}`);
+            const resp = await fetch(cb(configPath));
+            state.config = await resp.json();
+        } else {
+            state.config = { components: {} };
+        }
 
-        // Find the main mesh (assume single mesh or join logic needed)
-        // For simplicity, apply material to all meshes
-        model.traverse((child) => {
-            if (child.isMesh) {
-                // Apply a standard material we can control
-                child.material = new THREE.MeshStandardMaterial({
-                    color: state.material.color,
-                    roughness: state.material.roughness,
-                    metalness: state.material.metalness
-                });
-
-                // If we have a texture loaded, apply it
-                if (currentTexture) {
-                    child.material.map = currentTexture;
-                    child.material.needsUpdate = true;
-                }
-            }
-        });
-
-        // Center model
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        model.position.sub(center);
-
-        scene.add(model);
-        currentMesh = model;
-        updateMaterial(); // Re-apply current state
+        const modelPath = `assets/${state.assetId}`;
+        console.log(`[DEBUG] Loading model: ${modelPath}`);
+        await bulldozerRenderer.load(cb(modelPath), state.config);
+        
+        discoverComponents();
+        renderComponentUI();
+        controls.target.set(0, 0, 0);
     } catch (e) {
-        console.error("Failed to load model:", e);
+        console.error("❌ Failed to load bulldozer:", e);
     }
 }
 
-async function loadTexture(filename) {
-    if (!filename || filename === 'None') {
-        state.textureId = null;
-        currentTexture = null;
-        updateMaterial();
-        return;
-    }
+function discoverComponents() {
+    if (!bulldozerRenderer || !state.config) return;
+    
+    const foundNames = [];
+    const meshesToUpdate = [];
 
-    state.textureId = filename;
-    try {
-        const tex = await texLoader.loadAsync(`assets/textures/${filename}`);
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
-        // Updated to modern color space API
-        tex.colorSpace = THREE.SRGBColorSpace;
-        currentTexture = tex;
-        updateMaterial();
-    } catch (e) {
-        console.error("Failed to load texture:", e);
-    }
-}
-
-function updateMaterial() {
-    if (!currentMesh) return;
-
-    currentMesh.traverse((child) => {
-        if (child.isMesh && child.material) {
-            const m = child.material;
-            m.color.set(state.material.color);
-            m.roughness = state.material.roughness;
-            m.metalness = state.material.metalness;
-
-            if (currentTexture) {
-                m.map = currentTexture;
-
-                // Texture Transform
-                // Center rotation (0.5, 0.5)
-                m.map.center.set(0.5, 0.5);
-                m.map.repeat.set(state.transform.scale, state.transform.scale);
-                m.map.rotation = state.transform.rotation * (Math.PI / 180);
-                m.map.offset.set(state.transform.offsetX, state.transform.offsetY);
-
-                m.needsUpdate = true;
-            } else {
-                m.map = null;
-                m.needsUpdate = true;
+    bulldozerRenderer.group.traverse(obj => {
+        if (obj.isMesh || obj.isInstancedMesh) {
+            const name = obj.name;
+            if (name && !state.config.components[name]) {
+                console.log(`[DEBUG] Discovered new component: ${name}`);
+                state.config.components[name] = {
+                    color: '#ffffff',
+                    roughness: 0.8,
+                    metalness: 0.2,
+                    textureId: 'None',
+                    uvTransform: { scale: 1, rotation: 0, offset: [0, 0] }
+                };
+                meshesToUpdate.push(obj);
+            } else if (name && state.config.components[name] && !state.config.components[name].uvTransform) {
+                state.config.components[name].uvTransform = { scale: 1, rotation: 0, offset: [0, 0] };
+                meshesToUpdate.push(obj);
             }
+            if (name) foundNames.push(name);
         }
     });
+
+    meshesToUpdate.forEach(mesh => {
+        bulldozerRenderer.applyMaterial(mesh);
+    });
+
+    console.log("[DEBUG] All discovered components:", foundNames);
 }
 
-// --- UI Binding ---
-function populateUI(catalog) {
+function renderGlobalUI() {
+    const scrollContent = document.querySelector('.scroll-content');
+    if (!scrollContent) return;
+    scrollContent.innerHTML = '';
+
+    // 0. Scene Controls
+    const sceneGroup = document.createElement('div');
+    sceneGroup.className = 'control-group';
+    sceneGroup.innerHTML = `
+        <label>VIEWER BACKGROUND</label>
+        <div class="slider-row">
+            <input type="color" id="bg-color" value="#222222">
+        </div>
+    `;
+    scrollContent.appendChild(sceneGroup);
+    document.getElementById('bg-color').addEventListener('input', (e) => {
+        scene.background.set(e.target.value);
+    });
+
+    // 1. Asset & Config Selection
+    const assetGroup = document.createElement('div');
+    assetGroup.className = 'control-group';
+    assetGroup.innerHTML = `
+        <label>MODEL (.glb)</label>
+        <select id="asset-select"></select>
+        <label>MAPPING (.json)</label>
+        <select id="config-select"></select>
+    `;
+    scrollContent.appendChild(assetGroup);
+
     const assetSel = document.getElementById('asset-select');
-    assetSel.innerHTML = '';
-    catalog.models.forEach(m => {
+    state.catalog.models.forEach(m => {
         const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = m;
+        opt.value = m; opt.textContent = m;
+        if (m === state.assetId) opt.selected = true;
         assetSel.appendChild(opt);
     });
+    assetSel.addEventListener('change', (e) => { state.assetId = e.target.value; reloadBulldozer(); });
 
-    if(catalog.models.length > 0) loadModel(catalog.models[0]);
-
-    assetSel.addEventListener('change', (e) => loadModel(e.target.value));
-
-    const texSel = document.getElementById('texture-select');
-    texSel.innerHTML = '<option value="None">None</option>';
-    catalog.textures.forEach(t => {
+    const configSel = document.getElementById('config-select');
+    configSel.innerHTML = '<option value="None">None</option>';
+    state.catalog.configs.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = t;
-        texSel.appendChild(opt);
+        opt.value = c; opt.textContent = c;
+        if (c === state.configId) opt.selected = true;
+        configSel.appendChild(opt);
     });
+    configSel.addEventListener('change', (e) => { state.configId = e.target.value; reloadBulldozer(); });
 
-    texSel.addEventListener('change', (e) => loadTexture(e.target.value));
-}
+    // Component List Container
+    const compListHeader = document.createElement('label');
+    compListHeader.textContent = 'COMPONENTS';
+    compListHeader.style.marginTop = '15px';
+    scrollContent.appendChild(compListHeader);
 
-// Sliders
-function bindSlider(id, stateKey, subKey, unit = '') {
-    const el = document.getElementById(id);
-    const valEl = document.getElementById('val-' + id.replace('mat-', '').replace('tex-', '')); // simple helper
+    const compList = document.createElement('div');
+    compList.id = 'component-list';
+    scrollContent.appendChild(compList);
 
-    el.addEventListener('input', (e) => {
+    // Track Alignment Controls
+    const alignGroup = document.createElement('div');
+    alignGroup.className = 'control-group';
+    alignGroup.style.marginTop = '20px';
+    alignGroup.innerHTML = `
+        <label>TRACK ALIGNMENT</label>
+        <div class="slider-row">
+            <label>Vertical</label>
+            <input type="range" id="track-vert" min="-2" max="2" step="0.01" value="-0.53">
+            <span id="val-track-vert">-0.53</span>
+        </div>
+        <div class="slider-row">
+            <label>Spread</label>
+            <input type="range" id="track-spread" min="-2" max="2" step="0.01" value="0.15">
+            <span id="val-track-spread">0.15</span>
+        </div>
+    `;
+    scrollContent.appendChild(alignGroup);
+
+    document.getElementById('track-vert').addEventListener('input', (e) => {
         const val = parseFloat(e.target.value);
-        if (stateKey === 'material') {
-            state.material[subKey] = val;
-        } else if (stateKey === 'transform') {
-            state.transform[subKey] = val;
-        }
-        if (valEl) valEl.textContent = val + unit;
-        updateMaterial();
+        document.getElementById('val-track-vert').textContent = val;
+        if (bulldozerRenderer) bulldozerRenderer.trackParams.verticalOffset = val;
+    });
+
+    document.getElementById('track-spread').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        document.getElementById('val-track-spread').textContent = val;
+        if (bulldozerRenderer) bulldozerRenderer.trackParams.spread = val;
+    });
+
+    // Animation Speed
+    const animGroup = document.createElement('div');
+    animGroup.className = 'control-group';
+    animGroup.style.marginTop = '20px';
+    animGroup.innerHTML = `
+        <label>ANIMATION</label>
+        <div class="slider-row">
+            <label>Track Speed</label>
+            <input type="range" id="anim-speed" min="-0.5" max="0.5" step="0.01" value="${state.animationSpeed}">
+            <span id="val-anim-speed">${state.animationSpeed}</span>
+        </div>
+    `;
+    scrollContent.appendChild(animGroup);
+
+    document.getElementById('anim-speed').addEventListener('input', (e) => {
+        state.animationSpeed = parseFloat(e.target.value);
+        document.getElementById('val-anim-speed').textContent = e.target.value;
+        if (bulldozerRenderer) bulldozerRenderer.setSpeeds(state.animationSpeed, state.animationSpeed);
     });
 }
 
-bindSlider('mat-roughness', 'material', 'roughness');
-bindSlider('mat-metalness', 'material', 'metalness');
-bindSlider('tex-scale', 'transform', 'scale');
-bindSlider('tex-rotation', 'transform', 'rotation', '°');
-bindSlider('tex-offset-x', 'transform', 'offsetX');
-bindSlider('tex-offset-y', 'transform', 'offsetY');
+function renderComponentUI() {
+    const compList = document.getElementById('component-list');
+    if (!compList) return;
+    compList.innerHTML = '';
 
-document.getElementById('mat-color').addEventListener('input', (e) => {
-    state.material.color = e.target.value;
-    updateMaterial();
-});
+    const components = Object.keys(state.config.components).sort();
+    components.forEach(name => {
+        const comp = state.config.components[name];
+        const item = document.createElement('div');
+        item.className = 'component-item';
+        
+        const header = document.createElement('div');
+        header.className = 'component-header';
+        header.innerHTML = `
+            <span>${name}</span>
+            <span class="tex-info">${comp.textureId || 'None'}</span>
+        `;
+        item.appendChild(header);
 
-// UI Toggle
-const uiContainer = document.getElementById('ui-container');
-const uiToggle = document.getElementById('ui-toggle');
-uiToggle.addEventListener('click', () => {
-    uiContainer.classList.toggle('collapsed');
-    uiToggle.style.right = uiContainer.classList.contains('collapsed') ? '10px' : '310px';
-});
+        const content = document.createElement('div');
+        content.className = 'component-content';
+        
+        content.innerHTML = `
+            <label>Color</label>
+            <input type="color" class="comp-color" value="${comp.color || '#ffffff'}">
+            <div class="slider-row">
+                <label>Roughness</label>
+                <input type="range" class="comp-roughness" min="0" max="1" step="0.01" value="${comp.roughness ?? 0.8}">
+            </div>
+            <div class="slider-row">
+                <label>Metalness</label>
+                <input type="range" class="comp-metalness" min="0" max="1" step="0.01" value="${comp.metalness ?? 0.2}">
+            </div>
+            <div class="slider-row">
+                <label>Transmission</label>
+                <input type="range" class="comp-trans" min="0" max="1" step="0.01" value="${comp.transmission ?? 0}">
+            </div>
+            <div class="slider-row">
+                <label>IOR</label>
+                <input type="range" class="comp-ior" min="1" max="2.33" step="0.01" value="${comp.ior ?? 1.5}">
+            </div>
+            <label>Texture</label>
+            <select class="comp-tex-select">
+                <option value="None">None</option>
+                ${state.catalog.textures.map(t => `<option value="${t}" ${comp.textureId === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+            <div class="slider-row">
+                <label>Scale</label>
+                <input type="range" class="comp-tex-scale" min="0.1" max="20" step="0.1" value="${comp.uvTransform?.scale ?? 1.0}">
+            </div>
+            <div class="slider-row">
+                <label>Rotation</label>
+                <input type="range" class="comp-tex-rot" min="0" max="360" step="1" value="${Math.round((comp.uvTransform?.rotation ?? 0) * (180/Math.PI))}">
+            </div>
+            <div class="slider-row">
+                <label>Offset X</label>
+                <input type="range" class="comp-tex-offx" min="-2" max="2" step="0.01" value="${comp.uvTransform?.offset[0] ?? 0}">
+            </div>
+            <div class="slider-row">
+                <label>Offset Y</label>
+                <input type="range" class="comp-tex-offy" min="-2" max="2" step="0.01" value="${comp.uvTransform?.offset[1] ?? 0}">
+            </div>
+        `;
 
+        item.appendChild(content);
+        compList.appendChild(item);
 
-// --- Export ---
-document.getElementById('btn-copy').addEventListener('click', () => {
-    const exportData = {
-        schemaVersion: "1.0",
-        assetId: state.assetId,
-        material: {
-            textureId: state.textureId,
-            color: state.material.color,
-            roughness: state.material.roughness,
-            metalness: state.material.metalness
-        },
-        uvTransform: {
-            scale: state.transform.scale,
-            rotation: state.transform.rotation * (Math.PI / 180), // Spec says radians
-            offset: [state.transform.offsetX, state.transform.offsetY]
-        }
-    };
+        header.onclick = () => {
+            const isExpanded = item.classList.contains('expanded');
+            document.querySelectorAll('.component-item').forEach(i => i.classList.remove('expanded'));
+            if (!isExpanded) item.classList.add('expanded');
+        };
 
-    const json = JSON.stringify(exportData, null, 2);
-    console.log("Config Export:", json);
-    navigator.clipboard.writeText(json).then(() => {
-        const btn = document.getElementById('btn-copy');
-        const oldText = btn.textContent;
-        btn.textContent = "Copied to Clipboard!";
-        setTimeout(() => btn.textContent = oldText, 2000);
+        const updateComp = async () => {
+            comp.color = content.querySelector('.comp-color').value;
+            comp.roughness = parseFloat(content.querySelector('.comp-roughness').value);
+            comp.metalness = parseFloat(content.querySelector('.comp-metalness').value);
+            comp.transmission = parseFloat(content.querySelector('.comp-trans').value);
+            comp.ior = parseFloat(content.querySelector('.comp-ior').value);
+            comp.textureId = content.querySelector('.comp-tex-select').value;
+            header.querySelector('.tex-info').textContent = comp.textureId;
+
+            if (!comp.uvTransform) comp.uvTransform = { scale: 1, rotation: 0, offset: [0,0] };
+            comp.uvTransform.scale = parseFloat(content.querySelector('.comp-tex-scale').value);
+            comp.uvTransform.rotation = parseFloat(content.querySelector('.comp-tex-rot').value) * (Math.PI/180);
+            comp.uvTransform.offset = [
+                parseFloat(content.querySelector('.comp-tex-offx').value),
+                parseFloat(content.querySelector('.comp-tex-offy').value)
+            ];
+
+            const mesh = bulldozerRenderer.group.getObjectByName(name) || 
+                         (name.includes("Track") ? bulldozerRenderer.animatedInstances.find(t => t.mesh.name === name)?.mesh : null);
+            if (mesh) await bulldozerRenderer.applyMaterial(mesh);
+        };
+
+        content.querySelectorAll('input, select').forEach(el => el.addEventListener('input', updateComp));
     });
-});
+}
 
-document.getElementById('btn-reset').addEventListener('click', () => {
-   // Implementation optional for now
-   console.log("Reset clicked");
-});
+// UI Toggles & Export
+document.getElementById('ui-toggle').onclick = () => {
+    const container = document.getElementById('ui-container');
+    container.classList.toggle('collapsed');
+    document.getElementById('ui-toggle').style.right = container.classList.contains('collapsed') ? '10px' : '310px';
+};
 
+document.getElementById('btn-copy').onclick = () => {
+    navigator.clipboard.writeText(JSON.stringify(state.config, null, 2)).then(() => {
+        const btn = document.getElementById('btn-copy');
+        btn.textContent = "Copied!";
+        setTimeout(() => btn.textContent = "Copy Config JSON", 2000);
+    });
+};
 
 // --- Loop ---
 function animate() {
     requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+    if (bulldozerRenderer) bulldozerRenderer.update(delta);
     controls.update();
     renderer.render(scene, camera);
 }

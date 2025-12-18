@@ -40,12 +40,13 @@ tasks:
     desc: Build Blender assets (GLB and Textures)
     deps: [deps:system]
     cmds:
-      - node scripts/build-blender-assets.js
+      - node scripts/build-assets.js
     sources:
       - assets/source/blender/*.py
     generates:
       - assets/bulldozer_components.glb
       - assets/bulldozer_texture.png
+      - viewer/assets/catalog.json
 
   build:dist:
     desc: Build the production distribution
@@ -73,8 +74,13 @@ tasks:
       - npx serve
 
   viewer:
-    desc: Start the asset viewer server
+    desc: Start the legacy asset viewer server
     deps: [deps:node, build:assets]
     cmds:
-      - open http://localhost:8000/verification/asset_viewer.html || xdg-open http://localhost:8000/verification/asset_viewer.html || echo "Open http://localhost:8000/verification/asset_viewer.html"
-      - python3 -m http.server 8000
+      - bun x http-server -p 8000 -o /verification/asset_viewer.html
+
+  damp:viewer:
+    desc: Start the DAMP asset viewer server
+    deps: [deps:node, build:assets]
+    cmds:
+      - bun x http-server -p 8080 -c-1 -o /viewer/index.html

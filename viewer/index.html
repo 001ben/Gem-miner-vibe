@@ -55,29 +55,60 @@
             padding: 15px;
         }
 
-        .control-group {
-            margin-bottom: 20px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
+        .component-item {
+            border: 1px solid #444;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            overflow: hidden;
         }
 
-        .control-group:last-child { border-bottom: none; }
+        .component-header {
+            background: #333;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .component-header:hover { background: #444; }
+        .component-header .tex-info { font-weight: normal; font-size: 11px; color: #888; }
+
+        .component-content {
+            padding: 10px;
+            background: #252525;
+            display: none;
+        }
+
+        .component-item.expanded .component-content { display: block; }
+        .component-item.expanded .component-header { background: #007acc; color: white; }
+        .component-item.expanded .tex-info { color: #eee; }
 
         label {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             color: #aaa;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
+            margin-top: 8px;
         }
 
         select, input[type="text"] {
             width: 100%;
-            background: #333;
-            border: 1px solid #555;
+            background: #1a1a1a;
+            border: 1px solid #444;
             color: white;
-            padding: 5px;
-            margin-bottom: 10px;
+            padding: 4px;
+            margin-bottom: 5px;
             border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
         }
 
         /* Sliders */
@@ -115,12 +146,22 @@
         button.secondary:hover { background: #555; }
 
     </style>
-    <script type="importmap">
+    <!-- Dynamic Import Map for Cache Busting internal scripts -->
+    <script>
         {
-            "imports": {
-                "three": "./libs/three/build/three.module.js",
-                "three/examples/jsm/": "./libs/three/examples/jsm/"
-            }
+            const v = Date.now();
+            const map = {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.182.0/build/three.module.js",
+                    "three/examples/jsm/": "https://unpkg.com/three@0.182.0/examples/jsm/",
+                    "bulldozer-render": `../js/entities/bulldozer_render.js?v=${v}`,
+                    "game/": `../js/` 
+                }
+            };
+            const s = document.createElement('script');
+            s.type = 'importmap';
+            s.textContent = JSON.stringify(map);
+            document.currentScript.after(s);
         }
     </script>
 </head>
@@ -131,68 +172,23 @@
 
     <div id="ui-container">
         <div class="panel-header">DAMP Director</div>
-
         <div class="scroll-content">
-            <!-- Asset Selection -->
-            <div class="control-group">
-                <label>GEOMETRY (.glb)</label>
-                <select id="asset-select"><option>Loading...</option></select>
-
-                <label>TEXTURE (.png)</label>
-                <select id="texture-select"><option>Loading...</option></select>
-            </div>
-
-            <!-- Material Properties -->
-            <div class="control-group">
-                <label>MATERIAL</label>
-                <div class="slider-row">
-                    <label>Color</label>
-                    <input type="color" id="mat-color" value="#ffffff">
-                </div>
-                <div class="slider-row">
-                    <label>Roughness</label>
-                    <input type="range" id="mat-roughness" min="0" max="1" step="0.01" value="0.5">
-                    <span id="val-roughness">0.5</span>
-                </div>
-                <div class="slider-row">
-                    <label>Metalness</label>
-                    <input type="range" id="mat-metalness" min="0" max="1" step="0.01" value="0.5">
-                    <span id="val-metalness">0.5</span>
-                </div>
-            </div>
-
-            <!-- Texture Transforms -->
-            <div class="control-group">
-                <label>TEXTURE TRANSFORM</label>
-                <div class="slider-row">
-                    <label>Scale</label>
-                    <input type="range" id="tex-scale" min="0.1" max="10" step="0.1" value="1.0">
-                    <span id="val-tex-scale">1.0</span>
-                </div>
-                <div class="slider-row">
-                    <label>Rotation</label>
-                    <input type="range" id="tex-rotation" min="0" max="360" step="1" value="0">
-                    <span id="val-tex-rotation">0°</span>
-                </div>
-                <div class="slider-row">
-                    <label>Offset X</label>
-                    <input type="range" id="tex-offset-x" min="-1" max="1" step="0.01" value="0">
-                    <span id="val-tex-offset-x">0</span>
-                </div>
-                <div class="slider-row">
-                    <label>Offset Y</label>
-                    <input type="range" id="tex-offset-y" min="-1" max="1" step="0.01" value="0">
-                    <span id="val-tex-offset-y">0</span>
-                </div>
-            </div>
+            <div style="padding: 20px; text-align: center; color: #888;">Initializing...</div>
         </div>
 
         <div class="actions">
             <button class="action-btn" id="btn-copy">Copy Config JSON</button>
-            <button class="action-btn secondary" id="btn-reset">Reset Defaults</button>
         </div>
     </div>
 
-    <script type="module" src="./src/main.js"></script>
+    <script>
+        {
+            // Load main module with cache busting
+            const s = document.createElement('script');
+            s.type = 'module';
+            s.src = `./src/main.js?v=${Date.now()}`;
+            document.body.appendChild(s);
+        }
+    </script>
 </body>
 </html>

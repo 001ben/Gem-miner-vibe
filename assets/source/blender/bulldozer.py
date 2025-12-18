@@ -209,6 +209,51 @@ def generate_body_texture(filepath):
     image.save()
     print(f"Generated texture: {filepath}")
 
+def generate_tracks_texture(filepath):
+    """
+    Generates a tread pattern texture.
+    """
+    width, height = 512, 512
+    size = width * height
+    pixels = [0.06] * (size * 4) # Base dark grey
+    for i in range(size): pixels[i*4+3] = 1.0
+
+    # Draw Chevrons/Treads
+    bar_height = 64
+    for y in range(0, height, bar_height):
+        for x in range(width):
+            # Simple V shape
+            offset = abs(x - 256) // 8
+            for py in range(y + offset, y + offset + 20):
+                if py < height:
+                    idx = (py * width + x) * 4
+                    pixels[idx] = 0.2
+                    pixels[idx+1] = 0.2
+                    pixels[idx+2] = 0.2
+
+    image = bpy.data.images.new("TracksTexture", width=width, height=height)
+    image.pixels = pixels
+    image.filepath_raw = filepath
+    image.file_format = 'PNG'
+    image.save()
+    print(f"Generated tracks texture: {filepath}")
+
+def generate_cabin_texture(filepath):
+    """
+    Generates a metallic cabin texture with rivets.
+    """
+    width, height = 512, 512
+    size = width * height
+    pixels = [0.5] * (size * 4) # Base Grey
+    for i in range(size): pixels[i*4+3] = 1.0
+
+    image = bpy.data.images.new("CabinTexture", width=width, height=height)
+    image.pixels = pixels
+    image.filepath_raw = filepath
+    image.file_format = 'PNG'
+    image.save()
+    print(f"Generated cabin texture: {filepath}")
+
 # --- Execution ---
 
 # 1. Reset
@@ -247,6 +292,7 @@ positions = [
 for i, pos in enumerate(positions):
     w = create_idler_wheel(f"Wheel_{i}", wheel_radius, wheel_width)
     w.location = pos
+    w.data.materials.append(mat_metal)
     # Join to body
     w.select_set(True)
     body.select_set(True)
@@ -301,6 +347,12 @@ bpy.ops.export_scene.gltf(
 
 print(f"Exported Programmatic Assets to {OUTPUT_PATH}")
 
-# 6. Generate Texture Map
-tex_path = os.path.join(os.getcwd(), "assets", "bulldozer_texture.png")
+# 6. Generate Texture Maps
+tex_dir = os.path.join(os.getcwd(), "assets", "textures")
+os.makedirs(tex_dir, exist_ok=True)
+
+tex_path = os.path.join(tex_dir, "bulldozer_texture.png")
 generate_body_texture(tex_path)
+
+tracks_tex_path = os.path.join(tex_dir, "tracks_texture.png")
+generate_tracks_texture(tracks_tex_path)
