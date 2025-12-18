@@ -25,12 +25,8 @@ This error occurs when the browser cannot resolve one of the JavaScript modules 
         # Legacy Viewer
         task viewer
         ```
-    -   Ensure dependencies are installed:
-        ```bash
-        task deps:node
-        ```
 2.  **Deployment:**
-    -   Check the `pr-preview.yml` workflow to ensure it copies `js/` and `node_modules/` to the `dist/` folder and rewrites paths (`sed`) in `index.html`.
+    -   Check the `pr-preview.yml` workflow to ensure it copies source files to the `dist/` folder and rewrites paths (`sed`) in `index.html`.
 
 ### `Failed to load resource: ... bulldozer_components.glb` (404)
 

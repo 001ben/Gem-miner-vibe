@@ -1,4 +1,3 @@
-node_modules/
 dist/
 .task/
 public/assets/
@@ -7,4 +6,3 @@ viewer/assets/
 *.obj
 *.glb
 .DS_Store
-package-lock.json

@@ -1,7 +1,0 @@
-{
-  "devDependencies": {},
-  "scripts": {
-    "start": "task dev",
-    "build:blender": "task build:assets"
-  }
-}

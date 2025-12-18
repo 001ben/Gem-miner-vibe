@@ -29,16 +29,6 @@ tasks:
     status:
       - test -d /Applications/Blender.app
 
-  deps:node:
-    desc: Install Node.js dependencies
-    cmds:
-      - npm install
-    sources:
-      - package.json
-      - package-lock.json
-    generates:
-      - node_modules/.package-lock.json
-
   build:assets:
     desc: Build DAMP assets (GLB, Textures, Catalog)
     deps: [deps:system]
@@ -47,7 +37,7 @@ tasks:
 
   build:dist:
     desc: Build the production distribution
-    deps: [deps:node, build:assets]
+    deps: [build:assets]
     cmds:
       - rm -rf dist
       - mkdir -p dist
@@ -63,12 +53,12 @@ tasks:
 
   dev:
     desc: Start the main game server
-    deps: [deps:node, build:assets]
+    deps: [build:assets]
     cmds:
       - bun x http-server -p 3000 -o /index.html
 
   damp:viewer:
     desc: Start the DAMP asset viewer server
-    deps: [deps:node, build:assets]
+    deps: [build:assets]
     cmds:
       - bun x http-server -p 8080 -c-1 -o /tools/viewer/index.html
