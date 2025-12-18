@@ -34,8 +34,6 @@ jobs:
 
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -55,4 +53,3 @@ jobs:
         uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: dist
-          remove-on-close: true
