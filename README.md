@@ -13,5 +13,5 @@ A browser-based gem mining game using Matter.js physics.
 
 ## Features
 - Physics-based movement and collisions.
-- custom SVG sprites for bulldozer, gems, and collector.
+- High-fidelity 3D models generated via Blender Python pipeline.
 - Responsive design with mobile touch controls.

@@ -32,9 +32,12 @@ export function initConsole() {
     consoleContainer.appendChild(copyBtn);
 
     function addLog(type, args) {
-        const msg = args.map(arg =>
-            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-        ).join(' ');
+        const msg = args.map(arg => {
+            if (arg instanceof Error) {
+                return `[Error: ${arg.message}] Stack: ${arg.stack}`;
+            }
+            return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
+        }).join(' ');
 
         const line = document.createElement('div');
         line.className = `log-line log-${type}`;

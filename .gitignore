@@ -1,5 +1,7 @@
 node_modules/
 dist/
+.task/
 public/assets/
 *.obj
 *.glb
+.DS_Store

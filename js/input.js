@@ -171,6 +171,8 @@ function initJoystick() {
 
     // Mouse drag for testing
     gameContainer.addEventListener('mousedown', e => {
+        // Allow interacting with UI inputs
+        if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
         if (e.target.closest('#game-ui')) return;
         joystick.active = true;
         joystick.originX = e.clientX;
