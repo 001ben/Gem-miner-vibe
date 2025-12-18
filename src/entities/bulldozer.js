@@ -27,7 +27,8 @@ export function createBulldozer() {
     const plowHeight = 22; // Thicker than original (10) but not "weird" (30). Compromise.
 
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { label: 'chassis' });
-    const plowOffset = -(bodySize/2 + plowHeight/2 - 5);
+    // Increase offset padding from 5 to 15 to clear the chassis
+    const plowOffset = -(bodySize/2 + plowHeight/2 + 15);
     const plow = Bodies.rectangle(0, plowOffset, plowWidth, plowHeight, { label: 'plow' });
 
     let parts = [chassis, plow];
@@ -47,7 +48,7 @@ export function createBulldozer() {
         // center y = startY + (L/2 * sin(angle))
 
         const startXLeft = -plowWidth / 2;
-        const startYLeft = plowOffset;
+        const startYLeft = plowOffset; // Uses the updated offset automatically
 
         const lx = startXLeft + (wingLength/2) * Math.cos(angleLeft);
         const ly = startYLeft + (wingLength/2) * Math.sin(angleLeft);
@@ -141,8 +142,8 @@ export function enforceBulldozerRigidity() {
         Body.setPosition(part, { x: desiredX, y: desiredY });
         Body.setAngle(part, desiredAngle);
 
-        // Also sync velocity to prevent fighting?
-        // Body.setVelocity(part, body.velocity);
-        // Body.setAngularVelocity(part, body.angularVelocity);
+        // Aggressively sync velocities to prevent drift during high-impulse collisions
+        Body.setVelocity(part, body.velocity);
+        Body.setAngularVelocity(part, body.angularVelocity);
     });
 }

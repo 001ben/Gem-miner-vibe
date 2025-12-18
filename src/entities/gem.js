@@ -20,27 +20,27 @@ export function initGems() {
   }
   gems.length = 0;
 
-  // Reset progress tracking
-  state.zoneProgress[1] = { total: 0, collected: 0 };
-  state.zoneProgress[2] = { total: 0, collected: 0 };
-  state.zoneProgress[3] = { total: 0, collected: 0 };
+    // Reset progress tracking
+    state.zoneProgress[1] = { total: 0, collected: 0 };
+    state.zoneProgress[2] = { total: 0, collected: 0 };
+    state.zoneProgress[3] = { total: 0, collected: 0 };
 
-  spawnZoneGems(1, 300, -500, 500, -500, 500, 10, 25, ['#00FFFF', '#FF00FF']);
-  spawnZoneGems(2, 300, -500, 500, -1700, -700, 30, 60, ['#FFFF00']);
-  spawnZoneGems(3, 300, -500, 500, -2900, -1900, 70, 120, ['#00FF00']);
+    spawnZoneGems(1, 400, -500, 500, -500, 500, 8, 12, ['#00FFFF', '#FF00FF']);
+    spawnZoneGems(2, 400, -500, 500, -1700, -700, 25, 40, ['#FFFF00']);
+    spawnZoneGems(3, 400, -500, 500, -2900, -1900, 60, 100, ['#00FF00']);
 }
 
 function spawnZoneGems(zoneId, count, xMin, xMax, yMin, yMax, valMin, valMax, colors) {
-  state.zoneProgress[zoneId].total += count;
-  for (let i = 0; i < count; i++) {
-    const x = xMin + Math.random() * (xMax - xMin);
-    const y = yMin + Math.random() * (yMax - yMin);
+    state.zoneProgress[zoneId].total += count;
+    for(let i=0; i<count; i++) {
+        const x = xMin + Math.random() * (xMax - xMin);
+        const y = yMin + Math.random() * (yMax - yMin);
 
-    const colorStr = colors[Math.floor(Math.random() * colors.length)];
-    const colorVal = gemColors[colorStr];
-    const radius = 10 + Math.random() * 8 + (valMin / 10);
+        const colorStr = colors[Math.floor(Math.random() * colors.length)];
+        const colorVal = gemColors[colorStr];
+        const radius = 8 + Math.random() * 4; // Consistent size around 8-12
 
-    const gem = Bodies.circle(x, y, radius, {
+        const gem = Bodies.circle(x, y, radius, {
       restitution: 0.5,
       friction: 0.0,
       frictionAir: 0.02,
@@ -52,12 +52,17 @@ function spawnZoneGems(zoneId, count, xMin, xMax, yMin, yMax, valMin, valMax, co
       }
     });
 
-    gem.renderColor = colorVal;
-    gem.value = Math.floor(valMin + Math.random() * (valMax - valMin));
-    gem.zoneId = zoneId;
-    gems.push(gem);
-    Composite.add(world, gem);
-  }
+                    gem.renderColor = colorVal;
+
+                    gem.gemColorHex = colorStr; // e.g. '#00FFFF'
+
+                    gem.value = Math.floor(valMin + Math.random() * (valMax - valMin));
+
+                    gem.zoneId = zoneId;
+
+                    gems.push(gem);
+
+                    Composite.add(world, gem);  }
 }
 
 export function collectGem(gem) {

@@ -16,7 +16,7 @@ export const engine = Engine.create();
 // Increase iterations significantly to prevent compound body parts (wings) from drifting under extreme force
 engine.positionIterations = 20;
 engine.velocityIterations = 20;
-engine.constraintIterations = 10;
+engine.constraintIterations = 20;
 export const world = engine.world;
 engine.gravity.y = 0; // Top down
 
