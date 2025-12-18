@@ -3,7 +3,6 @@
     "bulldozer_components.glb"
   ],
   "textures": [
-    "bulldozer_texture.png",
     "tracks_texture.png"
   ],
   "configs": [

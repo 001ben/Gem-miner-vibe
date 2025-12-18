@@ -1,4 +1,4 @@
-import { engine, Events, Body, Matter } from '../physics.js';
+import { engine, Events, Body, Matter } from '../core/physics.js';
 import { collectGem } from './gem.js';
 
 export function initConveyorSystem() {

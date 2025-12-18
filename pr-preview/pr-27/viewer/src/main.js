@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { html } from 'htm/react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { BulldozerRenderer } from 'bulldozer-render';
 
 const cb = (u) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
@@ -17,7 +18,7 @@ const Slider = ({ label, min, max, step, value, onChange, unit = '' }) => html`
     </div>
 `;
 
-const ComponentAccordion = ({ name, data, textures, onUpdate }) => {
+const ComponentAccordion = ({ name, data, textures, presets, materialPresets, onUpdate }) => {
     const [expanded, setExpanded] = useState(false);
 
     const update = (key, val) => {
@@ -29,21 +30,39 @@ const ComponentAccordion = ({ name, data, textures, onUpdate }) => {
         update('uvTransform', newUV);
     };
 
+    const preset = (data.preset && materialPresets) ? materialPresets[data.preset] : null;
+    
+    // Effective values for UI (Preset -> Data -> Fallback)
+    const effColor = data.color || (preset ? `#${preset.color.getHex().toString(16).padStart(6, '0')}` : '#ffffff');
+    const effRoughness = data.roughness ?? (preset ? preset.roughness : 0.8);
+    const effMetalness = data.metalness ?? (preset ? preset.metalness : 0.2);
+    const effTransmission = data.transmission ?? (preset ? preset.transmission : 0);
+    const effIOR = data.ior ?? (preset ? (preset.ior || 1.5) : 1.5);
+
     return html`
         <div className=${`component-item ${expanded ? 'expanded' : ''}`}>
             <div className="component-header" onClick=${() => setExpanded(!expanded)}>
                 <span>${name}</span>
-                <span className="tex-info">${data.textureId || 'None'}</span>
+                <div style=${{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    ${data.preset && html`<span className="preset-badge">${data.preset}</span>`}
+                    <span className="tex-info">${data.textureId || 'None'}</span>
+                </div>
             </div>
             ${expanded && html`
                 <div className="component-content">
+                    <label>Material Preset</label>
+                    <select value=${data.preset || 'None'} onChange=${e => update('preset', e.target.value)}>
+                        <option value="None">None (Standard)</option>
+                        ${presets.map(p => html`<option key=${p} value=${p}>${p}</option>`)}
+                    </select>
+
                     <label>Color</label>
-                    <input type="color" value=${data.color || '#ffffff'} onChange=${e => update('color', e.target.value)} />
+                    <input type="color" value=${effColor} onChange=${e => update('color', e.target.value)} />
                     
-                    <${Slider} label="Roughness" min=${0} max=${1} step=${0.01} value=${data.roughness ?? 0.8} onChange=${v => update('roughness', v)} />
-                    <${Slider} label="Metalness" min=${0} max=${1} step=${0.01} value=${data.metalness ?? 0.2} onChange=${v => update('metalness', v)} />
-                    <${Slider} label="Transmission" min=${0} max=${1} step=${0.01} value=${data.transmission ?? 0} onChange=${v => update('transmission', v)} />
-                    <${Slider} label="IOR" min=${1} max=${2.33} step=${0.01} value=${data.ior ?? 1.5} onChange=${v => update('ior', v)} />
+                    <${Slider} label="Roughness" min=${0} max=${1} step=${0.01} value=${effRoughness} onChange=${v => update('roughness', v)} />
+                    <${Slider} label="Metalness" min=${0} max=${1} step=${0.01} value=${effMetalness} onChange=${v => update('metalness', v)} />
+                    <${Slider} label="Transmission" min=${0} max=${1} step=${0.01} value=${effTransmission} onChange=${v => update('transmission', v)} />
+                    <${Slider} label="IOR" min=${1} max=${2.33} step=${0.01} value=${effIOR} onChange=${v => update('ior', v)} />
 
                     <label>Texture</label>
                     <select value=${data.textureId || 'None'} onChange=${e => update('textureId', e.target.value)}>
@@ -64,6 +83,8 @@ const ComponentAccordion = ({ name, data, textures, onUpdate }) => {
 
 const App = () => {
     const [catalog, setCatalog] = useState({ models: [], textures: [], configs: [] });
+    const [presets, setPresets] = useState([]);
+    const [materialPresets, setMaterialPresets] = useState(null);
     const [assetId, setAssetId] = useState('bulldozer_components.glb');
     const [configId, setConfigId] = useState('bulldozer_mapping.json');
     const [config, setConfig] = useState(null);
@@ -95,6 +116,10 @@ const App = () => {
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
+
+        // Environment Map (for realistic reflections)
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
@@ -155,6 +180,10 @@ const App = () => {
             dozer.setScale(5.0);
             dozerRef.current = dozer;
 
+            // Discover available presets from renderer
+            setPresets(Object.keys(dozer.materialPresets));
+            setMaterialPresets(dozer.materialPresets);
+
             let conf = { components: {} };
             if (configId !== 'None') {
                 try {
@@ -180,6 +209,9 @@ const App = () => {
     }, [assetId, configId]);
 
     const onComponentUpdate = (id, data) => {
+        // Clean up data if preset is 'None'
+        if (data.preset === 'None') delete data.preset;
+
         const newConfig = { ...config, components: { ...config.components, [id]: data } };
         setConfig(newConfig);
         if (dozerRef.current) {
@@ -229,6 +261,8 @@ const App = () => {
                                 name=${id} 
                                 data=${config.components[id]} 
                                 textures=${catalog.textures}
+                                presets=${presets}
+                                materialPresets=${materialPresets}
                                 onUpdate=${onComponentUpdate} 
                             />
                         `)}

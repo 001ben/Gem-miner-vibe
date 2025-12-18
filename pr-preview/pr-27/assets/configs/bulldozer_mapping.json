@@ -3,22 +3,15 @@
   "assembly": {
     "tracks": {
       "verticalOffset": 0.00,
-      "spread": 1.66
+      "spread": 1.66,
+      "rotZ": 1.5708
     }
   },
   "components": {
     "chassis": {
-      "textureId": "bulldozer_texture.png",
-      "roughness": 0.8,
-      "metalness": 0.2,
-      "uvTransform": {
-        "scale": 1.0,
-        "rotation": 0.0,
-        "offset": [
-          0.0,
-          0.0
-        ]
-      }
+      "preset": "YellowMetallic",
+      "roughness": 0.2,
+      "metalness": 0.7
     },
     "cabin": {
       "preset": "Glass"
@@ -57,9 +50,9 @@
       }
     },
     "wheel": {
-      "textureId": "bulldozer_texture.png",
-      "roughness": 0.8,
-      "metalness": 0.2
+      "preset": "YellowMetallic",
+      "roughness": 0.2,
+      "metalness": 0.7
     }
   }
 }

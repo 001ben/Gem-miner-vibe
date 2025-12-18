@@ -32,13 +32,14 @@ export class BulldozerRenderer {
 
     this.loader = new GLTFLoader();
     this.texLoader = new THREE.TextureLoader();
+    this.textureCache = new Map();
     this.animatedInstances = [];
 
     this.trackParams = {
       up: new THREE.Vector3(1, 0, 0), // Axle
       rotX: 0,
       rotY: 0,
-      rotZ: Math.PI * 1.5, // 270 deg
+      rotZ: Math.PI * 0.5, // 90 deg (flipped to point grousers out)
       spread: 0.15,
       verticalOffset: -0.53
     };
@@ -55,20 +56,26 @@ export class BulldozerRenderer {
     this.materialPresets = {
       "Glass": new THREE.MeshPhysicalMaterial({
         name: "Glass",
-        color: 0xaaccff,
-        metalness: 0.1,
-        roughness: 0.1,
-        transmission: 0.6,
+        color: 0xaaccff, // Light blue tint
+        metalness: 0.0,
+        roughness: 0.05,
+        transmission: 0.9,
         transparent: true,
         ior: 1.5,
-        thickness: 0.05,
+        thickness: 0.5,
         side: THREE.DoubleSide
       }),
       "Track": new THREE.MeshStandardMaterial({
         name: "Track",
-        color: 0xffffff, // Changed from 0x222222 to 0xffffff so texture is visible
+        color: 0xffffff,
         roughness: 0.9,
-        metalness: 0.1
+        metalness: 0.0
+      }),
+      "YellowMetallic": new THREE.MeshStandardMaterial({
+        name: "YellowMetallic",
+        color: 0xf39c12, // Industrial Orange-Yellow
+        metalness: 0.7,
+        roughness: 0.2
       })
     };
   }
@@ -105,7 +112,8 @@ export class BulldozerRenderer {
       if (tracks) {
         if (tracks.spread !== undefined) this.trackParams.spread = tracks.spread;
         if (tracks.verticalOffset !== undefined) this.trackParams.verticalOffset = tracks.verticalOffset;
-        console.log(`[CONTRACT] Applied assembly offsets: Spread=${this.trackParams.spread}, Vert=${this.trackParams.verticalOffset}`);
+        if (tracks.rotZ !== undefined) this.trackParams.rotZ = tracks.rotZ;
+        console.log(`[CONTRACT] Applied assembly offsets: Spread=${this.trackParams.spread}, Vert=${this.trackParams.verticalOffset}, RotZ=${this.trackParams.rotZ}`);
       }
     }
 
@@ -148,13 +156,40 @@ export class BulldozerRenderer {
         if (trackLinkNode && pathLNode && pathRNode) {
           const setupTrack = async (pathNode, side) => {
             const attr = pathNode.geometry.attributes.position;
-            const points = [];
+            let rawPoints = [];
             pathNode.updateMatrixWorld(true);
             for (let i = 0; i < attr.count; i++) {
               const v = new THREE.Vector3().fromBufferAttribute(attr, i);
               v.applyMatrix4(pathNode.matrixWorld);
-              points.push(v);
+              rawPoints.push(v);
             }
+
+            // Deduplicate and Sort Points (Greedy Nearest Neighbor)
+            // This handles cases where Blender/GLTF reorders or duplicates vertices
+            const points = [];
+            if (rawPoints.length > 0) {
+                let current = rawPoints.splice(0, 1)[0];
+                points.push(current);
+                while (rawPoints.length > 0) {
+                    let bestIdx = -1;
+                    let bestDist = Infinity;
+                    for (let j = 0; j < rawPoints.length; j++) {
+                        const d = current.distanceToSquared(rawPoints[j]);
+                        if (d < bestDist) {
+                            bestDist = d;
+                            bestIdx = j;
+                        }
+                    }
+                    // If the closest point is basically the same, just remove it
+                    if (bestDist < 0.0001) {
+                        rawPoints.splice(bestIdx, 1);
+                    } else {
+                        current = rawPoints.splice(bestIdx, 1)[0];
+                        points.push(current);
+                    }
+                }
+            }
+
             const curve = new THREE.CatmullRomCurve3(points, true, 'centripetal', 0.5);
             const count = 50;
             const linkGeo = trackLinkNode.geometry.clone();
@@ -207,20 +242,26 @@ export class BulldozerRenderer {
       return `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
     };
 
-    // 1. Base Selection
+    // 1. Determine Target Material Base
+    const targetPresetName = settings?.preset || (dampId === "cabin" || matName.includes("Glass") ? "Glass" : (dampId === "track_link" || name.includes("Track") ? "Track" : null));
+    
     let material;
-    if (settings && settings.preset && this.materialPresets[settings.preset]) {
-      material = this.materialPresets[settings.preset].clone();
-    } else if (dampId === "cabin" || matName.includes("Glass")) {
-      material = this.materialPresets["Glass"].clone();
-    } else if (dampId === "track_link" || name.includes("Track")) {
-      material = this.materialPresets["Track"].clone();
-    } else {
-      material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.2 });
-    }
-    mesh.material = material;
+    let isNewMaterial = false;
 
-    // 2. Apply Contract
+    // Reuse existing material if compatible
+    if (mesh.material && ((targetPresetName && mesh.material.name === targetPresetName) || (!targetPresetName && !["Glass", "Track"].includes(mesh.material.name)))) {
+        material = mesh.material;
+    } else {
+        // Create new material base
+        isNewMaterial = true;
+        if (targetPresetName && this.materialPresets[targetPresetName]) {
+            material = this.materialPresets[targetPresetName].clone();
+        } else {
+            material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.2 });
+        }
+    }
+
+    // 2. Apply Contract Settings
     if (settings) {
       if (settings.color) material.color.set(settings.color);
       if (settings.roughness !== undefined) material.roughness = settings.roughness;
@@ -229,27 +270,45 @@ export class BulldozerRenderer {
       if (settings.ior !== undefined && material.isMeshPhysicalMaterial) material.ior = settings.ior;
 
       if (settings.textureId && settings.textureId !== 'None') {
-        const path = settings.textureId.startsWith('http') ? settings.textureId : `assets/textures/${settings.textureId}`;
+        const texPath = settings.textureId.startsWith('http') ? settings.textureId : `assets/textures/${settings.textureId}`;
+        const cacheKey = `${texPath}_${JSON.stringify(settings.uvTransform || {})}`;
+
         try {
-            const tex = await this.texLoader.loadAsync(cb(path));
-            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-            tex.colorSpace = THREE.SRGBColorSpace;
-            if (settings.uvTransform) {
-                const uv = settings.uvTransform;
-                if (uv.scale !== undefined) tex.repeat.set(uv.scale, uv.scale);
-                if (uv.rotation !== undefined) tex.rotation = uv.rotation;
-                if (uv.offset !== undefined) tex.offset.set(uv.offset[0], uv.offset[1]);
-                tex.center.set(0.5, 0.5);
+            let tex;
+            if (this.textureCache.has(cacheKey)) {
+                tex = this.textureCache.get(cacheKey);
+            } else {
+                tex = await this.texLoader.loadAsync(cb(texPath));
+                tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+                tex.colorSpace = THREE.SRGBColorSpace;
+                if (settings.uvTransform) {
+                    const uv = settings.uvTransform;
+                    if (uv.scale !== undefined) tex.repeat.set(uv.scale, uv.scale);
+                    if (uv.rotation !== undefined) tex.rotation = uv.rotation;
+                    if (uv.offset !== undefined) tex.offset.set(uv.offset[0], uv.offset[1]);
+                    tex.center.set(0.5, 0.5);
+                }
+                this.textureCache.set(cacheKey, tex);
             }
-            material.map = tex;
-            material.needsUpdate = true;
-            if (mesh.isInstancedMesh) mesh.instanceMatrix.needsUpdate = true;
-            console.log(`[CONTRACT] Texture loaded for '${dampId}'`);
+            
+            if (material.map !== tex) {
+                material.map = tex;
+                material.needsUpdate = true;
+            }
         } catch (e) {
-            console.error(`[CONTRACT ERROR] Failed texture: ${path}`);
+            console.error(`[CONTRACT ERROR] Failed texture: ${texPath}`, e);
         }
+      } else {
+        material.map = null;
+        material.needsUpdate = true;
       }
     }
+
+    // 3. Final Atomic Assignment
+    if (isNewMaterial) {
+        mesh.material = material;
+    }
+    if (mesh.isInstancedMesh) mesh.instanceMatrix.needsUpdate = true;
   }
 
   setScale(s) { this.scale = s; this.group.scale.setScalar(s); }
@@ -263,7 +322,7 @@ export class BulldozerRenderer {
   update(delta) {
     if (!this.isLoaded) return;
     this.animatedInstances.forEach(track => {
-      if (Math.abs(track.speed) > 0.001) track.offset = (track.offset + track.speed * delta) % 1.0;
+      if (Math.abs(track.speed) > 0.001) track.offset = (track.offset - track.speed * delta) % 1.0;
       for (let i = 0; i < track.count; i++) {
         let t = (i / 50 + track.offset) % 1.0;
         if (t < 0) t += 1.0;

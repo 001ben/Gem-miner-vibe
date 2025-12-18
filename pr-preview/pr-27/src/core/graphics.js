@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { world } from './physics.js';
 import { state } from './state.js';
-import { getShopPads } from './entities/shop.js';
+import { getShopPads } from '../entities/shop.js';
 
 export let scene, camera, renderer;
 export const bodyMeshMap = new Map();

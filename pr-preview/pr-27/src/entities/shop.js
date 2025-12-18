@@ -1,11 +1,11 @@
-import { state, costs } from '../state.js';
-import { Bodies, Composite, Body, world, CATEGORIES } from '../physics.js';
+import { state, costs } from '../core/state.js';
+import { Bodies, Composite, Body, world, CATEGORIES } from '../core/physics.js';
 import { createBulldozer } from './bulldozer.js';
 import { createCollector } from './collector.js';
 import { createMap } from './map.js';
-import { showNotification, updateUI } from '../ui.js';
-import { spawnParticles, spawnFloatingText } from '../graphics.js';
-import { rebuildBulldozerRenderer } from '../game.js';
+import { showNotification, updateUI } from '../core/ui.js';
+import { spawnParticles, spawnFloatingText } from '../core/graphics.js';
+import { rebuildBulldozerRenderer } from '../core/game.js';
 
 // Shop Pads
 // These are sensor bodies placed on the map.
