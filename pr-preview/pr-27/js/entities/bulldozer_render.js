@@ -178,19 +178,21 @@ export class BulldozerRenderer {
     const name = overrideName || mesh.name;
     const matName = mesh.material ? mesh.material.name : "";
     
+    // Try to find settings by Mesh Name, then by Material Name
     let settings = (this.config && this.config.components) ? (this.config.components[name] || this.config.components[matName]) : null;
 
     // Special case mapping for joined meshes (Blender joining Cabin to Body)
-    if (!settings && this.config && this.config.components) {
-        if (matName.includes("Yellow")) {
-            settings = this.config.components["Bulldozer_Body"];
-        } else if (matName.includes("Glass")) {
-            settings = this.config.components["Cabin"];
-        } else if (name.includes("Cube") || name.includes("Wheel") || matName.includes("Metal") || matName === "") {
-            settings = this.config.components["Bulldozer_Body"];
-        } else if (name.includes("Track")) {
-            settings = this.config.components["Asset_TrackLink"];
+    // PREFER material name if mesh name is generic (e.g. CubeXXX)
+    if (name.includes("Cube") || name.includes("Wheel") || !settings) {
+        if (this.config && this.config.components) {
+            if (matName.includes("Yellow")) settings = this.config.components["Bulldozer_Body"];
+            else if (matName.includes("Glass")) settings = this.config.components["Cabin"];
+            else if (matName.includes("Metal") || matName === "") settings = this.config.components["Bulldozer_Body"];
         }
+    }
+
+    if (!settings && name.includes("Track")) {
+        settings = this.config?.components?.["Asset_TrackLink"];
     }
 
     console.log(`[DEBUG] applyMaterial for: ${name} (Mat: ${matName}) | Settings found: ${!!settings}`);
