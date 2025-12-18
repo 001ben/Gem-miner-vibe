@@ -1,5 +1,8 @@
 version: '3'
 
+includes:
+  assets: ./pipeline/scripts/Taskfile.yml
+
 tasks:
   deps:system:
     desc: Install system dependencies (Blender, Python3-NumPy)
@@ -26,55 +29,36 @@ tasks:
     status:
       - test -d /Applications/Blender.app
 
-  deps:node:
-    desc: Install Node.js dependencies
-    cmds:
-      - npm install
-    sources:
-      - package.json
-      - package-lock.json
-    generates:
-      - node_modules/.package-lock.json
-
   build:assets:
-    desc: Build Blender assets (GLB and Textures)
+    desc: Build DAMP assets (GLB, Textures, Catalog)
     deps: [deps:system]
     cmds:
-      - node scripts/build-blender-assets.js
-    sources:
-      - assets/source/blender/*.py
-    generates:
-      - assets/bulldozer_components.glb
-      - assets/bulldozer_texture.png
+      - task: assets:build
 
   build:dist:
     desc: Build the production distribution
-    deps: [deps:node, build:assets]
+    deps: [build:assets]
     cmds:
       - rm -rf dist
-      - mkdir -p dist
+      - mkdir -p dist/tools
       - cp index.html dist/
       - cp style.css dist/
-      - cp -r js dist/
-      - mkdir -p dist/verification
-      - cp verification/asset_viewer.html dist/verification/
+      - cp -r src dist/
+      - cp -r tools/viewer dist/tools/
       - cp VERSION dist/
       - cp -r assets dist/
-      - rm -rf dist/assets/source
       - touch dist/.nojekyll
       # Timestamp injection (Cross-platform compatible)
       - sh -c "sed -i.bak \"s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g\" dist/index.html && rm dist/index.html.bak"
 
   dev:
     desc: Start the main game server
-    deps: [deps:node, build:assets]
+    deps: [build:assets]
     cmds:
-      - open http://localhost:3000 || xdg-open http://localhost:3000 || echo "Open http://localhost:3000"
-      - npx serve
+      - bun x http-server -p 3000 -o /index.html
 
-  viewer:
-    desc: Start the asset viewer server
-    deps: [deps:node, build:assets]
+  damp:viewer:
+    desc: Start the DAMP asset viewer server
+    deps: [build:assets]
     cmds:
-      - open http://localhost:8000/verification/asset_viewer.html || xdg-open http://localhost:8000/verification/asset_viewer.html || echo "Open http://localhost:8000/verification/asset_viewer.html"
-      - python3 -m http.server 8000
+      - bun x http-server -p 8080 -c-1 -o /tools/viewer/index.html

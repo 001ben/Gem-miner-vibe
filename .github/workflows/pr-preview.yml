@@ -20,35 +20,38 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check for Asset Changes
-        uses: dorny/paths-filter@v2
-        id: filter
+        uses: dorny/paths-filter@v3
+        id: changes
         with:
           filters: |
             assets:
-              - 'assets/source/blender/**'
+              - 'pipeline/blender/**'
+              - 'pipeline/textures/**'
+              - 'assets/configs/**'
 
       - name: Install Task
         uses: go-task/setup-task@v1
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7
         with:
-          version: "3.x"
+          enable-cache: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Build Distribution
         run: task build:dist
 
       - name: Asset Viewer Redirect
-        if: steps.filter.outputs.assets == 'true'
+        if: steps.changes.outputs.assets == 'true'
         run: |
-          echo "Assets changed. Redirecting preview to Asset Viewer."
-          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=verification/asset_viewer.html" /></head><body><p>Redirecting to <a href="verification/asset_viewer.html">Asset Viewer</a>...</p></body></html>' > dist/index.html
+          echo "Assets changed. Redirecting preview to DAMP Asset Director."
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=tools/viewer/index.html" /></head><body><p>Redirecting to <a href="tools/viewer/index.html">DAMP Asset Director</a>...</p></body></html>' > dist/index.html
 
       - name: Deploy Preview
         uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: dist
-          remove-on-close: true
