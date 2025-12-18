@@ -8,6 +8,7 @@ export const bodyMeshMap = new Map();
 export const particles = [];
 const tracks = [];
 let trackTexture;
+let dirtTexture;
 let lastDozerPos = null;
 let coinPileGroup = null;
 let gemInstancedMesh;
@@ -21,14 +22,14 @@ const PILE_RADIUS = 80;
 
 export function initThree() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x8899aa); // Lighter sky
-  // Fog for depth - Increased far plane to prevent washed out look at high zoom
-  scene.fog = new THREE.Fog(0x8899aa, 500, 10000);
+  scene.background = new THREE.Color(0xaaccff); // Brighter, more vivid sky
+  // Fog for depth
+  scene.fog = new THREE.Fog(0xaaccff, 500, 10000);
 
   const aspect = window.innerWidth / window.innerHeight;
   camera = new THREE.PerspectiveCamera(50, aspect, 10, 5000);
   // Initial position, updated later
-  camera.position.set(0, 1500, 100); // Higher and steeper angle
+  camera.position.set(0, 1500, 100); 
   camera.lookAt(0, 0, 0);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -38,10 +39,10 @@ export function initThree() {
   document.getElementById('game-container').appendChild(renderer.domElement);
 
   // Lights
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Brighter ambient
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9); // Balanced ambient
   scene.add(ambientLight);
 
-  const dirLight = new THREE.DirectionalLight(0xffffff, 1.2); // Brighter sun
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.3); // Slightly softer sun
   dirLight.position.set(200, 1000, 500);
   dirLight.castShadow = true;
   dirLight.shadow.mapSize.width = 2048;
@@ -55,18 +56,24 @@ export function initThree() {
   dirLight.shadow.camera.bottom = -d;
   scene.add(dirLight);
 
+  createDirtTexture();
+  createTrackTexture();
+  createCoinPile();
+
   // Ground
   const planeGeo = new THREE.PlaneGeometry(10000, 10000);
-  // Construction site dirt color
-  const planeMat = new THREE.MeshStandardMaterial({ color: 0x9b7653, roughness: 1.0 });
+  // Brighter, textured sand/dirt
+  const planeMat = new THREE.MeshStandardMaterial({ 
+    color: 0xbaa080, 
+    map: dirtTexture,
+    roughness: 0.9,
+    metalness: 0.0
+  });
   const plane = new THREE.Mesh(planeGeo, planeMat);
   plane.rotation.x = -Math.PI / 2;
   plane.position.y = -2;
   plane.receiveShadow = true;
   scene.add(plane);
-
-  createTrackTexture();
-  createCoinPile();
 
   // Gem Instanced Mesh
   const gemGeo = new THREE.IcosahedronGeometry(1, 0);
@@ -74,8 +81,8 @@ export function initThree() {
     color: 0xffffff,
     roughness: 0.1,
     metalness: 0.5,
-    emissive: 0x222222, // Slight neutral glow
-    emissiveIntensity: 0.4
+    emissive: 0x444444, // Darker emissive to retain facets
+    emissiveIntensity: 0.45 // Lower glow
   });
   gemInstancedMesh = new THREE.InstancedMesh(gemGeo, gemMat, MAX_GEMS);
   gemInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -135,6 +142,38 @@ function getPadTexture(title, cost) {
   const texture = new THREE.CanvasTexture(canvas);
   padTextures.set(key, texture);
   return texture;
+}
+
+function createDirtTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Base color
+  ctx.fillStyle = '#aa8c66';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Add noise/dirt spots
+  for (let i = 0; i < 20000; i++) {
+    const x = Math.random() * 512;
+    const y = Math.random() * 512;
+    const size = Math.random() * 2 + 1;
+    const shade = Math.random() * 40 - 20;
+    
+    // Convert base hex to RGB and apply shade
+    const r = Math.max(0, Math.min(255, 170 + shade));
+    const g = Math.max(0, Math.min(255, 140 + shade));
+    const b = Math.max(0, Math.min(255, 102 + shade));
+    
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.fillRect(x, y, size, size);
+  }
+
+  dirtTexture = new THREE.CanvasTexture(canvas);
+  dirtTexture.wrapS = THREE.RepeatWrapping;
+  dirtTexture.wrapT = THREE.RepeatWrapping;
+  dirtTexture.repeat.set(50, 50); // Repeat across the large plane
 }
 
 function createTrackTexture() {
