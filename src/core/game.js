@@ -1,15 +1,15 @@
 import { engine, runner, Runner, Events, Body, Matter } from './physics.js';
 import { initThree, updateGraphics, scene, camera, renderer, bodyMeshMap } from './graphics.js';
-import { createMap } from './entities/map.js';
-import { createBulldozer, getBulldozer, enforceBulldozerRigidity } from './entities/bulldozer.js';
-import { createCollector } from './entities/collector.js';
-import { initGems, collectGem } from './entities/gem.js';
+import { createMap } from '../entities/map.js';
+import { createBulldozer, getBulldozer, enforceBulldozerRigidity } from '../entities/bulldozer.js';
+import { createCollector } from '../entities/collector.js';
+import { initGems, collectGem } from '../entities/gem.js';
 import { updateUI, initUI, showNotification } from './ui.js';
-import { createShopPads, checkShopCollisions } from './entities/shop.js';
+import { createShopPads, checkShopCollisions } from '../entities/shop.js';
 import { initInput } from './input.js';
 import { initConsole } from './console.js';
-import { BulldozerRenderer } from './entities/bulldozer_render.js';
-import { initConveyorSystem } from './entities/conveyor.js';
+import { BulldozerRenderer } from '../entities/bulldozer_render.js';
+import { initConveyorSystem } from '../entities/conveyor.js';
 
 // Expose updateUI and showNotification
 window.updateUI = updateUI;
@@ -34,7 +34,7 @@ let bulldozerRenderer = new BulldozerRenderer(scene);
 loadBulldozerAssets();
 
 function loadBulldozerAssets() {
-    bulldozerRenderer.load('assets/bulldozer_components.glb').catch(err => {
+    bulldozerRenderer.load('assets/models/bulldozer_components.glb', 'assets/configs/bulldozer_mapping.json').catch(err => {
         const msg = (err && err.message) ? err.message : err;
         console.warn('Failed to load bulldozer assets:', msg);
     });

@@ -1,6 +1,6 @@
-import { state } from '../state.js';
-import { Bodies, Body, Composite, world, CATEGORIES } from '../physics.js';
-import { removeBodyMesh } from '../graphics.js';
+import { state } from '../core/state.js';
+import { Bodies, Body, Composite, world, CATEGORIES } from '../core/physics.js';
+import { removeBodyMesh } from '../core/graphics.js';
 
 let collector;
 
