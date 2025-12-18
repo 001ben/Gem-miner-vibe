@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { Body, Events, engine } from './physics.js';
-import { getBulldozer } from './entities/bulldozer.js';
+import { getBulldozer } from '../entities/bulldozer.js';
 
 export const keys = {};
 

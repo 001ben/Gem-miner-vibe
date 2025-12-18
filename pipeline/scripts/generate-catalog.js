@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ASSETS_DIR = path.resolve(__dirname, '../viewer/assets');
+const ASSETS_DIR = path.resolve(__dirname, '../../tools/viewer/assets');
 const TEXTURES_DIR = path.join(ASSETS_DIR, 'textures');
 const CONFIGS_DIR = path.join(ASSETS_DIR, 'configs');
 

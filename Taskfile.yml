@@ -1,7 +1,7 @@
 version: '3'
 
 includes:
-  assets: ./scripts/Taskfile.yml
+  assets: ./pipeline/scripts/Taskfile.yml
 
 tasks:
   deps:system:
@@ -53,11 +53,10 @@ tasks:
       - mkdir -p dist
       - cp index.html dist/
       - cp style.css dist/
-      - cp -r js dist/
-      - cp -r viewer dist/
+      - cp -r src dist/
+      - cp -r tools/viewer dist/
       - cp VERSION dist/
       - cp -r assets dist/
-      - rm -rf dist/assets/source
       - touch dist/.nojekyll
       # Timestamp injection (Cross-platform compatible)
       - sh -c "sed -i.bak \"s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g\" dist/index.html && rm dist/index.html.bak"
@@ -68,14 +67,8 @@ tasks:
     cmds:
       - bun x http-server -p 3000 -o /index.html
 
-  viewer:
-    desc: Start the legacy asset viewer server
-    deps: [deps:node, build:assets]
-    cmds:
-      - bun x http-server -p 8000 -o /verification/asset_viewer.html
-
   damp:viewer:
     desc: Start the DAMP asset viewer server
     deps: [deps:node, build:assets]
     cmds:
-      - bun x http-server -p 8080 -c-1 -o /viewer/index.html
+      - bun x http-server -p 8080 -c-1 -o /tools/viewer/index.html

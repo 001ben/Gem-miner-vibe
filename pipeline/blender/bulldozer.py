@@ -4,7 +4,7 @@ import os
 import random
 
 # --- Configuration ---
-OUTPUT_PATH = path_l = os.path.join(os.getcwd(), "assets", "bulldozer_components.glb")
+OUTPUT_PATH = os.path.join(os.getcwd(), "assets", "models", "bulldozer_components.glb")
 
 # --- Helper Functions ---
 def clear_scene():

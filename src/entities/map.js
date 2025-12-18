@@ -1,5 +1,5 @@
-import { state } from '../state.js';
-import { Bodies, Composite, world, CATEGORIES } from '../physics.js';
+import { state } from '../core/state.js';
+import { Bodies, Composite, world, CATEGORIES } from '../core/physics.js';
 
 const zoneWidth = 1200; // Main corridor width (-600 to 600)
 const wallThickness = 100;
