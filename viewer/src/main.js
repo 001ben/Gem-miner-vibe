@@ -70,6 +70,7 @@ async function reloadBulldozer() {
             console.log(`[DEBUG] Fetching config: ${configPath}`);
             const resp = await fetch(cb(configPath));
             state.config = await resp.json();
+            console.log("[DEBUG] Loaded state.config:", state.config);
         } else {
             state.config = { components: {} };
         }
@@ -79,6 +80,7 @@ async function reloadBulldozer() {
         await bulldozerRenderer.load(cb(modelPath), state.config);
         
         discoverComponents();
+        renderGlobalUI(); // Re-render global UI to pick up new config defaults
         renderComponentUI();
         controls.target.set(0, 0, 0);
     } catch (e) {

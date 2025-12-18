@@ -1,5 +1,8 @@
 version: '3'
 
+includes:
+  assets: ./scripts/Taskfile.yml
+
 tasks:
   deps:system:
     desc: Install system dependencies (Blender, Python3-NumPy)
@@ -37,21 +40,10 @@ tasks:
       - node_modules/.package-lock.json
 
   build:assets:
-    desc: Build Blender assets (GLB and Textures)
+    desc: Build DAMP assets (GLB, Textures, Catalog)
     deps: [deps:system]
     cmds:
-      - node scripts/build-assets.js
-    sources:
-      - assets/source/blender/*.py
-    generates:
-      - assets/bulldozer_components.glb
-      - assets/bulldozer_texture.png
-      - viewer/assets/catalog.json
-
-  build:verify:
-    desc: Verify GLB hierarchy and DAMP contract tags
-    cmds:
-      - node scripts/verify-glb.js
+      - task: assets:build
 
   build:dist:
     desc: Build the production distribution
@@ -75,8 +67,7 @@ tasks:
     desc: Start the main game server
     deps: [deps:node, build:assets]
     cmds:
-      - open http://localhost:3000 || xdg-open http://localhost:3000 || echo "Open http://localhost:3000"
-      - npx serve
+      - bun x http-server -p 3000 -o /index.html
 
   viewer:
     desc: Start the legacy asset viewer server

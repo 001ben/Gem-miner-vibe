@@ -2,7 +2,7 @@
   "assetId": "bulldozer_components.glb",
   "assembly": {
     "tracks": {
-      "verticalOffset": -0.0,
+      "verticalOffset": 0.00,
       "spread": 1.66
     }
   },
@@ -24,6 +24,28 @@
       "preset": "Glass"
     },
     "track_link": {
+      "textureId": "tracks_texture.png",
+      "uvTransform": {
+        "scale": 1.0,
+        "rotation": 0.0,
+        "offset": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "Instanced_Track_L": {
+      "textureId": "tracks_texture.png",
+      "uvTransform": {
+        "scale": 1.0,
+        "rotation": 0.0,
+        "offset": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "Instanced_Track_R": {
       "textureId": "tracks_texture.png",
       "uvTransform": {
         "scale": 1.0,

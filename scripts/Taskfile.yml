@@ -1,0 +1,55 @@
+version: '3'
+
+vars:
+  ASSETS_DIR: '{{.ROOT_DIR}}/assets'
+  VIEWER_ASSETS: '{{.ROOT_DIR}}/viewer/assets'
+
+tasks:
+  build:
+    desc: "🚀 Run the complete DAMP build pipeline"
+    cmds:
+      - echo "🚀 Starting DAMP Build Pipeline..."
+      - task: geometry
+      - task: textures:gen
+      - task: sync
+      - task: catalog
+      - task: verify
+      - echo "✅ DAMP Build Complete."
+
+  geometry:
+    desc: "📦 Generate 3D models from Blender source"
+    cmds:
+      - echo "📦 [1/5] Generating Geometry (Blender)..."
+      - blender --background --python {{.ASSETS_DIR}}/source/blender/bulldozer.py
+    silent: true
+
+  textures:gen:
+    desc: "🎨 Generate procedural textures"
+    cmds:
+      - echo "🎨 [2/5] Generating Textures (uv)..."
+      - uv run {{.ASSETS_DIR}}/source/textures/generate_textures.py
+    silent: true
+
+  sync:
+    desc: "🚚 Sync generated assets to the viewer"
+    cmds:
+      - echo "🚚 [3/5] Syncing Assets to Viewer..."
+      - mkdir -p {{.VIEWER_ASSETS}}/textures {{.VIEWER_ASSETS}}/configs
+      - cp {{.ASSETS_DIR}}/*.glb {{.VIEWER_ASSETS}}/
+      - cp {{.ASSETS_DIR}}/textures/*.png {{.VIEWER_ASSETS}}/textures/
+      - cp {{.ASSETS_DIR}}/configs/*.json {{.VIEWER_ASSETS}}/configs/
+    silent: true
+
+  catalog:
+    desc: "📖 Generate asset catalog"
+    cmds:
+      - echo "📖 [4/5] Generating Catalog..."
+      - node {{.ROOT_DIR}}/scripts/generate-catalog.js
+    silent: true
+
+  verify:
+    desc: "🔍 Verify DAMP contract tags"
+    cmds:
+      - echo "🔍 [5/5] Verifying Contract Tags..."
+      - node {{.ROOT_DIR}}/scripts/verify-glb.js
+    silent: true
