@@ -20,9 +20,13 @@ We successfully transitioned from an **Implicit Pipeline** (guessing mesh names 
 *   **Discovery**: Custom properties on Materials are more resilient than on Objects. Even if geometry is merged, Three.js preserves material slots.
 *   **Impact**: Tagging materials directly (`MAT_Glass["damp_id"] = "cabin"`) eliminated 50+ lines of brittle string-matching code in the renderer.
 
-### 3. Procedural Static Assets
-*   **Discovery**: Running complex procedural noise in real-time on the GPU is expensive and hard to tune.
-*   **Solution**: Bake the "vibe" into PNGs using a standalone Python script (`generate_textures.py`) during the build step.
+### 4. The "Four Pillars" Layout
+*   **Discovery**: Keeping source, build tools, and distribution assets in a flat or overlapping structure leads to deployment risks and high cognitive load.
+*   **Solution**: Standardize on a Domain-Split structure: `src/` (App), `pipeline/` (Factory), `tools/` (DX), and `assets/` (Output). This isolates the "Source of Truth" from the "Distribution Artifacts."
+
+### 5. Explicit Relative Paths > Bare Specifiers
+*   **Discovery**: Relying on `importmap` for internal project modules (like `core/`) makes the codebase brittle and harder to debug in standard environments without custom server configs.
+*   **Solution**: Use standard relative paths (`./`, `../`) for all internal modules. Save the `importmap` for external CDN-hosted dependencies (Three.js, React).
 
 ---
 
@@ -44,12 +48,17 @@ We successfully transitioned from an **Implicit Pipeline** (guessing mesh names 
 5.  **NO to Lazy Refactoring**: I used `// ... logic here` placeholders in a file write.
     *   *Correction*: "Please don't use '... this logic' when making edit changes."
     *   *Lesson*: Always provide complete, functional source code.
+6.  **NO to Internal Import Maps**: I tried to map `core/` and `entities/` via `importmap` to "fix" the structure split.
+    *   *Correction*: "Let's whack a mole the errors independently."
+    *   *Lesson*: Don't mask path issues with specifier mappings; fix the source imports to use standard relative paths.
 
 ---
 
 ## 🏗 Maintainability Checklist
 - [x] **Modular Build**: 5-step process orchestrated by Taskfile.
 - [x] **Asset Isolation**: Textures and models separated from core game logic.
+- [x] **Clean Pillar Split**: Source, Pipeline, Tools, and Assets isolated in the filesystem.
+- [x] **Standard Imports**: Pure relative module resolution without specifier hacks.
 - [x] **Verification**: `task build:verify` provides a raw look at the GLB "Contract" before it hits the web.
 - [x] **Zero-Cache**: Dynamic import maps and server headers ensure the latest code is always live.
 
