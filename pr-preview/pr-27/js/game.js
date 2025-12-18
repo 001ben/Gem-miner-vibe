@@ -34,7 +34,7 @@ let bulldozerRenderer = new BulldozerRenderer(scene);
 loadBulldozerAssets();
 
 function loadBulldozerAssets() {
-    bulldozerRenderer.load('assets/bulldozer_components.glb').catch(err => {
+    bulldozerRenderer.load('assets/bulldozer_components.glb', 'assets/configs/bulldozer_mapping.json').catch(err => {
         const msg = (err && err.message) ? err.message : err;
         console.warn('Failed to load bulldozer assets:', msg);
     });
