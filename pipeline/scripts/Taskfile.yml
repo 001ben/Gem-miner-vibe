@@ -10,6 +10,7 @@ tasks:
     desc: "🚀 Run the complete DAMP build pipeline"
     cmds:
       - echo "🚀 Starting DAMP Build Pipeline..."
+      - mkdir -p {{.OUTPUT_DIR}}/models {{.OUTPUT_DIR}}/textures
       - task: geometry
       - task: textures:gen
       - task: sync
