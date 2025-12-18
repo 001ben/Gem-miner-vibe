@@ -41,22 +41,28 @@ def create_track_link(name, material):
 
 def create_track_path(name, radius=1.0, length=4.0):
     vertices = []
-    for i in range(8): # Top
-        vertices.append((0, -length/2 + (i/7)*length, radius))
-    for i in range(16): # Front
-        a = (i/15)*math.pi
+    # Segment 1: Top (excluding end point)
+    for i in range(8):
+        vertices.append((0, -length/2 + (i/8)*length, radius))
+    # Segment 2: Front semi-circle (excluding end point)
+    for i in range(16):
+        a = (i/16)*math.pi
         vertices.append((0, length/2 + math.sin(a)*radius, math.cos(a)*radius))
-    for i in range(8): # Bottom
-        vertices.append((0, length/2 - (i/7)*length, -radius))
-    for i in range(16): # Back
-        a = math.pi + (i/15)*math.pi
+    # Segment 3: Bottom (excluding end point)
+    for i in range(8):
+        vertices.append((0, length/2 - (i/8)*length, -radius))
+    # Segment 4: Back semi-circle (excluding end point)
+    for i in range(16):
+        a = math.pi + (i/16)*math.pi
         vertices.append((0, -length/2 + math.sin(a)*radius, math.cos(a)*radius))
+    
     mesh = bpy.data.meshes.new(name + "_Mesh")
-    mesh.from_pydata(vertices, [], [])
+    # Create a single N-gon face to ensure the mesh has a 'primitive' for GLTF export
+    faces = [list(range(len(vertices)))]
+    mesh.from_pydata(vertices, [], faces)
+    
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
-    bpy.context.view_layer.objects.active = obj
-    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT'); bpy.ops.mesh.edge_face_add(); bpy.ops.object.mode_set(mode='OBJECT')
     return obj
 
 def create_idler_wheel(name, radius, width):

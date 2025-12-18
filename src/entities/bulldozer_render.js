@@ -148,13 +148,40 @@ export class BulldozerRenderer {
         if (trackLinkNode && pathLNode && pathRNode) {
           const setupTrack = async (pathNode, side) => {
             const attr = pathNode.geometry.attributes.position;
-            const points = [];
+            let rawPoints = [];
             pathNode.updateMatrixWorld(true);
             for (let i = 0; i < attr.count; i++) {
               const v = new THREE.Vector3().fromBufferAttribute(attr, i);
               v.applyMatrix4(pathNode.matrixWorld);
-              points.push(v);
+              rawPoints.push(v);
             }
+
+            // Deduplicate and Sort Points (Greedy Nearest Neighbor)
+            // This handles cases where Blender/GLTF reorders or duplicates vertices
+            const points = [];
+            if (rawPoints.length > 0) {
+                let current = rawPoints.splice(0, 1)[0];
+                points.push(current);
+                while (rawPoints.length > 0) {
+                    let bestIdx = -1;
+                    let bestDist = Infinity;
+                    for (let j = 0; j < rawPoints.length; j++) {
+                        const d = current.distanceToSquared(rawPoints[j]);
+                        if (d < bestDist) {
+                            bestDist = d;
+                            bestIdx = j;
+                        }
+                    }
+                    // If the closest point is basically the same, just remove it
+                    if (bestDist < 0.0001) {
+                        rawPoints.splice(bestIdx, 1);
+                    } else {
+                        current = rawPoints.splice(bestIdx, 1)[0];
+                        points.push(current);
+                    }
+                }
+            }
+
             const curve = new THREE.CatmullRomCurve3(points, true, 'centripetal', 0.5);
             const count = 50;
             const linkGeo = trackLinkNode.geometry.clone();
