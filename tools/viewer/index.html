@@ -144,6 +144,16 @@
         button.secondary { background: #444; }
         button.secondary:hover { background: #555; }
 
+        .preset-badge {
+            background: #007acc;
+            color: #fff;
+            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
     </style>
     <!-- Dynamic Import Map -->
     <script>
@@ -157,6 +167,7 @@
                     "htm/react": "https://esm.sh/htm@3.1.1/react?external=react",
                     "three": "https://unpkg.com/three@0.182.0/build/three.module.js",
                     "three/examples/jsm/": "https://unpkg.com/three@0.182.0/examples/jsm/",
+                    "three/examples/jsm/environments/RoomEnvironment.js": "https://unpkg.com/three@0.182.0/examples/jsm/environments/RoomEnvironment.js",
                     "bulldozer-render": `../../src/entities/bulldozer_render.js?v=${v}`
                 }
             };

@@ -3,6 +3,8 @@
     "bulldozer_components.glb"
   ],
   "textures": [
+    "bulldozer_genai_seamless_png.png",
+    "bulldozer_genai_v2.png",
     "bulldozer_texture.png",
     "tracks_texture.png"
   ],

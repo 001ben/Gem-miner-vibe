@@ -126,7 +126,11 @@ tag_contract(cabin, "cabin")
 # 5. UVs
 for o in [body, cabin]:
     bpy.context.view_layer.objects.active = o
-    bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT'); bpy.ops.uv.smart_project(angle_limit=66.0); bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    # Increased margin helps separate faces in the UV map
+    bpy.ops.uv.smart_project(angle_limit=66.0, island_margin=0.02)
+    bpy.ops.object.mode_set(mode='OBJECT')
 
 # 6. Assets
 tag_contract(create_track_link("Asset_TrackLink", track_mat), "track_link")
