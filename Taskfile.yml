@@ -40,11 +40,11 @@ tasks:
     deps: [build:assets]
     cmds:
       - rm -rf dist
-      - mkdir -p dist
+      - mkdir -p dist/tools
       - cp index.html dist/
       - cp style.css dist/
       - cp -r src dist/
-      - cp -r tools/viewer dist/
+      - cp -r tools/viewer dist/tools/
       - cp VERSION dist/
       - cp -r assets dist/
       - touch dist/.nojekyll
