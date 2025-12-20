@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Playground - Rigidity Test</title>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background: #222; color: #eee; font-family: sans-serif; }
+        #info { position: absolute; top: 10px; left: 10px; pointer-events: none; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 4px; }
+    </style>
+    <!-- Import Matter.js -->
+    <script src="https://unpkg.com/matter-js@0.19.0/build/matter.js"></script>
+</head>
+<body>
+    <div id="info">
+        <h3>Matter.js Compound Body Rigidity Test</h3>
+        <p><strong>Red Crosshair:</strong> Center of Mass (Physics Pivot)</p>
+        <p><strong>Behavior:</strong> Bulldozer spins automatically.</p>
+        <p><strong>Observation:</strong> Verify parts do not detach.</p>
+    </div>
+    <script>
+        const Engine = Matter.Engine,
+              Render = Matter.Render,
+              Runner = Matter.Runner,
+              Bodies = Matter.Bodies,
+              Composite = Matter.Composite,
+              Events = Matter.Events,
+              Body = Matter.Body,
+              Vector = Matter.Vector;
+
+        // 1. Setup Engine
+        const engine = Engine.create();
+        engine.gravity.y = 0; // Top-down
+        // Using standard iterations to prove stability without "20"
+        engine.positionIterations = 6;
+        engine.velocityIterations = 4;
+
+        // 2. Setup Renderer
+        const render = Render.create({
+            element: document.body,
+            engine: engine,
+            options: {
+                width: window.innerWidth,
+                height: window.innerHeight,
+                wireframes: false, // Show solid colors
+                showAxes: true,    // CRITICAL: Shows CoM
+                showCollisions: true,
+                showVelocity: true
+            }
+        });
+
+        // 3. Create Bulldozer (Logic extracted from src/entities/bulldozer.js)
+        function createBulldozer(x, y) {
+            // Hardcoded Level 1 stats
+            const bodySize = 45; 
+            const plowWidth = 94; 
+            const plowHeight = 22;
+
+            // Chassis
+            const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { 
+                render: { fillStyle: '#555' } 
+            });
+            
+            // Plow Offset
+            const plowOffset = -(bodySize/2 + plowHeight/2 + 15);
+            
+            // Plow
+            const plow = Bodies.rectangle(0, plowOffset, plowWidth, plowHeight, { 
+                render: { fillStyle: '#DAA520' } 
+            });
+
+            // Compound Body
+            const bulldozer = Body.create({
+                parts: [chassis, plow],
+                frictionAir: 0.15,
+                restitution: 0.0
+            });
+
+            Body.setPosition(bulldozer, { x, y });
+            return bulldozer;
+        }
+
+        // 4. Add Objects
+        const bulldozer = createBulldozer(window.innerWidth / 2, window.innerHeight / 2);
+        
+        // Add some walls to crash into
+        const wallOptions = { isStatic: true, render: { fillStyle: '#888' } };
+        const walls = [
+            Bodies.rectangle(window.innerWidth/2, 50, window.innerWidth, 50, wallOptions),
+            Bodies.rectangle(window.innerWidth/2, window.innerHeight-50, window.innerWidth, 50, wallOptions),
+            Bodies.rectangle(50, window.innerHeight/2, 50, window.innerHeight, wallOptions),
+            Bodies.rectangle(window.innerWidth-50, window.innerHeight/2, 50, window.innerHeight, wallOptions)
+        ];
+
+        Composite.add(engine.world, [bulldozer, ...walls]);
+
+        // 5. Simulation Logic
+        let turnDirection = 1;
+        
+        Events.on(engine, 'beforeUpdate', () => {
+            // Apply rotation to test centrifugal force
+            Body.setAngularVelocity(bulldozer, 0.15 * turnDirection);
+            
+            // Move forward
+            const force = Vector.mult(
+                { x: Math.cos(bulldozer.angle - Math.PI/2), y: Math.sin(bulldozer.angle - Math.PI/2) }, 
+                0.005
+            );
+            Body.applyForce(bulldozer, bulldozer.position, force);
+
+            // Bounce rotation periodically
+            if (engine.timing.timestamp % 2000 < 20) {
+                turnDirection *= -1;
+            }
+        });
+
+        // 6. Run
+        Render.run(render);
+        const runner = Runner.create();
+        Runner.run(runner, engine);
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            render.canvas.width = window.innerWidth;
+            render.canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
