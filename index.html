@@ -11,15 +11,18 @@
     <div id="game-ui">
         <div id="top-bar">
             <div id="stats">
-                <div>Money: $<span id="money">0</span></div>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div>Money: $<span id="money">0</span></div>
+                    <div id="fps-counter" style="color: #00ff00; font-family: monospace; font-weight: bold;">FPS: --</div>
+                </div>
                 <div id="stats-speed" style="font-size: 0.8rem; color: #aaa;">Speed: 100%</div>
                 <div id="stats-power" style="font-size: 0.8rem; color: #aaa;">Power: 100%</div>
                 <div id="game-version" style="font-size: 0.6rem; color: #666; margin-top: 2px;">
-                    v1.0.0 <span id="build-timestamp">2025-12-18 14:45</span>
+                    v1.0.0 <span id="build-timestamp">2025-12-20 06:40</span>
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
-
+                <button id="btn-debug-pos" style="pointer-events: auto;">Debug Pos</button>
                 <button id="btn-console-toggle" style="pointer-events: auto;">Show Logs</button>
             </div>
         </div>

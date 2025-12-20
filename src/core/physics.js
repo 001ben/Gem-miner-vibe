@@ -13,10 +13,10 @@ const MatterLocal = window.Matter;
 export { Engine, Runner, Bodies, Composite, Events, Vector, Body, MatterLocal as Matter };
 
 export const engine = Engine.create();
-// Increase iterations significantly to prevent compound body parts (wings) from drifting under extreme force
-engine.positionIterations = 20;
-engine.velocityIterations = 20;
-engine.constraintIterations = 20;
+// Robust defaults for compound stability without the extreme cost of 20 iterations
+engine.positionIterations = 8;
+engine.velocityIterations = 8;
+engine.constraintIterations = 8;
 export const world = engine.world;
 engine.gravity.y = 0; // Top down
 
