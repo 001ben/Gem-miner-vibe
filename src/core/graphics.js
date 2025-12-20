@@ -103,6 +103,9 @@ export function initThree() {
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
+    // Critical Fix: Disable frustum culling because the bounding sphere is not automatically updated
+    // for dynamic instances, causing gems to disappear when far from origin.
+    mesh.frustumCulled = false; 
     scene.add(mesh);
     gemInstancedMeshes[color] = mesh;
   });
@@ -328,8 +331,16 @@ export function createMesh(body) {
   let minY = Infinity, maxY = -Infinity;
 
   body.vertices.forEach(v => {
-    const rx = v.x * c + v.y * s;
-    const ry = -v.x * s + v.y * c;
+    // Transform world vertex back to local space relative to body center
+    // pos = body.pos + rotate(localPos)
+    // localPos = rotateInv(pos - body.pos)
+    const dx = v.x - body.position.x;
+    const dy = v.y - body.position.y;
+    
+    // Rotate by -angle
+    const rx = dx * c + dy * s;
+    const ry = -dx * s + dy * c;
+
     if (rx < minX) minX = rx;
     if (rx > maxX) maxX = rx;
     if (ry < minY) minY = ry;
@@ -338,6 +349,10 @@ export function createMesh(body) {
 
   const w = maxX - minX;
   const h = maxY - minY;
+
+  if (label === 'plow') {
+      console.log(`[DEBUG] createMesh(plow): Angle=${body.angle.toFixed(2)} W=${w.toFixed(2)} H=${h.toFixed(2)}`);
+  }
 
   if (label === 'wall') {
     const geo = new THREE.BoxGeometry(w, 40, h);
@@ -360,78 +375,30 @@ export function createMesh(body) {
     cab.position.y = 17.5;
     mesh.add(cab);
   } else if (label === 'plow') {
+    // Deterministic Dimension Calculation (Matches src/entities/bulldozer.js)
+    const bodySize = 40 + (state.dozerLevel * 5);
+    const plowWidth = bodySize * 1.2 + (state.plowLevel * 40);
+    const plowHeight = 22; 
+
     let geo;
     if (state.plowLevel >= 6) {
       // Curved / Bigger wings visual
-      geo = new THREE.BoxGeometry(w, 20, h);
+      geo = new THREE.BoxGeometry(plowWidth, 20, plowHeight);
     } else {
-      geo = new THREE.BoxGeometry(w, 15, h);
+      geo = new THREE.BoxGeometry(plowWidth, 15, plowHeight);
     }
 
     const mat = new THREE.MeshStandardMaterial({ color: 0xd35400 });
     mesh = new THREE.Mesh(geo, mat);
     mesh.position.y = 7.5;
 
-    if (state.plowLevel >= 6) {
-      // Visual Wings using Cylinder segments for smooth curve
-      // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength)
-      // We want a curved wall extending from the edge.
+  } else if (label === 'plow_wing') {
+    // Render the physical wings separately
+    const geo = new THREE.BoxGeometry(w, 15, h);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xd35400 });
+    mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = 7.5;
 
-      const r = 30; // Radius of curve
-      const height = 20; // Height of plow
-      const segments = 8; // Smoothness
-      const arc = Math.PI / 3; // 60 degrees curve
-
-      // Left Wing (Curving forward and left)
-      // Center of curvature needs to be offset so the start of the arc matches the plow edge.
-      // If we want it to curve "Forward" (-Z) and "Out" (-X) from the left edge (-w/2).
-      // A cylinder centered at (-w/2 - r, 0, 0) would touch at (-w/2, 0, r) ??
-      // Let's use a Tube segment logic:
-      // Arc starts at angle 0 (Right) and goes to PI/2 (Forward)?
-
-      // Simplified: Cylinder segment starting at angle 0.
-      const wingGeo = new THREE.CylinderGeometry(r, r, height, segments, 1, true, 0, arc);
-      // By default cylinder is vertical (Y axis). We need it vertical relative to ground, which is Y in ThreeJS.
-      // Wait, our physics mapping is: Physics Width -> Three X, Physics Height (Depth) -> Three Z.
-      // The mesh.position.y is vertical.
-      // BoxGeometry(w, 20, h). Height is 20 (Y). Depth is h (Z). Width is w (X).
-
-      // So the cylinder should be standing up (Y axis). Correct.
-      // We need to shift it so the start of the arc aligns with the edge.
-      // Vertices at theta=0 are at (r, y, 0).
-      // We want (r, y, 0) to be at origin (0,0,0) so we can attach it to edge.
-      wingGeo.translate(-r, 0, 0);
-
-      // Left Wing:
-      // Attach to (-w/2, 0, h/2). Wait, front face is at -h/2?
-      // Plow is centered at 0. Extends from -h/2 to h/2 in Z.
-      // Usually "Front" of plow is collision direction.
-      // Let's assume Front is -Z? Or +Z?
-      // If Dozer moves Forward... standard is usually -Z in ThreeJS?
-      // Actually, let's look at rotation. `mesh.rotation.y = -part.angle`.
-      // If angle is 0, facing +X? MatterJS defaults.
-      // Let's assume width is X, depth is Z.
-
-      // Left Wing Mesh
-      const leftWing = new THREE.Mesh(wingGeo, mat);
-      leftWing.position.set(-w / 2, 0, h / 2); // Attach at left corner
-      // We want it to curve Out (-X) and Forward (+Z or -Z?).
-      // If we rotate it...
-      leftWing.rotation.y = Math.PI; // 180 deg
-      mesh.add(leftWing);
-
-      // Right Wing Mesh
-      const rightWing = new THREE.Mesh(wingGeo, mat);
-      rightWing.position.set(w / 2, 0, h / 2);
-      // Curve Out (+X) and Forward.
-      // If geometry starts at (0,0,0) (because of translate -r) and curves towards -Z?
-      // (r*cos(theta) - r).
-      // We need to experiment with rotation to get "Funnel" shape.
-      // Let's rotate -90 (-PI/2) + arc?
-      rightWing.rotation.y = -Math.PI / 3;
-      // This is hard to visualize mentally, but Cylinder segments are cleaner than boxes.
-      mesh.add(rightWing);
-    }
   } else if (label === 'gem') {
     const r = (w / 2);
     const geo = new THREE.IcosahedronGeometry(r, 0);
@@ -822,7 +789,7 @@ function updateCoinPile() {
   });
 }
 
-export function updateGraphics(bulldozer, bulldozerRenderer) {
+export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
   const bodies = Matter.Composite.allBodies(world);
   const activeIds = new Set();
   const shopPads = getShopPads();
@@ -832,13 +799,30 @@ export function updateGraphics(bulldozer, bulldozerRenderer) {
   Object.keys(gemInstancedMeshes).forEach(color => typeIndices[color] = 0);
 
   bodies.forEach(body => {
+    // Calculate interpolated values for the body
+    const interpX = body.positionPrev.x + (body.position.x - body.positionPrev.x) * alpha;
+    const interpY = body.positionPrev.y + (body.position.y - body.positionPrev.y) * alpha;
+    
+    // Angle interpolation (handle wrapping if necessary, though Matter.js angles usually don't wrap abruptly)
+    const interpAngle = body.anglePrev + (body.angle - body.anglePrev) * alpha;
+
     // 1. Handle Bulldozer (Compound Body)
     if (body.label === 'bulldozer') {
       if (bulldozerRenderer && bulldozerRenderer.isLoaded) {
-        // Update the high-fidelity renderer for the chassis/body
-        bulldozerRenderer.setPose(body.position, body.angle);
+        // Phase 3 & 4: Interpolated Geometric Offset Correction
+        const offset = body.chassisOffset || { x: 0, y: 0 };
+        const cos = Math.cos(interpAngle);
+        const sin = Math.sin(interpAngle);
+        
+        const rotatedX = offset.x * cos - offset.y * sin;
+        const rotatedY = offset.x * sin + offset.y * cos;
 
-        const angle = body.angle - Math.PI / 2;
+        const renderX = interpX + rotatedX;
+        const renderY = interpY + rotatedY;
+
+        bulldozerRenderer.setPose({ x: renderX, y: renderY }, interpAngle);
+
+        const angle = interpAngle - Math.PI / 2;
         const fwdX = Math.cos(angle);
         const fwdY = Math.sin(angle);
         const dot = body.velocity.x * fwdX + body.velocity.y * fwdY;
@@ -850,8 +834,6 @@ export function updateGraphics(bulldozer, bulldozerRenderer) {
         bulldozerRenderer.setSpeeds(speed, speed);
         bulldozerRenderer.update(1 / 60);
       }
-
-      // Continue to process parts, but skip the chassis as it is handled above
     }
 
     // 2. Handle Other Bodies (Parts or Single)
@@ -866,17 +848,20 @@ export function updateGraphics(bulldozer, bulldozerRenderer) {
         const mesh = gemInstancedMeshes[color];
 
         if (mesh && index < MAX_GEMS_PER_TYPE) {
-          dummy.position.set(part.position.x, 0, part.position.y);
-          const r = part.circleRadius || 10;
-          dummy.position.y = r;
-          dummy.rotation.set(0, -part.angle, 0);
-          dummy.scale.setScalar(r);
-          dummy.updateMatrix();
+            // Interpolate gems too
+            const pX = part.positionPrev.x + (part.position.x - part.positionPrev.x) * alpha;
+            const pY = part.positionPrev.y + (part.position.y - part.positionPrev.y) * alpha;
+            const pA = part.anglePrev + (part.angle - part.anglePrev) * alpha;
 
-          mesh.setMatrixAt(index, dummy.matrix);
-          // Note: Material color is already set per InstancedMesh, 
-          // but we could use setColorAt if we wanted variation within a type.
-          typeIndices[color]++;
+            dummy.position.set(pX, 0, pY);
+            const r = part.circleRadius || 10;
+            dummy.position.y = r;
+            dummy.rotation.set(0, -pA, 0);
+            dummy.scale.setScalar(r);
+            dummy.updateMatrix();
+
+            mesh.setMatrixAt(index, dummy.matrix);
+            typeIndices[color]++;
         }
         return;
       }
@@ -891,9 +876,26 @@ export function updateGraphics(bulldozer, bulldozerRenderer) {
         }
       }
       if (mesh) {
-        mesh.position.x = part.position.x;
-        mesh.position.z = part.position.y;
-        mesh.rotation.y = -part.angle;
+        // Phase 3 & 4: Interpolated Geometric Offset Correction for procedural parts
+        if (part.oOffset) {
+            const cos = Math.cos(interpAngle);
+            const sin = Math.sin(interpAngle);
+            const rotatedX = part.oOffset.x * cos - part.oOffset.y * sin;
+            const rotatedY = part.oOffset.x * sin + part.oOffset.y * cos;
+            
+            mesh.position.x = interpX + rotatedX;
+            mesh.position.z = interpY + rotatedY;
+            mesh.rotation.y = -(interpAngle + (part.oAngle || 0));
+        } else {
+            // Standard interpolation for single bodies
+            const pX = part.positionPrev.x + (part.position.x - part.positionPrev.x) * alpha;
+            const pY = part.positionPrev.y + (part.position.y - part.positionPrev.y) * alpha;
+            const pA = part.anglePrev + (part.angle - part.anglePrev) * alpha;
+
+            mesh.position.x = pX;
+            mesh.position.z = pY;
+            mesh.rotation.y = -pA;
+        }
 
         if (part.label && part.label.startsWith('shop_pad')) {
           const padData = shopPads.find(p => p.body === body);

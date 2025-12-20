@@ -1,28 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
-// --- Triplanar Shader Logic ---
-function enhanceMaterialWithTriplanar(material) {
-  material.onBeforeCompile = (shader) => {
-    shader.uniforms.uScale = { value: 0.1 };
-    shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>\nvarying vec3 vWorldPosition;\nvarying vec3 vWorldNormal;`);
-    shader.vertexShader = shader.vertexShader.replace('#include <worldpos_vertex>', `#include <worldpos_vertex>\nvarying vec3 vWorldPosition;\nvarying vec3 vWorldNormal;\nvWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvWorldNormal = normalize(mat3(modelMatrix) * normal);`);
-    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', `#include <common>\nvarying vec3 vWorldPosition;\nvarying vec3 vWorldNormal;\nuniform float uScale;`);
-    const triplanarLogic = `
-            vec3 blending = abs(vWorldNormal);
-            blending = normalize(max(blending, 0.00001));
-            float b = (blending.x + blending.y + blending.z);
-            blending /= b;
-            vec3 coord = vWorldPosition * uScale;
-            vec4 xaxis = texture2D(map, coord.yz);
-            vec4 yaxis = texture2D(map, coord.xz);
-            vec4 zaxis = texture2D(map, coord.xy);
-            vec4 texColor = xaxis * blending.x + yaxis * blending.y + zaxis * blending.z;
-            diffuseColor *= texColor;
-        `;
-    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', triplanarLogic);
-  };
-}
+import { MaterialManager } from '../core/material-manager.js';
 
 export class BulldozerRenderer {
   constructor(scene) {
@@ -31,8 +9,7 @@ export class BulldozerRenderer {
     this.scene.add(this.group);
 
     this.loader = new GLTFLoader();
-    this.texLoader = new THREE.TextureLoader();
-    this.textureCache = new Map();
+    this.materialManager = new MaterialManager();
     this.animatedInstances = [];
 
     this.trackParams = {
@@ -51,33 +28,11 @@ export class BulldozerRenderer {
     this.dummy = new THREE.Object3D();
     this.isLoaded = false;
     this.config = null;
+  }
 
-    // Define Code-based Material Presets
-    this.materialPresets = {
-      "Glass": new THREE.MeshPhysicalMaterial({
-        name: "Glass",
-        color: 0xaaccff, // Light blue tint
-        metalness: 0.0,
-        roughness: 0.05,
-        transmission: 0.9,
-        transparent: true,
-        ior: 1.5,
-        thickness: 0.5,
-        side: THREE.DoubleSide
-      }),
-      "Track": new THREE.MeshStandardMaterial({
-        name: "Track",
-        color: 0xffffff,
-        roughness: 0.9,
-        metalness: 0.0
-      }),
-      "YellowMetallic": new THREE.MeshStandardMaterial({
-        name: "YellowMetallic",
-        color: 0xf39c12, // Industrial Orange-Yellow
-        metalness: 0.7,
-        roughness: 0.2
-      })
-    };
+  // Expose presets for the UI via the manager
+  get materialPresets() {
+      return this.materialManager.materialPresets;
   }
 
   async load(url, configUrlOrObj = null) {
@@ -165,7 +120,6 @@ export class BulldozerRenderer {
             }
 
             // Deduplicate and Sort Points (Greedy Nearest Neighbor)
-            // This handles cases where Blender/GLTF reorders or duplicates vertices
             const points = [];
             if (rawPoints.length > 0) {
                 let current = rawPoints.splice(0, 1)[0];
@@ -180,7 +134,6 @@ export class BulldozerRenderer {
                             bestIdx = j;
                         }
                     }
-                    // If the closest point is basically the same, just remove it
                     if (bestDist < 0.0001) {
                         rawPoints.splice(bestIdx, 1);
                     } else {
@@ -221,94 +174,8 @@ export class BulldozerRenderer {
   }
 
   async applyMaterial(mesh, overrideName = null) {
-    const name = mesh.name;
-    const matName = mesh.material ? mesh.material.name : "";
-    const matDampId = (mesh.material && mesh.material.userData) ? mesh.material.userData.damp_id : null;
-    const meshDampId = mesh.userData.damp_id;
-    const parentDampId = (mesh.parent && mesh.parent.userData) ? mesh.parent.userData.damp_id : null;
-    
-    const dampId = overrideName || matDampId || meshDampId || parentDampId;
-
-    if (!dampId) {
-        console.warn(`[CONTRACT WARNING] Mesh '${name}' has no damp_id tag.`);
-        return;
-    }
-
-    const settings = (this.config && this.config.components) ? this.config.components[dampId] : null;
-    
-    const cb = (u) => {
-      if (!u || u === 'None') return u;
-      if (u.startsWith('http')) return u;
-      return `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
-    };
-
-    // 1. Determine Target Material Base
-    const targetPresetName = settings?.preset || (dampId === "cabin" || matName.includes("Glass") ? "Glass" : (dampId === "track_link" || name.includes("Track") ? "Track" : null));
-    
-    let material;
-    let isNewMaterial = false;
-
-    // Reuse existing material if compatible
-    if (mesh.material && ((targetPresetName && mesh.material.name === targetPresetName) || (!targetPresetName && !["Glass", "Track"].includes(mesh.material.name)))) {
-        material = mesh.material;
-    } else {
-        // Create new material base
-        isNewMaterial = true;
-        if (targetPresetName && this.materialPresets[targetPresetName]) {
-            material = this.materialPresets[targetPresetName].clone();
-        } else {
-            material = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0.2 });
-        }
-    }
-
-    // 2. Apply Contract Settings
-    if (settings) {
-      if (settings.color) material.color.set(settings.color);
-      if (settings.roughness !== undefined) material.roughness = settings.roughness;
-      if (settings.metalness !== undefined) material.metalness = settings.metalness;
-      if (settings.transmission !== undefined && material.isMeshPhysicalMaterial) material.transmission = settings.transmission;
-      if (settings.ior !== undefined && material.isMeshPhysicalMaterial) material.ior = settings.ior;
-
-      if (settings.textureId && settings.textureId !== 'None') {
-        const texPath = settings.textureId.startsWith('http') ? settings.textureId : `assets/textures/${settings.textureId}`;
-        const cacheKey = `${texPath}_${JSON.stringify(settings.uvTransform || {})}`;
-
-        try {
-            let tex;
-            if (this.textureCache.has(cacheKey)) {
-                tex = this.textureCache.get(cacheKey);
-            } else {
-                tex = await this.texLoader.loadAsync(cb(texPath));
-                tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-                tex.colorSpace = THREE.SRGBColorSpace;
-                if (settings.uvTransform) {
-                    const uv = settings.uvTransform;
-                    if (uv.scale !== undefined) tex.repeat.set(uv.scale, uv.scale);
-                    if (uv.rotation !== undefined) tex.rotation = uv.rotation;
-                    if (uv.offset !== undefined) tex.offset.set(uv.offset[0], uv.offset[1]);
-                    tex.center.set(0.5, 0.5);
-                }
-                this.textureCache.set(cacheKey, tex);
-            }
-            
-            if (material.map !== tex) {
-                material.map = tex;
-                material.needsUpdate = true;
-            }
-        } catch (e) {
-            console.error(`[CONTRACT ERROR] Failed texture: ${texPath}`, e);
-        }
-      } else {
-        material.map = null;
-        material.needsUpdate = true;
-      }
-    }
-
-    // 3. Final Atomic Assignment
-    if (isNewMaterial) {
-        mesh.material = material;
-    }
-    if (mesh.isInstancedMesh) mesh.instanceMatrix.needsUpdate = true;
+      // Delegate to the specialized manager
+      await this.materialManager.applyMaterial(mesh, this.config, overrideName);
   }
 
   setScale(s) { this.scale = s; this.group.scale.setScalar(s); }

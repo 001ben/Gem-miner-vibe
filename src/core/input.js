@@ -30,7 +30,6 @@ export function initInput() {
         // Power calculation for "juicier" upgrades: Force needs to scale faster than Mass
         // Mass scales by 1.5x, so Force must scale by ~2.0x to get ~33% speed increase per level
         // Increased base from 0.003 to 0.004 to help overcome increased friction/mass of thicker plow
-        const baseSpeed = 0.004 * Math.pow(2.0, state.dozerLevel);
         const turnSpeed = 0.04;
 
         if (joystick.active) {
@@ -79,15 +78,19 @@ export function initInput() {
             }
         }
 
+        // Use Angular Velocity for stable steering
         if (turn !== 0) {
-            Body.setAngle(bulldozer, bulldozer.angle + turn * turnSpeed);
-            // Ensure angular velocity is zeroed out to prevent physics interference
-            Body.setAngularVelocity(bulldozer, 0);
+            Body.setAngularVelocity(bulldozer, turn * turnSpeed);
+        } else {
+            // Dampen angular velocity when not steering
+            Body.setAngularVelocity(bulldozer, bulldozer.angularVelocity * 0.9);
         }
 
         // Apply drive force
         if (throttle !== 0) {
-            const forceMagnitude = throttle * baseSpeed;
+            // Balanced force for juicy but controllable movement
+            // Mass scales by 1.5x, so Force must scale by 2.0x to ensure acceleration increases
+            const forceMagnitude = throttle * 0.01 * Math.pow(1.6, state.dozerLevel);
             const angle = bulldozer.angle - Math.PI/2;
             const force = {
                 x: Math.cos(angle) * forceMagnitude,

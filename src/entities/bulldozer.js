@@ -27,123 +27,79 @@ export function createBulldozer() {
     const plowHeight = 22; // Thicker than original (10) but not "weird" (30). Compromise.
 
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { label: 'chassis' });
-    // Increase offset padding from 5 to 15 to clear the chassis
     const plowOffset = -(bodySize/2 + plowHeight/2 + 15);
     const plow = Bodies.rectangle(0, plowOffset, plowWidth, plowHeight, { label: 'plow' });
 
     let parts = [chassis, plow];
 
+    // ... [Wing logic stays same]
     if (state.plowLevel >= 3) {
-        const wingLength = 30;
-        const wingWidth = 10;
-        // Angles: -135 deg for left (Up-Left), -45 deg for right (Up-Right)
-        // This makes them flare outwards like a funnel.
-        const angleLeft = -3 * Math.PI / 4;
-        const angleRight = -Math.PI / 4;
+        const wingLength = 40;
+        const wingWidth = 15;
+        const wingAngle = Math.PI / 8; // 22.5 degrees flare
 
-        // Position adjustment:
-        // We want the "start" of the wing to be at the corner of the plow.
-        // Bodies.rectangle centers the body.
-        // So center x = startX + (L/2 * cos(angle))
-        // center y = startY + (L/2 * sin(angle))
-
-        const startXLeft = -plowWidth / 2;
-        const startYLeft = plowOffset; // Uses the updated offset automatically
-
-        const lx = startXLeft + (wingLength/2) * Math.cos(angleLeft);
-        const ly = startYLeft + (wingLength/2) * Math.sin(angleLeft);
+        // Left Wing
+        // Attach point: x = -plowWidth/2
+        // Angle: Pointing Up (-PI/2) and slightly Left (-wingAngle)
+        const angleLeft = -Math.PI/2 - wingAngle;
+        
+        // Calculate Center Position
+        const lx = (-plowWidth / 2) + (wingLength / 2) * Math.cos(angleLeft);
+        const ly = plowOffset + (wingLength / 2) * Math.sin(angleLeft);
 
         const leftWing = Bodies.rectangle(lx, ly, wingLength, wingWidth, {
-            label: 'plow', // Same label as plow so graphics renders it similarly? Or new label?
+            label: 'plow_wing',
             angle: angleLeft
         });
-
-        const startXRight = plowWidth / 2;
-        const startYRight = plowOffset;
-
-        const rx = startXRight + (wingLength/2) * Math.cos(angleRight);
-        const ry = startYRight + (wingLength/2) * Math.sin(angleRight);
+        
+        // Right Wing
+        // Angle: Pointing Up (-PI/2) and slightly Right (+wingAngle)
+        const angleRight = -Math.PI/2 + wingAngle;
+        
+        const rx = (plowWidth / 2) + (wingLength / 2) * Math.cos(angleRight);
+        const ry = plowOffset + (wingLength / 2) * Math.sin(angleRight);
 
         const rightWing = Bodies.rectangle(rx, ry, wingLength, wingWidth, {
-            label: 'plow',
+            label: 'plow_wing',
             angle: angleRight
         });
-
         parts.push(leftWing, rightWing);
     }
 
+    // Create a new parent body and set its parts
+    // This is the canonical way to ensure rigidity in Matter.js
     bulldozer = Body.create({
-        parts: parts,
+        label: 'bulldozer',
         frictionAir: 0.15,
         restitution: 0.0,
-        label: 'bulldozer',
         collisionFilter: {
             category: CATEGORIES.DOZER,
-            // Collides with Default, Gems, Walls. NOT Conveyors.
             mask: CATEGORIES.DEFAULT | CATEGORIES.GEM | CATEGORIES.WALL
         }
     });
 
-    // Explicitly set density to ensure it overrides part defaults
-    Body.setDensity(bulldozer, 0.001 * Math.pow(1.5, state.dozerLevel));
+    Body.setParts(bulldozer, parts);
 
-    Body.setPosition(bulldozer, pos);
-    Body.setAngle(bulldozer, angle);
-
-    // Store relative offsets for manual rigidity enforcement
+    // Phase 3: Geometric Offset Correction
+    // Store offsets for ALL parts relative to the CoM
     bulldozer.parts.forEach(part => {
-        if (part === bulldozer) return; // Skip self
-        // Calculate relative position in unrotated body space
-        // pos = body.pos + rotate(offset)
-        // offset = rotateBack(part.pos - body.pos)
-        const dx = part.position.x - bulldozer.position.x;
-        const dy = part.position.y - bulldozer.position.y;
-
-        // Rotate back by -body.angle
-        const c = Math.cos(-bulldozer.angle);
-        const s = Math.sin(-bulldozer.angle);
-
+        if (part === bulldozer) return;
         part.oOffset = {
-            x: dx * c - dy * s,
-            y: dx * s + dy * c
+            x: part.position.x - bulldozer.position.x,
+            y: part.position.y - bulldozer.position.y
         };
         part.oAngle = part.angle - bulldozer.angle;
     });
 
+    // Also explicitly store chassisOffset for the specialized renderer
+    const chassisPart = bulldozer.parts.find(p => p.label === 'chassis');
+    if (chassisPart) {
+        bulldozer.chassisOffset = chassisPart.oOffset;
+    }
+
+    Body.setDensity(bulldozer, 0.001 * Math.pow(1.5, state.dozerLevel));
+    Body.setPosition(bulldozer, pos);
+    Body.setAngle(bulldozer, angle);
+
     Composite.add(world, bulldozer);
-}
-
-export function enforceBulldozerRigidity() {
-    if (!bulldozer) return;
-
-    const body = bulldozer;
-    const c = Math.cos(body.angle);
-    const s = Math.sin(body.angle);
-
-    body.parts.forEach(part => {
-        if (part === body) return;
-        if (!part.oOffset) return;
-
-        // Desired position
-        // pos = body.pos + rotate(offset)
-        const ox = part.oOffset.x;
-        const oy = part.oOffset.y;
-
-        const rotatedX = ox * c - oy * s;
-        const rotatedY = ox * s + oy * c;
-
-        const desiredX = body.position.x + rotatedX;
-        const desiredY = body.position.y + rotatedY;
-        const desiredAngle = body.angle + part.oAngle;
-
-        // Force position (snap)
-        // We use Body.setPosition/Angle which updates physics properties
-        // This fights the drift
-        Body.setPosition(part, { x: desiredX, y: desiredY });
-        Body.setAngle(part, desiredAngle);
-
-        // Aggressively sync velocities to prevent drift during high-impulse collisions
-        Body.setVelocity(part, body.velocity);
-        Body.setAngularVelocity(part, body.angularVelocity);
-    });
 }
