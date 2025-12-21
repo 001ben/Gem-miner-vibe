@@ -26,8 +26,10 @@ tasks:
     cmds:
       - echo "Installing system dependencies (macOS)..."
       - brew install --cask blender
+      - brew install tmux
     status:
       - test -d /Applications/Blender.app
+      - which tmux
 
   build:assets:
     desc: Build DAMP assets (GLB, Textures, Catalog)
@@ -58,21 +60,19 @@ tasks:
       - bun x http-server -p 3000 -c-1 -o /index.html
 
   dev:bg:
-    desc: Start the main game server in the background using a helper script (Port 3030)
+    desc: Start the main game server in the background using tmux (Port 3030)
     deps: [build:assets]
     cmds:
-      - ./scripts/start_server.sh 3030
+      - tmux new-session -d -s gemserver "bun x http-server -p 3030 -c-1"
       - echo "Waiting for server to start..."
       - sleep 2
-      - curl -f -s http://127.0.0.1:3030/index.html > /dev/null && echo "Server is up!" || (echo "Server failed to start"; cat server.log; exit 1)
+      - curl -f -s http://127.0.0.1:3030/index.html > /dev/null && echo "Server is up in tmux session 'gemserver'!"
 
   dev:stop:
     desc: Stop the background game server
     cmds:
-      - sh -c "if [ -f server.pid ]; then kill $(cat server.pid) 2>/dev/null || true; rm server.pid; echo 'Server stopped via PID'; else echo 'No server.pid found'; fi"
-      - pkill -f "http-server -p 3030" || true
-      - rm -f server.log
-      - echo "Cleanup complete"
+      - tmux kill-session -t gemserver 2>/dev/null || true
+      - echo "Server stopped"
     ignore_error: true
 
   test:smoke:
