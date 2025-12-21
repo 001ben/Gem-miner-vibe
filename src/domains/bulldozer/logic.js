@@ -1,6 +1,5 @@
 import { state } from '../../core/state.js';
 import { Bodies, Composite, Body, world, CATEGORIES } from '../../core/physics.js';
-import { removeBodyMesh } from '../../core/graphics.js';
 
 let bulldozer;
 
@@ -15,10 +14,8 @@ export function createBulldozer() {
     if (bulldozer) {
         pos = { x: bulldozer.position.x, y: bulldozer.position.y };
         angle = bulldozer.angle;
-        // Remove meshes associated with old bulldozer parts
-        bulldozer.parts.forEach(p => {
-            removeBodyMesh(p.id);
-        });
+        // The graphics system will automatically detect the removal of the old body
+        // and clean up the associated meshes in the next frame.
         Composite.remove(world, bulldozer);
     }
 

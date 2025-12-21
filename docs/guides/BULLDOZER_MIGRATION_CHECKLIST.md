@@ -20,5 +20,5 @@ This document tracks the active migration of the Bulldozer entity to the Domain-
 - [x] Update `Taskfile.yml` to point to the new generator scripts
 
 ## Step 4: Verification
-- [ ] Run `task build:assets` to ensure Python scripts still run
-- [ ] Run `task dev` to ensure the game still loads
+- [x] Run `task build:assets` to ensure Python scripts still run
+- [x] Run `task dev` to ensure the game still loads
