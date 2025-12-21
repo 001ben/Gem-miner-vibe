@@ -62,3 +62,9 @@ tasks:
     deps: [build:assets]
     cmds:
       - bun x http-server -p 8080 -c-1 -o /tools/viewer/index.html
+
+  docs:serve:
+    desc: Serve documentation using mkdocs
+    cmds:
+      - echo "Starting mkdocs server on http://localhost:8000"
+      - uvx --with mkdocs-material --with pymdown-extensions mkdocs serve

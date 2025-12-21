@@ -1,0 +1,74 @@
+site_name: Gem Miner Vibe
+site_url: https://your-username.github.io/Gem-miner-vibe/
+repo_url: https://github.com/your-username/Gem-miner-vibe
+repo_name: Gem-miner-vibe
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: cyan
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: cyan
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - search.share
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.magiclink
+  - attr_list
+  - md_in_html
+
+nav:
+  - Welcome: README.md
+  - Architecture:
+      - Layer Activity Guide: LAYER_ACTIVITY_GUIDE.md
+      - Migration Guide: MIGRATION_GUIDE.md
+      - DAMP Pipeline Review: DAMP_PIPELINE_REVIEW.md
+      - DAMP Maintainability: DAMP_MAINTAINABILITY.md
+      - Project Structure: PROJECT_STRUCTURE.md
+  - Troubleshooting:
+      - Graphics: GRAPHICS_TROUBLESHOOTING.md
+      - Common Errors: COMMON_ERRORS.md
+  - Archive:
+      - Blender Pipeline: BLENDER_PIPELINE.md
+      - Asset Pipeline: archive/ASSET_PIPELINE.md
+      - Graphics Design: archive/GRAPHICS_DESIGN.md
