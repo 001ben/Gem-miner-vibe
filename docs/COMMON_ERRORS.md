@@ -53,3 +53,19 @@ Use the "Track Adj" controls in the Asset Viewer to set **Z-Rotation to 270**.
 Gimbal lock when the track tangent aligns with the World Y-axis.
 **Solution:**
 Ensure the "Up" vector in the Asset Viewer is set to **X (Axle)**.
+
+## Development & Testing
+
+### Background Server (`dev:bg`)
+If you need to run integration tests or smoke tests without blocking your terminal, use:
+```bash
+task dev:bg      # Starts server in background (port 3000)
+task test:smoke  # Verifies server is reachable
+task dev:stop    # Kills the background server
+```
+
+### `EADDRINUSE: address already in use`
+**Cause:**
+The server was not stopped correctly from a previous session.
+**Solution:**
+Run `task dev:stop` to force-kill any process on port 3000.

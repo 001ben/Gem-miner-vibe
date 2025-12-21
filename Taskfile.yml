@@ -58,18 +58,29 @@ tasks:
       - bun x http-server -p 3000 -c-1 -o /index.html
 
   dev:bg:
-    desc: Start the main game server in the background
+    desc: Start the main game server in the background using a helper script (Port 3030)
     deps: [build:assets]
     cmds:
-      - nohup bun x http-server -p 3000 -c-1 -o /index.html > server.log 2>&1 & echo $! > server.pid
-      - echo "Server started (PID $(cat server.pid))"
+      - ./scripts/start_server.sh 3030
+      - echo "Waiting for server to start..."
+      - sleep 2
+      - curl -f -s http://127.0.0.1:3030/index.html > /dev/null && echo "Server is up!" || (echo "Server failed to start"; cat server.log; exit 1)
 
   dev:stop:
     desc: Stop the background game server
     cmds:
-      - kill $(cat server.pid) && rm server.pid
-      - echo "Server stopped"
+      - sh -c "if [ -f server.pid ]; then kill $(cat server.pid) 2>/dev/null || true; rm server.pid; echo 'Server stopped via PID'; else echo 'No server.pid found'; fi"
+      - pkill -f "http-server -p 3030" || true
+      - rm -f server.log
+      - echo "Cleanup complete"
     ignore_error: true
+
+  test:smoke:
+    desc: Verify the game server is running and serving files
+    cmds:
+      - curl -f -s http://127.0.0.1:3030/index.html > /dev/null && echo "✅ Index reachable"
+      - curl -f -s http://127.0.0.1:3030/src/core/game.js > /dev/null && echo "✅ Core JS reachable"
+      - echo "Smoke test passed!"
 
   damp:viewer:
     desc: Start the DAMP asset viewer server
