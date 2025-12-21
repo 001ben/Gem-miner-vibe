@@ -1,6 +1,6 @@
 import { state, costs } from './state.js';
 import { createBulldozer } from '../domains/bulldozer/logic.js';
-import { createCollector } from '../entities/collector.js';
+import { createCollector } from '../domains/collector/logic.js';
 import { createMap } from '../entities/map.js';
 
 export function updateUI() {

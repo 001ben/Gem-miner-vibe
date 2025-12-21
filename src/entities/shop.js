@@ -1,7 +1,7 @@
 import { state, costs } from '../core/state.js';
 import { Bodies, Composite, Body, world, CATEGORIES } from '../core/physics.js';
 import { createBulldozer } from '../domains/bulldozer/logic.js';
-import { createCollector } from './collector.js';
+import { createCollector } from '../domains/collector/logic.js';
 import { createMap } from './map.js';
 import { showNotification, updateUI } from '../core/ui.js';
 import { spawnParticles, spawnFloatingText } from '../core/graphics.js';

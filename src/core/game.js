@@ -3,7 +3,7 @@ import { initThree, updateGraphics, scene, camera, renderer, bodyMeshMap } from 
 import * as THREE from 'three'; 
 import { createMap } from '../entities/map.js';
 import { createBulldozer, getBulldozer } from '../domains/bulldozer/logic.js';
-import { createCollector } from '../entities/collector.js';
+import { createCollector } from '../domains/collector/logic.js';
 import { initGems, collectGem } from '../domains/gem/logic.js';
 import { updateUI, initUI, showNotification } from './ui.js';
 import { createShopPads, checkShopCollisions } from '../entities/shop.js';

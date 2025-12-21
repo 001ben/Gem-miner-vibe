@@ -1,17 +1,12 @@
-import { state } from '../core/state.js';
-import { Bodies, Body, Composite, world, CATEGORIES } from '../core/physics.js';
-import { removeBodyMesh } from '../core/graphics.js';
+import { state } from '../../core/state.js';
+import { Bodies, Body, Composite, world, CATEGORIES } from '../../core/physics.js';
 
 let collector;
 
 export function createCollector() {
     if (collector) {
-         // If it's a compound body, we need to remove meshes for all parts
-         if (collector.parts && collector.parts.length > 1) {
-             collector.parts.forEach(p => removeBodyMesh(p.id));
-         } else {
-             removeBodyMesh(collector.id);
-         }
+         // The graphics system will automatically detect the removal of the old body
+         // and clean up the associated meshes in the next frame.
          Composite.remove(world, collector);
     }
 

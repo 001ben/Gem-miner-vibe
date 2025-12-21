@@ -4,6 +4,7 @@ import { world } from './physics.js';
 import { state } from './state.js';
 import { getShopPads } from '../entities/shop.js';
 import * as GemView from '../domains/gem/view.js';
+import * as CollectorView from '../domains/collector/view.js';
 
 export let scene, camera, renderer;
 export const bodyMeshMap = new Map();
@@ -374,82 +375,10 @@ export function createMesh(body) {
     mesh = new THREE.Mesh(geo, mat);
     mesh.position.y = 7.5;
 
-  } else if (label === 'gem') {
-    const r = (w / 2);
-    const geo = new THREE.IcosahedronGeometry(r, 0);
-    const color = body.renderColor || 0xffffff;
-    const mat = new THREE.MeshStandardMaterial({
-      color: color,
-      roughness: 0.1,
-      metalness: 0.5,
-      emissive: color,
-      emissiveIntensity: 0.4
-    });
-    mesh = new THREE.Mesh(geo, mat);
-    mesh.position.y = r;
-  } else if (label === 'collector') {
-    const r = (w / 2);
-    const geo = new THREE.TorusGeometry(r, 6, 16, 32);
-    const mat = new THREE.MeshStandardMaterial({
-      color: 0x00ff00,
-      emissive: 0x00ff00,
-      emissiveIntensity: 0.2, // High neon intensity
-      roughness: 0.2,
-      metalness: 0.8
-    });
-    mesh = new THREE.Mesh(geo, mat);
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.position.y = 2;
-    const innerGeo = new THREE.CircleGeometry(r, 32);
-    const innerMat = new THREE.MeshStandardMaterial({
-      color: 0x00ff00,
-      emissive: 0x00ff00,
-      emissiveIntensity: 1.0,
-      transparent: true,
-      opacity: 0.3,
-      side: THREE.DoubleSide
-    });
-    const inner = new THREE.Mesh(innerGeo, innerMat);
-    mesh.add(inner);
+  } else if (label === 'collector' || (label && label.startsWith('conveyor'))) {
+    mesh = CollectorView.createMesh(body);
+
   } else if (label && label.startsWith('shop_pad')) {
-    const geo = new THREE.BoxGeometry(w, 5, h);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-    mesh = new THREE.Mesh(geo, mat);
-    mesh.position.y = 2.5;
-
-    const billGeo = new THREE.PlaneGeometry(w * 1.5, h * 0.8);
-    const billMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide });
-    const billMesh = new THREE.Mesh(billGeo, billMat);
-
-    billMesh.position.set(0, 60, -h / 2 - 20);
-    billMesh.rotation.x = -Math.PI / 6;
-
-    billMesh.userData = { isTextPlane: true };
-    mesh.add(billMesh);
-
-    const type = label.split('_')[2];
-    const iconMesh = createShopIcon(type);
-    iconMesh.position.set(0, 40, 0);
-    iconMesh.userData = { isIcon: true };
-    mesh.add(iconMesh);
-
-  } else if (label && label.startsWith('conveyor')) {
-    const geo = new THREE.BoxGeometry(w, 5, h);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-    mesh = new THREE.Mesh(geo, mat);
-    mesh.position.y = 2.5;
-
-    const arrowGroup = new THREE.Group();
-    for (let i = -1; i <= 1; i++) {
-      const arrowGeo = new THREE.ConeGeometry(3, 8, 8);
-      const arrowMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-      const arrow = new THREE.Mesh(arrowGeo, arrowMat);
-      arrow.rotation.z = -Math.PI / 2; // Point Right (+X) default
-      arrow.position.set(i * (w / 4), 6, 0);
-      arrowGroup.add(arrow);
-    }
-    arrowGroup.userData = { isArrows: true };
-    mesh.add(arrowGroup);
 
   } else {
     const geo = new THREE.BoxGeometry(w, 10, h);
@@ -863,29 +792,8 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
           }
         }
 
-        if (part.label === 'collector') {
-          mesh.rotation.z += 0.02;
-        }
-
-        if (part.label && part.label.startsWith('conveyor')) {
-          mesh.children.forEach(child => {
-            if (child.userData.isArrows) {
-              child.children.forEach(arrow => {
-                let speed = 0.5;
-                if (part.label === 'conveyor_right') {
-                  speed = -0.5;
-                  arrow.rotation.z = Math.PI / 2;
-                } else {
-                  arrow.rotation.z = -Math.PI / 2;
-                }
-                arrow.position.x += speed;
-                const range = 40;
-                if (arrow.position.x > range) arrow.position.x -= 2 * range;
-                if (arrow.position.x < -range) arrow.position.x += 2 * range;
-              });
-            }
-          });
-        }
+        // Delegate updates to domain-specific views
+        CollectorView.update(mesh, part);
       }
     });
   });
