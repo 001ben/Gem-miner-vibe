@@ -57,6 +57,20 @@ tasks:
     cmds:
       - bun x http-server -p 3000 -c-1 -o /index.html
 
+  dev:bg:
+    desc: Start the main game server in the background
+    deps: [build:assets]
+    cmds:
+      - nohup bun x http-server -p 3000 -c-1 -o /index.html > server.log 2>&1 & echo $! > server.pid
+      - echo "Server started (PID $(cat server.pid))"
+
+  dev:stop:
+    desc: Stop the background game server
+    cmds:
+      - kill $(cat server.pid) && rm server.pid
+      - echo "Server stopped"
+    ignore_error: true
+
   damp:viewer:
     desc: Start the DAMP asset viewer server
     deps: [build:assets]

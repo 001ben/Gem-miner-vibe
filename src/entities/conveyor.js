@@ -1,4 +1,4 @@
-import { Bodies, Composite, world, CATEGORIES } from '../core/physics.js';
+import { Bodies, Composite, world, CATEGORIES, Events, engine, Body, Matter } from '../core/physics.js';
 import { collectGem } from '../domains/gem/logic.js';
 
 export function initConveyorSystem() {
