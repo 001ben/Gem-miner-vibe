@@ -1,6 +1,6 @@
 import { state, costs } from '../core/state.js';
 import { Bodies, Composite, Body, world, CATEGORIES } from '../core/physics.js';
-import { createBulldozer } from './bulldozer.js';
+import { createBulldozer } from '../domains/bulldozer/logic.js';
 import { createCollector } from './collector.js';
 import { createMap } from './map.js';
 import { showNotification, updateUI } from '../core/ui.js';

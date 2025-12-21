@@ -1,5 +1,5 @@
 import { state, costs } from './state.js';
-import { createBulldozer } from '../entities/bulldozer.js';
+import { createBulldozer } from '../domains/bulldozer/logic.js';
 import { createCollector } from '../entities/collector.js';
 import { createMap } from '../entities/map.js';
 
