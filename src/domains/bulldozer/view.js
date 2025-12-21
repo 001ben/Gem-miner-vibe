@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MaterialManager } from '../core/material-manager.js';
+import { MaterialManager } from '../../core/material-manager.js';
 
 export class BulldozerRenderer {
   constructor(scene) {

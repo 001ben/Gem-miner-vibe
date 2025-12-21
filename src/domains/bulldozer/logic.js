@@ -1,6 +1,6 @@
-import { state } from '../core/state.js';
-import { Bodies, Composite, Body, world, CATEGORIES } from '../core/physics.js';
-import { removeBodyMesh } from '../core/graphics.js';
+import { state } from '../../core/state.js';
+import { Bodies, Composite, Body, world, CATEGORIES } from '../../core/physics.js';
+import { removeBodyMesh } from '../../core/graphics.js';
 
 let bulldozer;
 

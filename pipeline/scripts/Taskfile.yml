@@ -22,14 +22,14 @@ tasks:
     desc: "📦 Generate 3D models from Blender source"
     cmds:
       - echo "📦 [1/5] Generating Geometry (Blender)..."
-      - blender --background --python {{.PIPELINE_DIR}}/blender/bulldozer.py
+      - find src/domains -name "generator.py" -exec blender --background --python {} \;
     silent: true
 
   textures:gen:
     desc: "🎨 Generate procedural textures"
     cmds:
       - echo "🎨 [2/5] Generating Textures (uv)..."
-      - uv run {{.PIPELINE_DIR}}/textures/generate_textures.py
+      - find src/domains -name "texture.py" -exec uv run {} \;
     silent: true
 
   sync:
@@ -37,9 +37,9 @@ tasks:
     cmds:
       - echo "🚚 [3/5] Syncing Assets to Viewer..."
       - mkdir -p {{.VIEWER_ASSETS}}/textures {{.VIEWER_ASSETS}}/configs
-      - cp {{.OUTPUT_DIR}}/models/*.glb {{.VIEWER_ASSETS}}/
-      - cp {{.OUTPUT_DIR}}/textures/*.png {{.VIEWER_ASSETS}}/textures/
-      - cp {{.OUTPUT_DIR}}/configs/*.json {{.VIEWER_ASSETS}}/configs/
+      - cp {{.OUTPUT_DIR}}/models/*.glb {{.VIEWER_ASSETS}}/ || true
+      - cp {{.OUTPUT_DIR}}/textures/*.png {{.VIEWER_ASSETS}}/textures/ || true
+      - cp {{.OUTPUT_DIR}}/configs/*.json {{.VIEWER_ASSETS}}/configs/ 2>/dev/null || true
     silent: true
 
   catalog:

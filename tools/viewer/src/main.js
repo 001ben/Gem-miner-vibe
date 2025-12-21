@@ -187,7 +187,9 @@ const App = () => {
             let conf = { components: {} };
             if (configId !== 'None') {
                 try {
-                    const resp = await fetch(cb(`assets/configs/${configId}`));
+                    // Resolve path from viewer directory back to project root
+                    const fetchPath = `../../${configId}`;
+                    const resp = await fetch(cb(fetchPath));
                     conf = await resp.json();
                 } catch(e) { console.error("Config fetch failed", e); }
             }

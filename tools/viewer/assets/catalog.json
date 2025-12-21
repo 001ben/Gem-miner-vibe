@@ -6,6 +6,7 @@
     "tracks_texture.png"
   ],
   "configs": [
-    "bulldozer_mapping.json"
+    "src/domains/bulldozer/config.json",
+    "assets/configs/bulldozer_mapping.json"
   ]
 }
