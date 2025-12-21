@@ -3,6 +3,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { world } from './physics.js';
 import { state } from './state.js';
 import { getShopPads } from '../entities/shop.js';
+import * as GemView from '../domains/gem/view.js';
 
 export let scene, camera, renderer;
 export const bodyMeshMap = new Map();
@@ -13,9 +14,7 @@ let dirtTexture;
 let lastDozerPos = null;
 let coinPileGroup = null;
 let coinStacksGroup = null; // Separate group for dynamic coins
-const gemInstancedMeshes = {}; // Map of colorHex -> InstancedMesh
 const dummy = new THREE.Object3D();
-const MAX_GEMS_PER_TYPE = 1000;
 
 // Bank Area Configuration
 const BANK_POS = { x: -400, y: 400 }; // Near Shop Area
@@ -83,32 +82,8 @@ export function initThree() {
   plane.receiveShadow = true;
   scene.add(plane);
 
-  // Gem Instanced Meshes (Mapped by Color)
-  const gemMatBase = {
-    roughness: 0.05,
-    metalness: 0.9,
-    emissive: 0x222222,
-    emissiveIntensity: 0.3
-  };
-
-  const mappings = [
-    { color: '#00FFFF', geo: new THREE.IcosahedronGeometry(1, 0) },
-    { color: '#FF00FF', geo: new THREE.IcosahedronGeometry(1, 0) },
-    { color: '#FFFF00', geo: new THREE.DodecahedronGeometry(1) },
-    { color: '#00FF00', geo: new THREE.OctahedronGeometry(1) }
-  ];
-
-  mappings.forEach(({ color, geo }) => {
-    const mesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ ...gemMatBase, color: new THREE.Color(color) }), MAX_GEMS_PER_TYPE);
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    // Critical Fix: Disable frustum culling because the bounding sphere is not automatically updated
-    // for dynamic instances, causing gems to disappear when far from origin.
-    mesh.frustumCulled = false; 
-    scene.add(mesh);
-    gemInstancedMeshes[color] = mesh;
-  });
+  // Initialize Domain Views
+  GemView.init(scene);
 }
 function createCoinPile() {
   // A group for the bank area
@@ -794,10 +769,6 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
   const activeIds = new Set();
   const shopPads = getShopPads();
 
-  // Reset counters for each color type
-  const typeIndices = {};
-  Object.keys(gemInstancedMeshes).forEach(color => typeIndices[color] = 0);
-
   bodies.forEach(body => {
     // Calculate interpolated values for the body
     const interpX = body.positionPrev.x + (body.position.x - body.positionPrev.x) * alpha;
@@ -841,30 +812,7 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
     parts.forEach(part => {
       // Skip chassis mesh creation as it's handled by BulldozerRenderer
       if (part.label === 'chassis') return;
-
-      if (part.label === 'gem') {
-        const color = part.gemColorHex;
-        const index = typeIndices[color];
-        const mesh = gemInstancedMeshes[color];
-
-        if (mesh && index < MAX_GEMS_PER_TYPE) {
-            // Interpolate gems too
-            const pX = part.positionPrev.x + (part.position.x - part.positionPrev.x) * alpha;
-            const pY = part.positionPrev.y + (part.position.y - part.positionPrev.y) * alpha;
-            const pA = part.anglePrev + (part.angle - part.anglePrev) * alpha;
-
-            dummy.position.set(pX, 0, pY);
-            const r = part.circleRadius || 10;
-            dummy.position.y = r;
-            dummy.rotation.set(0, -pA, 0);
-            dummy.scale.setScalar(r);
-            dummy.updateMatrix();
-
-            mesh.setMatrixAt(index, dummy.matrix);
-            typeIndices[color]++;
-        }
-        return;
-      }
+      if (part.label === 'gem') return; // Handled by GemView
 
       activeIds.add(part.id);
       let mesh = bodyMeshMap.get(part.id);
@@ -983,15 +931,8 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
   updateCoinPile();
   updateParticles();
 
-  // Update all gem types
-  Object.keys(gemInstancedMeshes).forEach(color => {
-    const mesh = gemInstancedMeshes[color];
-    const count = typeIndices[color];
-    mesh.count = count;
-    if (count > 0) {
-      mesh.instanceMatrix.needsUpdate = true;
-    }
-  });
+  // Update gems
+  GemView.update(bodies, alpha);
 
   renderer.render(scene, camera);
 }

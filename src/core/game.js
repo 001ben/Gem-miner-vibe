@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { createMap } from '../entities/map.js';
 import { createBulldozer, getBulldozer } from '../domains/bulldozer/logic.js';
 import { createCollector } from '../entities/collector.js';
-import { initGems, collectGem } from '../entities/gem.js';
+import { initGems, collectGem } from '../domains/gem/logic.js';
 import { updateUI, initUI, showNotification } from './ui.js';
 import { createShopPads, checkShopCollisions } from '../entities/shop.js';
 import { initInput } from './input.js';

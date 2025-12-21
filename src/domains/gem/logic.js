@@ -1,8 +1,8 @@
-import { state, costs } from '../core/state.js';
-import { Bodies, Composite, Body, world, CATEGORIES } from '../core/physics.js';
-import { removeBodyMesh, spawnParticles, spawnCoinDrop } from '../core/graphics.js';
-import { updateUI, showNotification } from '../core/ui.js';
-import { createMap } from './map.js';
+import { state, costs } from '../../core/state.js';
+import { Bodies, Composite, Body, world, CATEGORIES } from '../../core/physics.js';
+import { spawnParticles, spawnCoinDrop } from '../../core/graphics.js';
+import { updateUI, showNotification } from '../../core/ui.js';
+import { createMap } from '../../entities/map.js';
 
 const gems = [];
 const gemColors = {
@@ -15,7 +15,8 @@ const gemColors = {
 export function initGems() {
   // Clear existing
   for (const g of gems) {
-    removeBodyMesh(g.id);
+    // The graphics system will automatically detect the removal of the body
+    // and clean up the associated meshes in the next frame.
     Composite.remove(world, g);
   }
   gems.length = 0;
@@ -86,9 +87,6 @@ export function collectGem(gem) {
 
   // Spawn flying coin visual from gem position
   spawnCoinDrop(gem.value, gem.position);
-
-  // Explicitly remove mesh to ensure visual update happens immediately
-  removeBodyMesh(gem.id);
 
   // Remove from physics world
   Composite.remove(world, gem);

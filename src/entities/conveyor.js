@@ -1,5 +1,5 @@
-import { engine, Events, Body, Matter } from '../core/physics.js';
-import { collectGem } from './gem.js';
+import { Bodies, Composite, world, CATEGORIES } from '../core/physics.js';
+import { collectGem } from '../domains/gem/logic.js';
 
 export function initConveyorSystem() {
     // Conveyor belt logic
