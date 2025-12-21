@@ -379,6 +379,26 @@ export function createMesh(body) {
     mesh = CollectorView.createMesh(body);
 
   } else if (label && label.startsWith('shop_pad')) {
+    const geo = new THREE.BoxGeometry(w, 5, h);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+    mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = 2.5;
+
+    const billGeo = new THREE.PlaneGeometry(w * 1.5, h * 0.8);
+    const billMat = new THREE.MeshBasicMaterial({ transparent: true, side: THREE.DoubleSide });
+    const billMesh = new THREE.Mesh(billGeo, billMat);
+
+    billMesh.position.set(0, 60, -h / 2 - 20);
+    billMesh.rotation.x = -Math.PI / 6;
+
+    billMesh.userData = { isTextPlane: true };
+    mesh.add(billMesh);
+
+    const type = label.split('_')[2];
+    const iconMesh = createShopIcon(type);
+    iconMesh.position.set(0, 40, 0);
+    iconMesh.userData = { isIcon: true };
+    mesh.add(iconMesh);
 
   } else {
     const geo = new THREE.BoxGeometry(w, 10, h);
