@@ -5,8 +5,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { BulldozerRenderer } from 'bulldozer-render';
-
-const cb = (u) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
+import { cb } from '../../../src/utils/graphics-utils.js';
 
 // --- Components ---
 
@@ -230,6 +229,12 @@ const App = () => {
 
     return html`
         <div className="director-ui-wrapper">
+            <!-- Navigation -->
+            <div style=${{ position: 'absolute', top: '10px', right: '50px', zIndex: 1000, pointerEvents: 'auto', background: 'rgba(0,0,0,0.6)', padding: '5px 10px', borderRadius: '20px', fontSize: '0.9rem', border: '1px solid #555', display: 'flex', gap: '10px', flexDirection: window.innerWidth <= 600 ? 'column' : 'row' }}>
+                <a href="../../" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Game</a>
+                <a href="../../docs/" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Docs</a>
+            </div>
+
             <button id="ui-toggle" style=${{ right: collapsed ? '10px' : '310px' }} onClick=${() => setCollapsed(!collapsed)}>☰</button>
             <div id="ui-container" className=${collapsed ? 'collapsed' : ''}>
                 <div className="panel-header">DAMP Asset Director</div>

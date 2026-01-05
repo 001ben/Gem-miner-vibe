@@ -1,0 +1,37 @@
+site_name: Gem Miner Docs
+site_url: https://example.com/
+theme:
+  name: material
+  palette:
+    primary: deep purple
+    accent: teal
+  features:
+    - navigation.expand
+    - navigation.indexes
+
+nav:
+  - Home: README.md
+  - Planning:
+      - Current Plan: planning/current.md
+  - Pipeline:
+      - Architecture: DAMP_PIPELINE_REVIEW.md
+      - Maintainability: DAMP_MAINTAINABILITY.md
+      - Gemini History: GEMINI.md
+  - Troubleshooting:
+      - Common Errors: COMMON_ERRORS.md
+      - Graphics: GRAPHICS_TROUBLESHOOTING.md
+  - Project Info:
+      - Structure: PROJECT_STRUCTURE.md
+
+extra_javascript:
+  - js/nav-overlay.js
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - toc:
+      permalink: true
+
+plugins:
+  - search

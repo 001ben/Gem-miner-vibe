@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { cb } from '../utils/graphics-utils.js';
 
 export class MaterialManager {
     constructor() {
@@ -48,12 +49,6 @@ export class MaterialManager {
         }
 
         const settings = (config && config.components) ? config.components[dampId] : null;
-
-        const cb = (u) => {
-            if (!u || u === 'None') return u;
-            if (u.startsWith('http')) return u;
-            return `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
-        };
 
         // 1. Determine Target Material Base
         const targetPresetName = settings?.preset || (dampId === "cabin" || matName.includes("Glass") ? "Glass" : (dampId === "track_link" || name.includes("Track") ? "Track" : null));
