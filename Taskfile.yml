@@ -15,9 +15,10 @@ tasks:
     platforms: [linux]
     cmds:
       - echo "Installing system dependencies (Linux)..."
-      - sudo apt-get update && sudo apt-get install -y blender
+      - sudo apt-get update && sudo apt-get install -y blender python3-numpy
     status:
       - which blender
+      - dpkg -s python3-numpy
 
   deps:system:darwin:
     internal: true
@@ -36,7 +37,8 @@ tasks:
   docs:build:
     desc: Build documentation site
     cmds:
-      - uvx --from mkdocs-material mkdocs build -d dist/docs
+      # Use mkdocs via uvx, with material theme injected
+      - uvx --from mkdocs --with mkdocs-material mkdocs build -d dist/docs
 
   docs:format:
     desc: Format documentation
