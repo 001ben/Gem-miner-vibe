@@ -11,17 +11,22 @@ theme:
 
 nav:
   - Home: README.md
+  - Guide:
+      - Project Structure: guide/PROJECT_STRUCTURE.md
   - Planning:
-      - Current Plan: planning/current.md
-  - Pipeline:
-      - Architecture: DAMP_PIPELINE_REVIEW.md
-      - Maintainability: DAMP_MAINTAINABILITY.md
-      - Gemini History: GEMINI.md
+      - Roadmap: planning/roadmap.md
+      - Current Task: planning/doc_rewrite.md
+      - Archive:
+          - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
+  - Architecture:
+      - Pipeline Review: architecture/DAMP_PIPELINE_REVIEW.md
+      - Maintainability: architecture/DAMP_MAINTAINABILITY.md
+      - Blender Pipeline: architecture/BLENDER_PIPELINE.md
   - Troubleshooting:
-      - Common Errors: COMMON_ERRORS.md
-      - Graphics: GRAPHICS_TROUBLESHOOTING.md
-  - Project Info:
-      - Structure: PROJECT_STRUCTURE.md
+      - Common Errors: troubleshooting/COMMON_ERRORS.md
+      - Graphics: troubleshooting/GRAPHICS_TROUBLESHOOTING.md
+  - History:
+      - Gemini Session (Dec 2025): history/GEMINI_2025_12.md
 
 extra_javascript:
   - js/nav-overlay.js

@@ -1,20 +1,27 @@
 # Documentation Index
 
-## 🟢 Active Documentation
+Welcome to the Gem Miner technical documentation.
 
-These documents reflect the current DAMP (Distributed Asset & Material Pipeline) architecture.
+## 📚 Guides & Reference
 
-- **[DAMP_MAINTAINABILITY.md](./DAMP_MAINTAINABILITY.md)** - **Start Here**. The current architectural "Bible". Explains the "Explicit Contract" model, the Taskfile build system, and the maintainability roadmap.
-- **[BLENDER_PIPELINE.md](./BLENDER_PIPELINE.md)** - Guide to creating new assets using Blender Python scripts.
-- **[DAMP_PIPELINE_REVIEW.md](./DAMP_PIPELINE_REVIEW.md)** - Context on the transition from "Implicit" to "Explicit" pipelines and technical design decisions.
-- **[GRAPHICS_TROUBLESHOOTING.md](./GRAPHICS_TROUBLESHOOTING.md)** - Reference for solving common rendering artifacts (Shadow Acne, etc.).
-- **[COMMON_ERRORS.md](./COMMON_ERRORS.md)** - Solutions for build and runtime environment issues.
+- **[Project Structure](guide/PROJECT_STRUCTURE.md)**: Overview of the codebase layout, including source, pipeline, and tools.
+- **[Taskfile Commands](guide/PROJECT_STRUCTURE.md#key-workflows)**: How to build, run, and verify the project.
 
-## 🟡 Legacy / Archived (`/archive`)
+## 🏗 Architecture (DAMP)
 
-These documents are preserved for historical context but describe deprecated workflows (OpenSCAD, pre-GLTF).
+The **Distributed Asset & Material Pipeline (DAMP)** is the core of our asset generation workflow.
 
-- `ASSET_PIPELINE.md` - The old OpenSCAD workflow.
-- `SCAD_VS_BLENDER.md` - Decision record comparing the two approaches.
-- `GRAPHICS_DESIGN.md` - Analysis of the legacy "Programmer Art" rendering system.
-- `BULLDOZER_RENDER_FRAMEWORKS_TUTORIAL.md` - Early exploration of rendering frameworks.
+- **[Maintainability "Bible"](architecture/DAMP_MAINTAINABILITY.md)**: The "Explicit Contract" model and core pillars.
+- **[Pipeline Review](architecture/DAMP_PIPELINE_REVIEW.md)**: Context on the transition to DAMP.
+- **[Blender Pipeline](architecture/BLENDER_PIPELINE.md)**: How to create assets using our Python API.
+
+## 🔧 Troubleshooting
+
+- **[Common Errors](troubleshooting/COMMON_ERRORS.md)**: Setup and runtime issues.
+- **[Graphics Troubleshooting](troubleshooting/GRAPHICS_TROUBLESHOOTING.md)**: Visual artifacts and rendering fixes.
+
+## 🗓 Planning
+
+- **[Roadmap](planning/roadmap.md)**: High-level goals and backlog.
+- **[Current Task](planning/doc_rewrite.md)**: Status of the current active work.
+- **[History](history/GEMINI_2025_12.md)**: Past session logs and decision records.
