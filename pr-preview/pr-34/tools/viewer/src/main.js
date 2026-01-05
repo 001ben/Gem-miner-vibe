@@ -229,9 +229,10 @@ const App = () => {
 
     return html`
         <div className="director-ui-wrapper">
-            <div style=${{ position: 'absolute', top: '10px', left: '10px', zIndex: 1000, pointerEvents: 'auto', background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '5px', fontSize: '0.8rem' }}>
-                <a href="../../" style=${{ color: '#fff', textDecoration: 'none', marginRight: '10px' }}>Game</a>
-                <a href="../../docs/" style=${{ color: '#fff', textDecoration: 'none' }}>Docs</a>
+            <!-- Navigation -->
+            <div style=${{ position: 'absolute', top: '10px', right: '50px', zIndex: 1000, pointerEvents: 'auto', background: 'rgba(0,0,0,0.6)', padding: '5px 10px', borderRadius: '20px', fontSize: '0.9rem', border: '1px solid #555' }}>
+                <a href="../../" style=${{ color: '#fff', textDecoration: 'none', marginRight: '10px', fontWeight: 'bold' }}>Game</a>
+                <a href="../../docs/" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Docs</a>
             </div>
 
             <button id="ui-toggle" style=${{ right: collapsed ? '10px' : '310px' }} onClick=${() => setCollapsed(!collapsed)}>☰</button>
