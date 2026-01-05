@@ -32,6 +32,9 @@ extra:
       link: ../../tools/viewer/
       name: Asset Viewer
 
+extra_javascript:
+  - js/nav-overlay.js
+
 markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
