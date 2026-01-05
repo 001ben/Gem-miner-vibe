@@ -23,15 +23,6 @@ nav:
   - Project Info:
       - Structure: PROJECT_STRUCTURE.md
 
-extra:
-  social:
-    - icon: fontawesome/solid/gamepad
-      link: ../../
-      name: Play Game
-    - icon: fontawesome/solid/cubes
-      link: ../../tools/viewer/
-      name: Asset Viewer
-
 extra_javascript:
   - js/nav-overlay.js
 
