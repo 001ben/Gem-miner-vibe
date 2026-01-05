@@ -5,7 +5,7 @@ includes:
 
 tasks:
   deps:system:
-    desc: Install system dependencies (Blender, Python3-NumPy)
+    desc: Install system dependencies (Blender)
     cmds:
       - task: deps:system:linux
       - task: deps:system:darwin
@@ -15,10 +15,9 @@ tasks:
     platforms: [linux]
     cmds:
       - echo "Installing system dependencies (Linux)..."
-      - sudo apt-get update && sudo apt-get install -y blender python3-numpy
+      - sudo apt-get update && sudo apt-get install -y blender
     status:
       - which blender
-      - dpkg -s python3-numpy
 
   deps:system:darwin:
     internal: true
@@ -30,21 +29,19 @@ tasks:
       - test -d /Applications/Blender.app
 
   deps:docs:
-    desc: Install documentation dependencies
+    desc: "Check for documentation tools (via uv)"
     cmds:
-      - pip install mkdocs mkdocs-material mdformat mdformat-gfm mdformat-frontmatter mdformat-mkdocs
+      - echo "Documentation tools will be run via 'uvx'"
 
   docs:build:
     desc: Build documentation site
-    deps: [deps:docs]
     cmds:
-      - mkdocs build -d dist/docs
+      - uvx --from mkdocs-material mkdocs build -d dist/docs
 
   docs:format:
     desc: Format documentation
-    deps: [deps:docs]
     cmds:
-      - mdformat docs/ README.md GEMINI.md
+      - uvx --from mdformat --with mdformat-gfm --with mdformat-frontmatter --with mdformat-mkdocs mdformat docs/ README.md GEMINI.md
 
   build:assets:
     desc: Build DAMP assets (GLB, Textures, Catalog)

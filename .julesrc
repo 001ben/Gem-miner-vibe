@@ -6,15 +6,20 @@ echo "🔧 Initializing Jules Environment..."
 # 1. Install Task (go-task)
 if ! command -v task &> /dev/null; then
     echo "Installing Task..."
-    # Install to /usr/local/bin so it's in the path
     sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 else
     echo "Task is already installed."
 fi
 
-# 2. Install Python Dependencies (Docs)
-echo "Installing Python dependencies..."
-python3 -m pip install mkdocs mkdocs-material mdformat mdformat-gfm mdformat-frontmatter mdformat-mkdocs
+# 2. Install UV (Package Manager)
+if ! command -v uv &> /dev/null; then
+    echo "Installing UV..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # Ensure uv is in path for this session
+    export PATH="$HOME/.cargo/bin:$PATH"
+else
+    echo "UV is already installed."
+fi
 
 # 3. Verify Blender (Optional - just check)
 if ! command -v blender &> /dev/null; then
