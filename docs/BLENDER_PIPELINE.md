@@ -6,16 +6,16 @@ This allows you to generate assets using Python code (keeping the "Programmer" w
 
 ## Architecture
 
-1.  **Source:** Python scripts (`.py`) located in `assets/source/blender/`.
-2.  **Engine:** Blender (headless mode).
-3.  **Compilation:** `task assets:geometry` (via Taskfile) runs Blender to execute the script and export `.glb`.
-4.  **Result:** Game-ready assets with **UVs** and **Materials**.
+1. **Source:** Python scripts (`.py`) located in `assets/source/blender/`.
+1. **Engine:** Blender (headless mode).
+1. **Compilation:** `task assets:geometry` (via Taskfile) runs Blender to execute the script and export `.glb`.
+1. **Result:** Game-ready assets with **UVs** and **Materials**.
 
 ## How to use
 
-1.  Create a python script in `assets/source/blender/my_asset.py`.
-2.  Use the `bpy` library to generate geometry.
-3.  Run `task build:assets`.
+1. Create a python script in `assets/source/blender/my_asset.py`.
+1. Use the `bpy` library to generate geometry.
+1. Run `task build:assets`.
 
 ## Example Blender Script
 

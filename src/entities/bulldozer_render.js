@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MaterialManager } from '../core/material-manager.js';
+import { cb } from '../utils/graphics-utils.js';
 
 export class BulldozerRenderer {
   constructor(scene) {
@@ -37,13 +38,6 @@ export class BulldozerRenderer {
 
   async load(url, configUrlOrObj = null) {
     console.log(`[DEBUG]BulldozerRenderer.load: ${url}`);
-
-    const cb = (u) => {
-      if (typeof u !== 'string') return u;
-      if (u.startsWith('http')) return u;
-      const separator = u.includes('?') ? '&' : '?';
-      return `${u}${separator}cb=${Date.now()}`;
-    };
 
     // Reset state
     this.config = null;

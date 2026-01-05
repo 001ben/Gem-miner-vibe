@@ -29,6 +29,23 @@ tasks:
     status:
       - test -d /Applications/Blender.app
 
+  deps:docs:
+    desc: Install documentation dependencies
+    cmds:
+      - pip install mkdocs mkdocs-material mdformat mdformat-gfm mdformat-frontmatter mdformat-mkdocs
+
+  docs:build:
+    desc: Build documentation site
+    deps: [deps:docs]
+    cmds:
+      - mkdocs build -d dist/docs
+
+  docs:format:
+    desc: Format documentation
+    deps: [deps:docs]
+    cmds:
+      - mdformat docs/ README.md GEMINI.md
+
   build:assets:
     desc: Build DAMP assets (GLB, Textures, Catalog)
     deps: [deps:system]
@@ -50,6 +67,8 @@ tasks:
       - touch dist/.nojekyll
       # Timestamp injection (Cross-platform compatible)
       - sh -c "sed -i.bak \"s/<!--TIMESTAMP-->/$(date -u '+%Y-%m-%d %H:%M')/g\" dist/index.html && rm dist/index.html.bak"
+      # Build docs
+      - task: docs:build
 
   dev:
     desc: Start the main game server

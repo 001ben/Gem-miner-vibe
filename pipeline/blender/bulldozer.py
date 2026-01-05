@@ -110,7 +110,12 @@ for i, p in enumerate(pos):
     w.location = p
     w.data.materials.append(chassis_mat)
     apply_transforms(w)
+
+    # PARENTING STRATEGY
+    # Instead of joining geometry (which destroys object metadata), we parent to the body.
+    # We must ensure transforms are applied *before* parenting to avoid double-transform issues if the parent is moved later (though here parent is at origin).
     w.parent = body
+
     tag_contract(w, "wheel")
 
 # 4. Cabin
@@ -120,11 +125,21 @@ cabin.name = "Cabin"
 cabin.scale = (2.0, 2.0, 1.2)
 apply_transforms(cabin)
 cabin.data.materials.append(cabin_mat)
+
+# PARENTING STRATEGY
 cabin.parent = body
+
 tag_contract(cabin, "cabin")
 
 # 5. UVs
-for o in [body, cabin]:
+# We need to unwrap each object individually now
+objects_to_unwrap = [body, cabin]
+# Add wheels to unwrap list
+for child in body.children:
+    if "Wheel" in child.name:
+        objects_to_unwrap.append(child)
+
+for o in objects_to_unwrap:
     bpy.context.view_layer.objects.active = o
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')

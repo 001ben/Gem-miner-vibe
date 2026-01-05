@@ -5,8 +5,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { BulldozerRenderer } from 'bulldozer-render';
-
-const cb = (u) => `${u}${u.includes('?') ? '&' : '?'}cb=${Date.now()}`;
+import { cb } from '../../../src/utils/graphics-utils.js';
 
 // --- Components ---
 
