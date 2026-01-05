@@ -283,3 +283,16 @@ body {
     80% { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-20px); }
 }
+
+/* Nav Links Responsive Stack */
+@media (max-width: 600px) {
+    #nav-links {
+        flex-direction: column;
+        gap: 5px !important;
+        padding: 8px !important;
+    }
+
+    #nav-links a {
+        font-size: 0.8rem;
+    }
+}

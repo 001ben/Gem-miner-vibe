@@ -230,8 +230,8 @@ const App = () => {
     return html`
         <div className="director-ui-wrapper">
             <!-- Navigation -->
-            <div style=${{ position: 'absolute', top: '10px', right: '50px', zIndex: 1000, pointerEvents: 'auto', background: 'rgba(0,0,0,0.6)', padding: '5px 10px', borderRadius: '20px', fontSize: '0.9rem', border: '1px solid #555' }}>
-                <a href="../../" style=${{ color: '#fff', textDecoration: 'none', marginRight: '10px', fontWeight: 'bold' }}>Game</a>
+            <div style=${{ position: 'absolute', top: '10px', right: '50px', zIndex: 1000, pointerEvents: 'auto', background: 'rgba(0,0,0,0.6)', padding: '5px 10px', borderRadius: '20px', fontSize: '0.9rem', border: '1px solid #555', display: 'flex', gap: '10px', flexDirection: window.innerWidth <= 600 ? 'column' : 'row' }}>
+                <a href="../../" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Game</a>
                 <a href="../../docs/" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Docs</a>
             </div>
 
