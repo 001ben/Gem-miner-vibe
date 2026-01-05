@@ -229,6 +229,11 @@ const App = () => {
 
     return html`
         <div className="director-ui-wrapper">
+            <div style=${{ position: 'absolute', top: '10px', left: '10px', zIndex: 1000, pointerEvents: 'auto', background: 'rgba(0,0,0,0.5)', padding: '5px', borderRadius: '5px', fontSize: '0.8rem' }}>
+                <a href="../../" style=${{ color: '#fff', textDecoration: 'none', marginRight: '10px' }}>Game</a>
+                <a href="../../docs/" style=${{ color: '#fff', textDecoration: 'none' }}>Docs</a>
+            </div>
+
             <button id="ui-toggle" style=${{ right: collapsed ? '10px' : '310px' }} onClick=${() => setCollapsed(!collapsed)}>☰</button>
             <div id="ui-container" className=${collapsed ? 'collapsed' : ''}>
                 <div className="panel-header">DAMP Asset Director</div>
