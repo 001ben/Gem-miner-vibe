@@ -1305,9 +1305,9 @@ This error occurs when the browser cannot resolve one of the JavaScript modules 
 <div class="admonition success">
 <p class="admonition-title">Solution</p>
 <p><strong>Local Development:</strong>
-Use the Taskfile commands to start the viewer from the correct root:
+Use the Taskfile commands to start the viewer from the correct root:</p>
 <div class="highlight"><pre><span></span><code>task<span class="w"> </span>damp:viewer
-</code></pre></div></p>
+</code></pre></div>
 <p><strong>Deployment:</strong>
 Check the <code>pr-preview.yml</code> workflow to ensure it copies source files to the <code>dist/</code> folder and rewrites paths (<code>sed</code>) in <code>index.html</code>.</p>
 </div>
@@ -1316,9 +1316,9 @@ Check the <code>pr-preview.yml</code> workflow to ensure it copies source files 
 The 3D assets have not been built locally.</p>
 <div class="admonition success">
 <p class="admonition-title">Solution</p>
-<p>Run the asset build task:
+<p>Run the asset build task:</p>
 <div class="highlight"><pre><span></span><code>task<span class="w"> </span>build:assets
-</code></pre></div></p>
+</code></pre></div>
 <p><em>Note: The asset viewer handles this gracefully by logging a warning, but the model will not appear.</em></p>
 </div>
 <h2 id="graphics-glitches">Graphics Glitches<a class="headerlink" href="#graphics-glitches" title="Permanent link">&para;</a></h2>

@@ -1173,24 +1173,36 @@
 
 
 <h1 id="plan-documentation-rewrite">Plan: Documentation Rewrite<a class="headerlink" href="#plan-documentation-rewrite" title="Permanent link">&para;</a></h1>
-<p><strong>Status:</strong> In Progress
+<p><strong>Status:</strong> Complete
 <strong>Date:</strong> 2025-05-19</p>
 <h2 id="goals">Goals<a class="headerlink" href="#goals" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Consolidate and Clean Up</strong>: Remove duplicate files and archive old plans.</li>
-<li><strong>Restructure</strong>: Organize <code>docs/</code> into logical subdirectories.</li>
-<li><strong>Update Content</strong>: Ensure documentation reflects the actual state of the codebase.</li>
-<li><strong>Navigation</strong>: Update <code>mkdocs.yml</code>.</li>
+<li><strong>Consolidate and Clean Up</strong>: Remove duplicate files (like root <code>GEMINI.md</code>) and archive old plans.</li>
+<li><strong>Restructure</strong>: Organize <code>docs/</code> into logical subdirectories (<code>architecture</code>, <code>troubleshooting</code>, <code>history</code>).</li>
+<li><strong>Update Content</strong>: Ensure all documentation reflects the actual state of the codebase (DAMP pipeline, directory structure, etc.).</li>
+<li><strong>Navigation</strong>: Update <code>mkdocs.yml</code> to provide a clear navigation hierarchy.</li>
 </ol>
+<div class="admonition info">
+<p class="admonition-title">Current Workload Status</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Move old planning docs to archive.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Create <code>roadmap.md</code> and this plan.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Reorganize <code>docs/</code> file structure.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Rewrite <code>PROJECT_STRUCTURE.md</code> and <code>README.md</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Rewrite <code>docs/architecture/DAMP_MAINTAINABILITY.md</code> to reflect current architecture and rationale.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Update <code>mkdocs.yml</code> (done previously, verify if name change needed).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Verify build.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Add Pre-commit/Linting for Docs</li>
+</ul>
+</div>
 <h2 id="steps">Steps<a class="headerlink" href="#steps" title="Permanent link">&para;</a></h2>
 <ol class="task-list">
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Move old planning docs to archive.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Create <code>roadmap.md</code> and this plan.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Reorganize <code>docs/</code> file structure.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Rewrite <code>PROJECT_STRUCTURE.md</code> and <code>README.md</code>.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Rewrite <code>docs/architecture/DAMP_MAINTAINABILITY.md</code> to reflect current architecture and rationale.</strong></li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update <code>mkdocs.yml</code> (done previously, verify if name change needed).</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify build.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Rewrite/Update individual markdown files.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Update <code>mkdocs.yml</code>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Verify build.</li>
 </ol>
 
 
