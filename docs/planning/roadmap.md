@@ -2,7 +2,7 @@
 
 ## Active Work
 
-- [ ] **Documentation Rewrite**: Full audit and restructure of project documentation to reflect current state. (In Progress)
+- [x] **Documentation Rewrite**: Full audit and restructure of project documentation to reflect current state. ([View Plan](doc_rewrite.md))
 
 ## Backlog
 
