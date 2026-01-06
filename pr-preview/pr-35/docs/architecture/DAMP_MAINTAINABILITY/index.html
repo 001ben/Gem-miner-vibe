@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#damp-pipeline-maintainability-organization-roadmap" class="md-skip">
+        <a href="#damp-architecture-rationale" class="md-skip">
           Skip to content
         </a>
       
@@ -690,7 +690,7 @@
   <a href="#the-contract-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Contract Model:
+        The Contract Model
       
     </span>
   </a>
@@ -703,22 +703,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-structural-improvements" class="md-nav__link">
+  <a href="#2-the-four-pillars-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Structural Improvements
+        2. The "Four Pillars" Structure
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Structural Improvements">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-pipeline-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Pipeline Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-key-architectural-decisions-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Key Architectural Decisions (Rationale)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Key Architectural Decisions (Rationale)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#a-centralized-resource-loader-assetmanagerjs" class="md-nav__link">
+  <a href="#a-parenting-vs-joining" class="md-nav__link">
     <span class="md-ellipsis">
       
-        A. Centralized Resource Loader (AssetManager.js)
+        A. Parenting vs. Joining
       
     </span>
   </a>
@@ -726,10 +748,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#b-standardized-component-lifecycle" class="md-nav__link">
+  <a href="#b-material-level-tagging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        B. Standardized Component Lifecycle
+        B. Material-Level Tagging
       
     </span>
   </a>
@@ -737,10 +759,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#c-decoupled-assembly-logic" class="md-nav__link">
+  <a href="#c-baked-transforms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        C. Decoupled Assembly Logic
+        C. Baked Transforms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-centralized-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Centralized Utilities
       
     </span>
   </a>
@@ -753,60 +786,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-organization-checklist-for-maintainability" class="md-nav__link">
+  <a href="#5-component-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Organization Checklist for Maintainability
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Organization Checklist for Maintainability">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#data-organization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data Organization:
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#code-organization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Code Organization:
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-debugging-observability" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Debugging &amp; Observability
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-phase-1-immediate-maintenance-actions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Phase 1: Immediate Maintenance Actions
+        5. Component Lifecycle
       
     </span>
   </a>
@@ -1105,7 +1088,7 @@
   <a href="#the-contract-model" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Contract Model:
+        The Contract Model
       
     </span>
   </a>
@@ -1118,22 +1101,44 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-structural-improvements" class="md-nav__link">
+  <a href="#2-the-four-pillars-structure" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Structural Improvements
+        2. The "Four Pillars" Structure
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="2. Structural Improvements">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-pipeline-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Pipeline Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-key-architectural-decisions-rationale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Key Architectural Decisions (Rationale)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Key Architectural Decisions (Rationale)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#a-centralized-resource-loader-assetmanagerjs" class="md-nav__link">
+  <a href="#a-parenting-vs-joining" class="md-nav__link">
     <span class="md-ellipsis">
       
-        A. Centralized Resource Loader (AssetManager.js)
+        A. Parenting vs. Joining
       
     </span>
   </a>
@@ -1141,10 +1146,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#b-standardized-component-lifecycle" class="md-nav__link">
+  <a href="#b-material-level-tagging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        B. Standardized Component Lifecycle
+        B. Material-Level Tagging
       
     </span>
   </a>
@@ -1152,10 +1157,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#c-decoupled-assembly-logic" class="md-nav__link">
+  <a href="#c-baked-transforms" class="md-nav__link">
     <span class="md-ellipsis">
       
-        C. Decoupled Assembly Logic
+        C. Baked Transforms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-centralized-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Centralized Utilities
       
     </span>
   </a>
@@ -1168,60 +1184,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-organization-checklist-for-maintainability" class="md-nav__link">
+  <a href="#5-component-lifecycle" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Organization Checklist for Maintainability
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Organization Checklist for Maintainability">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#data-organization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data Organization:
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#code-organization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Code Organization:
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-debugging-observability" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Debugging &amp; Observability
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-phase-1-immediate-maintenance-actions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Phase 1: Immediate Maintenance Actions
+        5. Component Lifecycle
       
     </span>
   </a>
@@ -1245,76 +1211,76 @@
 
 
 
-<h1 id="damp-pipeline-maintainability-organization-roadmap">DAMP Pipeline: Maintainability &amp; Organization Roadmap<a class="headerlink" href="#damp-pipeline-maintainability-organization-roadmap" title="Permanent link">&para;</a></h1>
+<h1 id="damp-architecture-rationale">DAMP Architecture &amp; Rationale<a class="headerlink" href="#damp-architecture-rationale" title="Permanent link">&para;</a></h1>
+<p><strong>Distributed Asset &amp; Material Pipeline (DAMP)</strong></p>
+<p>This document outlines the architectural decisions and "Explicit Contract" model that governs the asset pipeline for the Gem Miner project.</p>
 <h2 id="1-core-philosophy-explicit-implicit">1. Core Philosophy: "Explicit &gt; Implicit"<a class="headerlink" href="#1-core-philosophy-explicit-implicit" title="Permanent link">&para;</a></h2>
-<p>The primary source of bugs in the current iteration is <strong>Implicit Logic</strong>—guessing mesh names, assuming alignment offsets, and relying on runtime discovery to fix build-time naming genericisms. To improve maintainability, we must shift to a contract-based architecture.</p>
-<h3 id="the-contract-model">The Contract Model:<a class="headerlink" href="#the-contract-model" title="Permanent link">&para;</a></h3>
+<p>The primary design principle is <strong>Explicit Contracts</strong>. We avoid "Implicit Logic" (guessing mesh names like <code>Cube001</code>, assuming default alignments, or relying on runtime discovery).</p>
+<h3 id="the-contract-model">The Contract Model<a class="headerlink" href="#the-contract-model" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Blender (Provider)</strong>: Must explicitly tag meshes with a permanent <code>damp_id</code>.</li>
-<li><strong>JSON (Contract)</strong>: Must define properties using that <code>damp_id</code>.</li>
-<li><strong>Renderer (Consumer)</strong>: Must only look for <code>damp_id</code>, ignoring generic names like <code>Cube001</code>.</li>
+<li><strong>Blender (Provider)</strong>: Explicitly tags Materials and Objects with a permanent <code>damp_id</code> custom property.</li>
+<li><strong>GLB (Artifact)</strong>: Carries these IDs in the standard <code>extras</code> or <code>userData</code> fields.</li>
+<li><strong>Renderer (Consumer)</strong>: Strictly enforces the contract. It looks for <code>damp_id</code> and maps functionality to it. If an ID is missing, the system fails fast or renders a "Magenta Error" material.</li>
 </ul>
-<hr />
-<h2 id="2-structural-improvements">2. Structural Improvements<a class="headerlink" href="#2-structural-improvements" title="Permanent link">&para;</a></h2>
-<h3 id="a-centralized-resource-loader-assetmanagerjs">A. Centralized Resource Loader (<code>AssetManager.js</code>)<a class="headerlink" href="#a-centralized-resource-loader-assetmanagerjs" title="Permanent link">&para;</a></h3>
-<p>Currently, cache-busting and fetching are spread across the viewer and renderer.</p>
-<ul>
-<li><strong>Problem</strong>: Inconsistent caching leads to "ghost bugs" where code is new but assets are old.</li>
-<li><strong>Solution</strong>: Create a singleton <code>AssetManager</code> that handles:<ul>
-<li>Centralized <code>cb()</code> (cache-busting) strategy.</li>
-<li>Global texture registry (to avoid redundant cloning vs sharing).</li>
-<li>Unified error reporting for missing assets.</li>
-</ul>
-</li>
-</ul>
-<h3 id="b-standardized-component-lifecycle">B. Standardized Component Lifecycle<a class="headerlink" href="#b-standardized-component-lifecycle" title="Permanent link">&para;</a></h3>
-<p>The "Discovery" phase in the viewer currently fights with the Renderer's internal load.</p>
-<ul>
-<li><strong>Current Lifecycle</strong>: Load GLB -&gt; Guess Materials -&gt; UI Scans Scene -&gt; UI Updates Materials -&gt; (Race Condition).</li>
-<li><strong>Proposed Lifecycle</strong>:<ol>
-<li><strong>Initialization</strong>: Renderer loads GLB and JSON.</li>
-<li><strong>Mapping</strong>: Renderer maps meshes to config using <code>damp_id</code> custom properties.</li>
-<li><strong>Registration</strong>: Renderer emits a structured <code>Manifest</code> of all tunable parts.</li>
-<li><strong>UI Binding</strong>: Viewer simply iterates the <code>Manifest</code> to build controls.</li>
-</ol>
-</li>
-<li><strong>Benefit</strong>: Eliminate race conditions and ensure the UI always reflects the internal state of the renderer.</li>
-</ul>
-<h3 id="c-decoupled-assembly-logic">C. Decoupled Assembly Logic<a class="headerlink" href="#c-decoupled-assembly-logic" title="Permanent link">&para;</a></h3>
-<p>Alignment offsets (Vertical/Spread) are currently split between Blender scripts, hardcoded Renderer defaults, and UI state.</p>
-<ul>
-<li><strong>Problem</strong>: Changing a value in one place requires manual synchronization in three others.</li>
-<li><strong>Solution</strong>: Move <strong>all</strong> assembly offsets into the <code>config.json</code>. Blender should export at origin <code>(0,0,0)</code>, and the JSON should dictate where the tracks sit relative to the body.</li>
-</ul>
-<hr />
-<h2 id="3-organization-checklist-for-maintainability">3. Organization Checklist for Maintainability<a class="headerlink" href="#3-organization-checklist-for-maintainability" title="Permanent link">&para;</a></h2>
-<h3 id="data-organization">Data Organization:<a class="headerlink" href="#data-organization" title="Permanent link">&para;</a></h3>
-<ul>
-<li>[ ] <strong>Standard Schema</strong>: Define a <code>damp-schema.json</code> to validate asset mappings.</li>
-<li>[ ] <strong>Asset Namespacing</strong>: Move generated textures from <code>assets/textures/</code> to <code>assets/generated/</code> to clearly distinguish them from hand-authored source art.</li>
-</ul>
-<h3 id="code-organization">Code Organization:<a class="headerlink" href="#code-organization" title="Permanent link">&para;</a></h3>
-<ul>
-<li>[ ] <strong>Base Class</strong>: Create a <code>BaseEntityRenderer</code> that handles the boilerplate (Three.js group management, <code>setPose</code>, <code>destroy</code>, generic <code>applyMaterial</code>).</li>
-<li>[ ] <strong>Shared Utilities</strong>: Move <code>cb()</code>, <code>getPointsFromMesh()</code>, and <code>enhanceMaterialWithTriplanar()</code> into a shared <code>js/utils/graphics-utils.js</code>.</li>
-</ul>
-<hr />
-<h2 id="4-debugging-observability">4. Debugging &amp; Observability<a class="headerlink" href="#4-debugging-observability" title="Permanent link">&para;</a></h2>
-<p>Non-obvious bugs thrive in silent failures.</p>
-<ul>
-<li><strong>Action</strong>: Implement a "Debug Overlay" in the Asset Director that highlights the selected mesh in the 3D scene (e.g., using a wireframe helper or a bounding box).</li>
-<li><strong>Action</strong>: Ensure every <code>[WARN]</code> and <code>[ERROR]</code> includes the specific component name and file path that failed.</li>
-</ul>
-<hr />
-<h2 id="5-phase-1-immediate-maintenance-actions">5. Phase 1: Immediate Maintenance Actions<a class="headerlink" href="#5-phase-1-immediate-maintenance-actions" title="Permanent link">&para;</a></h2>
+<h2 id="2-the-four-pillars-structure">2. The "Four Pillars" Structure<a class="headerlink" href="#2-the-four-pillars-structure" title="Permanent link">&para;</a></h2>
+<p>To maintain separation of concerns, the codebase is divided into four distinct domains:</p>
 <ol>
-<li><strong>Refactor Blender Output</strong>: Update <code>bulldozer.py</code> to add custom properties to objects: <code>obj["damp_id"] = "chassis"</code>.</li>
-<li><strong>Standardize Utility Imports</strong>: Replace multiple <code>cb()</code> definitions with a single imported utility.</li>
-<li><strong>Consolidate Offset Logic</strong>: Move the perfect offsets (<code>-0.53</code>, <code>0.15</code>) into the <code>bulldozer_mapping.json</code> under an <code>assembly</code> key.</li>
+<li><strong><code>src/</code> (Game Source)</strong>: The runtime game logic. It consumes assets but does not generate them.</li>
+<li><strong><code>pipeline/</code> (Asset Factory)</strong>: The "Source of Truth" for assets. Contains Blender Python scripts and procedural texture generators.</li>
+<li><strong><code>tools/</code> (DX Tools)</strong>: Developer tools like the Asset Viewer (<code>tools/viewer</code>) that verify assets in isolation.</li>
+<li><strong><code>assets/</code> (Output/Artifacts)</strong>: The compiled <code>.glb</code> and configuration files. <em>Note: Source configuration lives in <code>pipeline/</code> or <code>assets/configs/</code>, while generated binaries go to <code>public/assets/</code>.</em></li>
+</ol>
+<h2 id="3-pipeline-flow">3. Pipeline Flow<a class="headerlink" href="#3-pipeline-flow" title="Permanent link">&para;</a></h2>
+<p>The asset generation flow is automated via <code>task build:assets</code>:</p>
+<ol>
+<li><strong>Generation</strong>:<ul>
+<li><code>pipeline/blender/bulldozer.py</code> is executed via Blender's Python API.</li>
+<li>Geometries are generated procedurally (or loaded).</li>
+<li>Objects are <strong>Parented</strong> (not Joined) to preserve hierarchy.</li>
+<li><code>damp_id</code> properties are injected into Materials and Objects.</li>
+<li><strong>Transforms are Baked</strong>: Meshes are exported with transforms applied (Identity rotation/scale) to ensure they appear correctly in the game engine without manual adjustment.</li>
+</ul>
+</li>
+<li><strong>Compilation</strong>:<ul>
+<li>The script exports a <code>.glb</code> file to the distribution folder.</li>
+<li><code>catalog.json</code> is generated/updated to index the available assets.</li>
+</ul>
+</li>
+<li><strong>Consumption</strong>:<ul>
+<li><code>BulldozerRenderer</code> (in <code>src/entities/</code>) loads the GLB.</li>
+<li>It traverses the scene graph, reading <code>damp_id</code>.</li>
+<li>It applies game-specific materials (e.g., Triplanar Noise) based on these IDs.</li>
+</ul>
+</li>
+</ol>
+<h2 id="4-key-architectural-decisions-rationale">4. Key Architectural Decisions (Rationale)<a class="headerlink" href="#4-key-architectural-decisions-rationale" title="Permanent link">&para;</a></h2>
+<h3 id="a-parenting-vs-joining">A. Parenting vs. Joining<a class="headerlink" href="#a-parenting-vs-joining" title="Permanent link">&para;</a></h3>
+<p><strong>Decision</strong>: Use Object Parenting, not <code>bpy.ops.object.join()</code>.
+<strong>Rationale</strong>: Joining meshes destroys object-level metadata and forces Three.js to split primitives at runtime, causing race conditions and losing the <code>damp_id</code> on sub-parts. Parenting preserves the logical hierarchy and metadata.</p>
+<h3 id="b-material-level-tagging">B. Material-Level Tagging<a class="headerlink" href="#b-material-level-tagging" title="Permanent link">&para;</a></h3>
+<p><strong>Decision</strong>: Tag Materials (<code>mat["damp_id"]</code>) in addition to Objects.
+<strong>Rationale</strong>: Custom properties on Materials are more resilient. Even if geometry is merged or instanced, Three.js preserves material slots, allowing the renderer to reliably identify "Glass" vs "Steel" parts.</p>
+<h3 id="c-baked-transforms">C. Baked Transforms<a class="headerlink" href="#c-baked-transforms" title="Permanent link">&para;</a></h3>
+<p><strong>Decision</strong>: Bake scale and rotation in Blender; avoid runtime adjustments.
+<strong>Rationale</strong>: Early iterations attempted to fix rotation (Y-up vs Z-up) in JavaScript. This led to "Tiny Bodies and Giant Tracks" bugs. Baking the transforms ensures that <code>(1,1,1)</code> in the game engine matches the intended visual size.</p>
+<h3 id="d-centralized-utilities">D. Centralized Utilities<a class="headerlink" href="#d-centralized-utilities" title="Permanent link">&para;</a></h3>
+<p><strong>Decision</strong>: Move cache-busting (<code>cb()</code>) and common logic to <code>src/utils/graphics-utils.js</code>.
+<strong>Rationale</strong>: Previously, the Viewer and the Game had separate utility implementations, leading to "ghost bugs" where one saw cached assets and the other saw new ones. A shared utility ensures consistency.</p>
+<h2 id="5-component-lifecycle">5. Component Lifecycle<a class="headerlink" href="#5-component-lifecycle" title="Permanent link">&para;</a></h2>
+<p>The standard lifecycle for an asset-based entity (like the Bulldozer) is:</p>
+<ol>
+<li><strong><code>init()</code></strong>: Physics body created (invisible).</li>
+<li><strong><code>load()</code></strong>: <code>BulldozerRenderer</code> fetches the GLB.</li>
+<li><strong><code>setup()</code></strong>:<ul>
+<li>Traverses GLB.</li>
+<li>Identifies Tracks (extracts Curves).</li>
+<li>Identifies Chassis/Parts (applies Materials).</li>
+</ul>
+</li>
+<li><strong><code>update()</code></strong>: Syncs the root Mesh position/rotation to the Physics Body.</li>
 </ol>
 <hr />
-<p><em>Updated: Thursday 18 December 2025</em>
-<em>Focus: Long-term code health and developer ergonomics.</em></p>
+<p><em>Last Updated: 2025-05-19</em></p>
 
 
 
