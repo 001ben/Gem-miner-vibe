@@ -4,21 +4,21 @@
 
 The project follows a "Modern Standard" structure to separate source code, build pipelines, and developer tools.
 
-## Directory Layout
+## :material-folder: Directory Layout
 
 - **`src/`**: Main Game Source Code.
-    - `core/`: Engine logic (Game loop, Graphics, Physics, UI).
-    - `entities/`: Game Objects (Bulldozer, Gems, Map).
-    - `utils/`: Shared utilities (Math, Graphics).
+    - :material-engine: `core/`: Engine logic (Game loop, Graphics, Physics, UI).
+    - :material-cube-outline: `entities/`: Game Objects (Bulldozer, Gems, Map).
+    - :material-function-variant: `utils/`: Shared utilities (Math, Graphics).
 - **`pipeline/`**: The Asset Factory ("Source of Truth").
-    - `blender/`: Python scripts for geometry generation.
-    - `textures/`: Python scripts for procedural texture generation.
-    - `scripts/`: Node.js build and verification scripts.
+    - :material-blender-software: `blender/`: Python scripts for geometry generation.
+    - :material-texture: `textures/`: Python scripts for procedural texture generation.
+    - :material-nodejs: `scripts/`: Node.js build and verification scripts.
 - **`tools/`**: Developer Tools.
-    - `viewer/`: The DAMP Asset Director (Web App).
-    - `physics-playground/`: Isolated physics testing environment.
+    - :material-monitor: `viewer/`: The DAMP Asset Director (Web App).
+    - :material-flask: `physics-playground/`: Isolated physics testing environment.
 - **`assets/`**: Source configuration for assets.
-    - `configs/`: JSON configuration files for the pipeline.
+    - :material-file-cog: `configs/`: JSON configuration files for the pipeline.
 - **`docs/`**: Project Documentation.
 - **`dist/`**: (Generated) Build artifacts, including compiled assets and the playable game.
 
@@ -29,10 +29,15 @@ Ensure you have `uv` and `go-task` installed (handled by `.julesrc` in dev conta
 
 ### Commands
 
-| Command | Description |
-| :--- | :--- |
-| `task dev` | Starts the main game server locally. |
-| `task damp:viewer` | Starts the Asset Viewer tool. |
-| `task build:assets` | Runs the full Blender pipeline to generate GLBs and textures. |
-| `task build:dist` | Creates a production build in `dist/`. |
-| `task docs:build` | Builds this documentation site. |
+=== ":material-play: Run"
+    | Command | Description |
+    | :--- | :--- |
+    | `task dev` | Starts the main game server locally. |
+    | `task damp:viewer` | Starts the Asset Viewer tool. |
+
+=== ":material-factory: Build"
+    | Command | Description |
+    | :--- | :--- |
+    | `task build:assets` | Runs the full Blender pipeline to generate GLBs and textures. |
+    | `task build:dist` | Creates a production build in `dist/`. |
+    | `task docs:build` | Builds this documentation site. |

@@ -37,8 +37,8 @@ tasks:
   docs:build:
     desc: Build documentation site
     cmds:
-      # Use mkdocs via uvx, with material theme injected
-      - uvx --from mkdocs --with mkdocs-material mkdocs build -d dist/docs
+      # Use mkdocs via uvx, with material theme and plugins
+      - uvx --from mkdocs --with mkdocs-material --with mkdocs-awesome-pages-plugin mkdocs build -d dist/docs
 
   docs:format:
     desc: Format documentation
