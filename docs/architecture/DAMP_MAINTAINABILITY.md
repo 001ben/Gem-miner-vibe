@@ -1,80 +1,75 @@
-# DAMP Pipeline: Maintainability & Organization Roadmap
+# DAMP Architecture & Rationale
+
+**Distributed Asset & Material Pipeline (DAMP)**
+
+This document outlines the architectural decisions and "Explicit Contract" model that governs the asset pipeline for the Gem Miner project.
 
 ## 1. Core Philosophy: "Explicit > Implicit"
 
-The primary source of bugs in the current iteration is **Implicit Logic**—guessing mesh names, assuming alignment offsets, and relying on runtime discovery to fix build-time naming genericisms. To improve maintainability, we must shift to a contract-based architecture.
+The primary design principle is **Explicit Contracts**. We avoid "Implicit Logic" (guessing mesh names like `Cube001`, assuming default alignments, or relying on runtime discovery).
 
-### The Contract Model:
+### The Contract Model
 
-- **Blender (Provider)**: Must explicitly tag meshes with a permanent `damp_id`.
-- **JSON (Contract)**: Must define properties using that `damp_id`.
-- **Renderer (Consumer)**: Must only look for `damp_id`, ignoring generic names like `Cube001`.
+- **Blender (Provider)**: Explicitly tags Materials and Objects with a permanent `damp_id` custom property.
+- **GLB (Artifact)**: Carries these IDs in the standard `extras` or `userData` fields.
+- **Renderer (Consumer)**: Strictly enforces the contract. It looks for `damp_id` and maps functionality to it. If an ID is missing, the system fails fast or renders a "Magenta Error" material.
 
-______________________________________________________________________
+## 2. The "Four Pillars" Structure
 
-## 2. Structural Improvements
+To maintain separation of concerns, the codebase is divided into four distinct domains:
 
-### A. Centralized Resource Loader (`AssetManager.js`)
+1.  **`src/` (Game Source)**: The runtime game logic. It consumes assets but does not generate them.
+2.  **`pipeline/` (Asset Factory)**: The "Source of Truth" for assets. Contains Blender Python scripts and procedural texture generators.
+3.  **`tools/` (DX Tools)**: Developer tools like the Asset Viewer (`tools/viewer`) that verify assets in isolation.
+4.  **`assets/` (Output/Artifacts)**: The compiled `.glb` and configuration files. *Note: Source configuration lives in `pipeline/` or `assets/configs/`, while generated binaries go to `public/assets/`.*
 
-Currently, cache-busting and fetching are spread across the viewer and renderer.
+## 3. Pipeline Flow
 
-- **Problem**: Inconsistent caching leads to "ghost bugs" where code is new but assets are old.
-- **Solution**: Create a singleton `AssetManager` that handles:
-    - Centralized `cb()` (cache-busting) strategy.
-    - Global texture registry (to avoid redundant cloning vs sharing).
-    - Unified error reporting for missing assets.
+The asset generation flow is automated via `task build:assets`:
 
-### B. Standardized Component Lifecycle
+1.  **Generation**:
+    - `pipeline/blender/bulldozer.py` is executed via Blender's Python API.
+    - Geometries are generated procedurally (or loaded).
+    - Objects are **Parented** (not Joined) to preserve hierarchy.
+    - `damp_id` properties are injected into Materials and Objects.
+    - **Transforms are Baked**: Meshes are exported with transforms applied (Identity rotation/scale) to ensure they appear correctly in the game engine without manual adjustment.
+2.  **Compilation**:
+    - The script exports a `.glb` file to the distribution folder.
+    - `catalog.json` is generated/updated to index the available assets.
+3.  **Consumption**:
+    - `BulldozerRenderer` (in `src/entities/`) loads the GLB.
+    - It traverses the scene graph, reading `damp_id`.
+    - It applies game-specific materials (e.g., Triplanar Noise) based on these IDs.
 
-The "Discovery" phase in the viewer currently fights with the Renderer's internal load.
+## 4. Key Architectural Decisions (Rationale)
 
-- **Current Lifecycle**: Load GLB -> Guess Materials -> UI Scans Scene -> UI Updates Materials -> (Race Condition).
-- **Proposed Lifecycle**:
-    1. **Initialization**: Renderer loads GLB and JSON.
-    1. **Mapping**: Renderer maps meshes to config using `damp_id` custom properties.
-    1. **Registration**: Renderer emits a structured `Manifest` of all tunable parts.
-    1. **UI Binding**: Viewer simply iterates the `Manifest` to build controls.
-- **Benefit**: Eliminate race conditions and ensure the UI always reflects the internal state of the renderer.
+### A. Parenting vs. Joining
+**Decision**: Use Object Parenting, not `bpy.ops.object.join()`.
+**Rationale**: Joining meshes destroys object-level metadata and forces Three.js to split primitives at runtime, causing race conditions and losing the `damp_id` on sub-parts. Parenting preserves the logical hierarchy and metadata.
 
-### C. Decoupled Assembly Logic
+### B. Material-Level Tagging
+**Decision**: Tag Materials (`mat["damp_id"]`) in addition to Objects.
+**Rationale**: Custom properties on Materials are more resilient. Even if geometry is merged or instanced, Three.js preserves material slots, allowing the renderer to reliably identify "Glass" vs "Steel" parts.
 
-Alignment offsets (Vertical/Spread) are currently split between Blender scripts, hardcoded Renderer defaults, and UI state.
+### C. Baked Transforms
+**Decision**: Bake scale and rotation in Blender; avoid runtime adjustments.
+**Rationale**: Early iterations attempted to fix rotation (Y-up vs Z-up) in JavaScript. This led to "Tiny Bodies and Giant Tracks" bugs. Baking the transforms ensures that `(1,1,1)` in the game engine matches the intended visual size.
 
-- **Problem**: Changing a value in one place requires manual synchronization in three others.
-- **Solution**: Move **all** assembly offsets into the `config.json`. Blender should export at origin `(0,0,0)`, and the JSON should dictate where the tracks sit relative to the body.
+### D. Centralized Utilities
+**Decision**: Move cache-busting (`cb()`) and common logic to `src/utils/graphics-utils.js`.
+**Rationale**: Previously, the Viewer and the Game had separate utility implementations, leading to "ghost bugs" where one saw cached assets and the other saw new ones. A shared utility ensures consistency.
 
-______________________________________________________________________
+## 5. Component Lifecycle
 
-## 3. Organization Checklist for Maintainability
+The standard lifecycle for an asset-based entity (like the Bulldozer) is:
 
-### Data Organization:
-
-- [ ] **Standard Schema**: Define a `damp-schema.json` to validate asset mappings.
-- [ ] **Asset Namespacing**: Move generated textures from `assets/textures/` to `assets/generated/` to clearly distinguish them from hand-authored source art.
-
-### Code Organization:
-
-- [ ] **Base Class**: Create a `BaseEntityRenderer` that handles the boilerplate (Three.js group management, `setPose`, `destroy`, generic `applyMaterial`).
-- [ ] **Shared Utilities**: Move `cb()`, `getPointsFromMesh()`, and `enhanceMaterialWithTriplanar()` into a shared `js/utils/graphics-utils.js`.
-
-______________________________________________________________________
-
-## 4. Debugging & Observability
-
-Non-obvious bugs thrive in silent failures.
-
-- **Action**: Implement a "Debug Overlay" in the Asset Director that highlights the selected mesh in the 3D scene (e.g., using a wireframe helper or a bounding box).
-- **Action**: Ensure every `[WARN]` and `[ERROR]` includes the specific component name and file path that failed.
-
-______________________________________________________________________
-
-## 5. Phase 1: Immediate Maintenance Actions
-
-1. **Refactor Blender Output**: Update `bulldozer.py` to add custom properties to objects: `obj["damp_id"] = "chassis"`.
-1. **Standardize Utility Imports**: Replace multiple `cb()` definitions with a single imported utility.
-1. **Consolidate Offset Logic**: Move the perfect offsets (`-0.53`, `0.15`) into the `bulldozer_mapping.json` under an `assembly` key.
+1.  **`init()`**: Physics body created (invisible).
+2.  **`load()`**: `BulldozerRenderer` fetches the GLB.
+3.  **`setup()`**:
+    - Traverses GLB.
+    - Identifies Tracks (extracts Curves).
+    - Identifies Chassis/Parts (applies Materials).
+4.  **`update()`**: Syncs the root Mesh position/rotation to the Physics Body.
 
 ______________________________________________________________________
-
-*Updated: Thursday 18 December 2025*
-*Focus: Long-term code health and developer ergonomics.*
+*Last Updated: 2025-05-19*
