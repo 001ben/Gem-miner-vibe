@@ -1,28 +1,45 @@
 # Plan: Documentation Rewrite
 
-**Status:** Complete
-**Date:** 2025-05-19
+!!! info ":material-clock-time-four-outline: Metadata"
 
-## Goals
-1.  **Consolidate and Clean Up**: Remove duplicate files (like root `GEMINI.md`) and archive old plans.
-2.  **Restructure**: Organize `docs/` into logical subdirectories (`architecture`, `troubleshooting`, `history`).
-3.  **Update Content**: Ensure all documentation reflects the actual state of the codebase (DAMP pipeline, directory structure, etc.).
-4.  **Navigation**: Update `mkdocs.yml` to provide a clear navigation hierarchy.
+    - **Status:** In Progress
+    - **Date:** 2025-05-19
+    - **Author:** Jules (AI Agent)
 
-!!! info "Current Workload Status"
-    - [x] Move old planning docs to archive.
-    - [x] Create `roadmap.md` and this plan.
-    - [x] Reorganize `docs/` file structure.
-    - [x] Rewrite `PROJECT_STRUCTURE.md` and `README.md`.
-    - [x] Rewrite `docs/architecture/DAMP_MAINTAINABILITY.md` to reflect current architecture and rationale.
-    - [x] Update `mkdocs.yml` (done previously, verify if name change needed).
-    - [x] Verify build.
-    - [x] Add Pre-commit/Linting for Docs
+!!! abstract ":material-text-box-search-outline: Context"
 
-## Steps
-1.  [x] Move old planning docs to archive.
-2.  [x] Create `roadmap.md` and this plan.
-3.  [x] Reorganize `docs/` file structure.
-4.  [x] Rewrite/Update individual markdown files.
-5.  [x] Update `mkdocs.yml`.
-6.  [x] Verify build.
+    The project documentation was fragmented, out of date, and lacked a clear structure. The goal of this task was to perform a "Full Rewrite" to consolidate information, establish a clear hierarchy, and implement a maintainable roadmap structure. Additionally, we aimed to "uplift" the visual presentation using `mkdocs-material` features like admonitions and tabs.
+
+!!! quote ":material-clipboard-list-outline: Plan"
+
+    1. **Consolidate and Clean Up**: Remove duplicate files and archive old plans.
+    1. **Restructure**: Organize `docs/` into logical subdirectories (`architecture`, `troubleshooting`, `history`).
+    1. **Update Content**: Rewrite key architectural docs (`DAMP_MAINTAINABILITY.md`) to reflect the current "Explicit Contract" state.
+    1. **Enhance**: Add `mkdocs-material` plugins and formatting.
+    1. **Tooling**: Add a pre-commit script to enforce documentation formatting.
+
+!!! example ":material-console: Execution Log"
+
+    - [x] **Restructuring**: Moved files to `docs/architecture`, `docs/guide`, etc.
+    - [x] **Roadmap**: Created `docs/planning/roadmap.md` and archived old plans.
+    - [x] **Rewrite**: Completely rewrote `DAMP_MAINTAINABILITY.md` to remove outdated "Proposed" logic.
+    - [x] **Uplift**: Updated `mkdocs.yml` with `awesome-pages`, `admonition`, and `pymdownx.emoji`.
+    - [x] **Tooling**: Implemented `pipeline/scripts/format_docs.py` using `uvx` and `mdformat` (resolving dependency conflicts by removing `mdformat-admon`).
+    - [x] **Verification**: Validated build via `task docs:build`.
+
+!!! success ":material-robot: AI Summary"
+
+    The documentation ecosystem has been successfully migrated to a structured, maintainable format.
+
+    **Key Achievements:**
+
+    - **Architecture**: The "Four Pillars" structure (Src, Pipeline, Tools, Assets) is now formally documented.
+    - **Pipeline**: The "Explicit Contract" model (using `damp_id`) is codified as the source of truth, replacing old speculative docs.
+    - **Visuals**: Documentation now uses consistent admonitions, tabs for commands, and icons for navigation.
+    - **Workflow**: A new `task docs:format` command ensures consistency going forward.
+
+    **Next Steps for Future Agents:**
+
+    - Refer to `docs/architecture/DAMP_MAINTAINABILITY.md` for architectural decisions.
+    - Use `docs/planning/roadmap.md` to track future work.
+    - Ensure all new docs pass `task docs:lint`.
