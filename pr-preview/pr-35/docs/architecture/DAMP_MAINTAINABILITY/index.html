@@ -86,9 +86,7 @@
     
       
 
-  
-
-<header class="md-header md-header--shadow" data-md-component="header">
+<header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Gem Miner Docs" class="md-header__button md-logo" aria-label="Gem Miner Docs" data-md-component="logo">
       
@@ -172,6 +170,146 @@
       
         
           
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/PROJECT_STRUCTURE/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../planning/roadmap/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Planning
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../DAMP_PIPELINE_REVIEW/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../troubleshooting/COMMON_ERRORS/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Troubleshooting
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../history/GEMINI_2025_12/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  History
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
         
       
       <main class="md-main" data-md-component="main">
@@ -185,8 +323,10 @@
                     
 
 
+  
 
-<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Gem Miner Docs" class="md-nav__button md-logo" aria-label="Gem Miner Docs" data-md-component="logo">
       
@@ -239,6 +379,9 @@
       
     
     
+    
+      
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -331,6 +474,9 @@
       
     
     
+    
+      
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -441,6 +587,9 @@
     
     
     
+      
+      
+    
     
     <li class="md-nav__item md-nav__item--nested">
       
@@ -543,15 +692,21 @@
     
     
     
+      
+        
+        
+      
+      
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -856,6 +1011,9 @@
     
     
     
+      
+      
+    
     
     <li class="md-nav__item md-nav__item--nested">
       
@@ -971,6 +1129,9 @@
       
     
     
+    
+      
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -1220,52 +1381,61 @@
 <ul>
 <li><strong>Blender (Provider)</strong>: Explicitly tags Materials and Objects with a permanent <code>damp_id</code> custom property.</li>
 <li><strong>GLB (Artifact)</strong>: Carries these IDs in the standard <code>extras</code> or <code>userData</code> fields.</li>
-<li><strong>Renderer (Consumer)</strong>: Strictly enforces the contract. It looks for <code>damp_id</code> and maps functionality to it. If an ID is missing, the system fails fast or renders a "Magenta Error" material.</li>
+<li><strong>Renderer (Consumer)</strong>: Strictly enforces the contract. It looks for <code>damp_id</code> and maps functionality to it.</li>
 </ul>
+<div class="admonition failure">
+<p class="admonition-title">Implicit Logic (Bad)</p>
+<p>Searching for mesh names like <code>Cube001</code> or <code>Cylinder</code> is fragile because Blender often renames things automatically.</p>
+</div>
+<div class="admonition success">
+<p class="admonition-title">Explicit Contract (Good)</p>
+<p>The renderer only cares about <code>damp_id="chassis"</code>. The geometry name can be anything.</p>
+</div>
 <h2 id="2-the-four-pillars-structure">2. The "Four Pillars" Structure<a class="headerlink" href="#2-the-four-pillars-structure" title="Permanent link">&para;</a></h2>
 <p>To maintain separation of concerns, the codebase is divided into four distinct domains:</p>
 <ol>
 <li><strong><code>src/</code> (Game Source)</strong>: The runtime game logic. It consumes assets but does not generate them.</li>
 <li><strong><code>pipeline/</code> (Asset Factory)</strong>: The "Source of Truth" for assets. Contains Blender Python scripts and procedural texture generators.</li>
 <li><strong><code>tools/</code> (DX Tools)</strong>: Developer tools like the Asset Viewer (<code>tools/viewer</code>) that verify assets in isolation.</li>
-<li><strong><code>assets/</code> (Output/Artifacts)</strong>: The compiled <code>.glb</code> and configuration files. <em>Note: Source configuration lives in <code>pipeline/</code> or <code>assets/configs/</code>, while generated binaries go to <code>public/assets/</code>.</em></li>
+<li><strong><code>assets/</code> (Output/Artifacts)</strong>: The compiled <code>.glb</code> and configuration files.</li>
 </ol>
 <h2 id="3-pipeline-flow">3. Pipeline Flow<a class="headerlink" href="#3-pipeline-flow" title="Permanent link">&para;</a></h2>
 <p>The asset generation flow is automated via <code>task build:assets</code>:</p>
+<div class="highlight"><pre><span></span><code>graph LR
+    A[Blender Script] --&gt;|Generate &amp; Tag| B(GLB Artifact)
+    B --&gt;|Load| C[Asset Viewer]
+    B --&gt;|Load| D[Game Engine]
+</code></pre></div>
 <ol>
-<li><strong>Generation</strong>:<ul>
-<li><code>pipeline/blender/bulldozer.py</code> is executed via Blender's Python API.</li>
-<li>Geometries are generated procedurally (or loaded).</li>
-<li>Objects are <strong>Parented</strong> (not Joined) to preserve hierarchy.</li>
-<li><code>damp_id</code> properties are injected into Materials and Objects.</li>
-<li><strong>Transforms are Baked</strong>: Meshes are exported with transforms applied (Identity rotation/scale) to ensure they appear correctly in the game engine without manual adjustment.</li>
-</ul>
-</li>
-<li><strong>Compilation</strong>:<ul>
-<li>The script exports a <code>.glb</code> file to the distribution folder.</li>
-<li><code>catalog.json</code> is generated/updated to index the available assets.</li>
-</ul>
-</li>
-<li><strong>Consumption</strong>:<ul>
-<li><code>BulldozerRenderer</code> (in <code>src/entities/</code>) loads the GLB.</li>
-<li>It traverses the scene graph, reading <code>damp_id</code>.</li>
-<li>It applies game-specific materials (e.g., Triplanar Noise) based on these IDs.</li>
-</ul>
-</li>
+<li><strong>Generation</strong>: <code>pipeline/blender/bulldozer.py</code> generates geometry, parents objects, injects <code>damp_id</code>, and <strong>bakes transforms</strong>.</li>
+<li><strong>Compilation</strong>: Exports a <code>.glb</code> and updates <code>catalog.json</code>.</li>
+<li><strong>Consumption</strong>: <code>BulldozerRenderer</code> loads the GLB and applies materials based on IDs.</li>
 </ol>
 <h2 id="4-key-architectural-decisions-rationale">4. Key Architectural Decisions (Rationale)<a class="headerlink" href="#4-key-architectural-decisions-rationale" title="Permanent link">&para;</a></h2>
 <h3 id="a-parenting-vs-joining">A. Parenting vs. Joining<a class="headerlink" href="#a-parenting-vs-joining" title="Permanent link">&para;</a></h3>
-<p><strong>Decision</strong>: Use Object Parenting, not <code>bpy.ops.object.join()</code>.
-<strong>Rationale</strong>: Joining meshes destroys object-level metadata and forces Three.js to split primitives at runtime, causing race conditions and losing the <code>damp_id</code> on sub-parts. Parenting preserves the logical hierarchy and metadata.</p>
+<div class="admonition quote">
+<p class="admonition-title">Decision</p>
+<p>Use Object Parenting, not <code>bpy.ops.object.join()</code>.</p>
+</div>
+<p><strong>Rationale</strong>: Joining meshes destroys object-level metadata and forces Three.js to split primitives at runtime, causing race conditions and losing the <code>damp_id</code> on sub-parts. Parenting preserves the logical hierarchy and metadata.</p>
 <h3 id="b-material-level-tagging">B. Material-Level Tagging<a class="headerlink" href="#b-material-level-tagging" title="Permanent link">&para;</a></h3>
-<p><strong>Decision</strong>: Tag Materials (<code>mat["damp_id"]</code>) in addition to Objects.
-<strong>Rationale</strong>: Custom properties on Materials are more resilient. Even if geometry is merged or instanced, Three.js preserves material slots, allowing the renderer to reliably identify "Glass" vs "Steel" parts.</p>
+<div class="admonition quote">
+<p class="admonition-title">Decision</p>
+<p>Tag Materials (<code>mat["damp_id"]</code>) in addition to Objects.</p>
+</div>
+<p><strong>Rationale</strong>: Custom properties on Materials are more resilient. Even if geometry is merged or instanced, Three.js preserves material slots, allowing the renderer to reliably identify "Glass" vs "Steel" parts.</p>
 <h3 id="c-baked-transforms">C. Baked Transforms<a class="headerlink" href="#c-baked-transforms" title="Permanent link">&para;</a></h3>
-<p><strong>Decision</strong>: Bake scale and rotation in Blender; avoid runtime adjustments.
-<strong>Rationale</strong>: Early iterations attempted to fix rotation (Y-up vs Z-up) in JavaScript. This led to "Tiny Bodies and Giant Tracks" bugs. Baking the transforms ensures that <code>(1,1,1)</code> in the game engine matches the intended visual size.</p>
+<div class="admonition quote">
+<p class="admonition-title">Decision</p>
+<p>Bake scale and rotation in Blender; avoid runtime adjustments.</p>
+</div>
+<p><strong>Rationale</strong>: Early iterations attempted to fix rotation (Y-up vs Z-up) in JavaScript. This led to "Tiny Bodies and Giant Tracks" bugs. Baking the transforms ensures that <code>(1,1,1)</code> in the game engine matches the intended visual size.</p>
 <h3 id="d-centralized-utilities">D. Centralized Utilities<a class="headerlink" href="#d-centralized-utilities" title="Permanent link">&para;</a></h3>
-<p><strong>Decision</strong>: Move cache-busting (<code>cb()</code>) and common logic to <code>src/utils/graphics-utils.js</code>.
-<strong>Rationale</strong>: Previously, the Viewer and the Game had separate utility implementations, leading to "ghost bugs" where one saw cached assets and the other saw new ones. A shared utility ensures consistency.</p>
+<div class="admonition quote">
+<p class="admonition-title">Decision</p>
+<p>Move cache-busting (<code>cb()</code>) and common logic to <code>src/utils/graphics-utils.js</code>.</p>
+</div>
+<p><strong>Rationale</strong>: Previously, the Viewer and the Game had separate utility implementations, leading to "ghost bugs" where one saw cached assets and the other saw new ones. A shared utility ensures consistency.</p>
 <h2 id="5-component-lifecycle">5. Component Lifecycle<a class="headerlink" href="#5-component-lifecycle" title="Permanent link">&para;</a></h2>
 <p>The standard lifecycle for an asset-based entity (like the Bulldozer) is:</p>
 <ol>
@@ -1330,7 +1500,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.tabs", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>

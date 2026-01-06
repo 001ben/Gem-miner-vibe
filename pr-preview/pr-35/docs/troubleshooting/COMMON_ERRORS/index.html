@@ -86,9 +86,7 @@
     
       
 
-  
-
-<header class="md-header md-header--shadow" data-md-component="header">
+<header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="Gem Miner Docs" class="md-header__button md-logo" aria-label="Gem Miner Docs" data-md-component="logo">
       
@@ -172,6 +170,146 @@
       
         
           
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/PROJECT_STRUCTURE/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../planning/roadmap/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Planning
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/DAMP_PIPELINE_REVIEW/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architecture
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Troubleshooting
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../history/GEMINI_2025_12/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  History
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
         
       
       <main class="md-main" data-md-component="main">
@@ -185,8 +323,10 @@
                     
 
 
+  
 
-<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="Gem Miner Docs" class="md-nav__button md-logo" aria-label="Gem Miner Docs" data-md-component="logo">
       
@@ -239,6 +379,9 @@
       
     
     
+    
+      
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -331,6 +474,9 @@
       
     
     
+    
+      
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -441,6 +587,9 @@
     
     
     
+      
+      
+    
     
     <li class="md-nav__item md-nav__item--nested">
       
@@ -540,6 +689,9 @@
       
     
     
+    
+      
+      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -689,15 +841,21 @@
     
     
     
+      
+        
+        
+      
+      
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -928,6 +1086,9 @@
     
     
     
+      
+      
+    
     
     <li class="md-nav__item md-nav__item--nested">
       
@@ -1126,12 +1287,14 @@
 <h1 id="common-errors-troubleshooting">Common Errors &amp; Troubleshooting<a class="headerlink" href="#common-errors-troubleshooting" title="Permanent link">&para;</a></h1>
 <h2 id="asset-viewer">Asset Viewer<a class="headerlink" href="#asset-viewer" title="Permanent link">&para;</a></h2>
 <h3 id="failed-to-load-resource-script-unknown-source"><code>Failed to load resource: &lt;SCRIPT&gt; unknown source</code><a class="headerlink" href="#failed-to-load-resource-script-unknown-source" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong></p>
+<div class="admonition failure">
+<p class="admonition-title">Symptoms</p>
 <ul>
 <li>The asset viewer loads the UI but the 3D scene is empty.</li>
 <li>The console (or on-screen log) shows "Failed to load resource" pointing to the main module script.</li>
 <li>"Three.js imported successfully" is NOT logged.</li>
 </ul>
+</div>
 <p><strong>Cause:</strong>
 This error occurs when the browser cannot resolve one of the JavaScript modules imported by the viewer. Common reasons include:</p>
 <ol>
@@ -1139,42 +1302,40 @@ This error occurs when the browser cannot resolve one of the JavaScript modules 
 <li><strong>Missing Dependencies:</strong> <code>npm install</code> has not been run, so <code>node_modules</code> is missing or incomplete.</li>
 <li><strong>Deployment Path Issues:</strong> In a deployed environment (e.g., GitHub Pages), the relative paths to <code>js/</code> or <code>node_modules/</code> might be incorrect if the build script didn't rewrite them properly.</li>
 </ol>
-<p><strong>Solution:</strong></p>
-<ol>
-<li><strong>Local Development:</strong><ul>
-<li>Use the Taskfile commands to start the viewer from the correct root:
-    <div class="highlight"><pre><span></span><code><span class="c1"># New React Viewer</span>
-task<span class="w"> </span>damp:viewer
-
-<span class="c1"># Legacy Viewer</span>
-task<span class="w"> </span>viewer
-</code></pre></div></li>
-</ul>
-</li>
-<li><strong>Deployment:</strong><ul>
-<li>Check the <code>pr-preview.yml</code> workflow to ensure it copies source files to the <code>dist/</code> folder and rewrites paths (<code>sed</code>) in <code>index.html</code>.</li>
-</ul>
-</li>
-</ol>
+<div class="admonition success">
+<p class="admonition-title">Solution</p>
+<p><strong>Local Development:</strong>
+Use the Taskfile commands to start the viewer from the correct root:
+<div class="highlight"><pre><span></span><code>task<span class="w"> </span>damp:viewer
+</code></pre></div></p>
+<p><strong>Deployment:</strong>
+Check the <code>pr-preview.yml</code> workflow to ensure it copies source files to the <code>dist/</code> folder and rewrites paths (<code>sed</code>) in <code>index.html</code>.</p>
+</div>
 <h3 id="failed-to-load-resource-bulldozer_componentsglb-404"><code>Failed to load resource: ... bulldozer_components.glb</code> (404)<a class="headerlink" href="#failed-to-load-resource-bulldozer_componentsglb-404" title="Permanent link">&para;</a></h3>
 <p><strong>Cause:</strong>
 The 3D assets have not been built locally.</p>
-<p><strong>Solution:</strong>
-Run the asset build task:</p>
+<div class="admonition success">
+<p class="admonition-title">Solution</p>
+<p>Run the asset build task:
 <div class="highlight"><pre><span></span><code>task<span class="w"> </span>build:assets
-</code></pre></div>
-<p>Note: The asset viewer handles this gracefully by logging a warning, but the model will not appear.</p>
+</code></pre></div></p>
+<p><em>Note: The asset viewer handles this gracefully by logging a warning, but the model will not appear.</em></p>
+</div>
 <h2 id="graphics-glitches">Graphics Glitches<a class="headerlink" href="#graphics-glitches" title="Permanent link">&para;</a></h2>
 <h3 id="fan-like-vertical-tracks">"Fan-like" Vertical Tracks<a class="headerlink" href="#fan-like-vertical-tracks" title="Permanent link">&para;</a></h3>
 <p><strong>Cause:</strong>
-The track link mesh orientation in the GLB does not match the animation logic (Three.js <code>lookAt</code> expects Z-forward).
-<strong>Solution:</strong>
-Use the "Track Adj" controls in the Asset Viewer to set <strong>Z-Rotation to 270</strong>.</p>
+The track link mesh orientation in the GLB does not match the animation logic (Three.js <code>lookAt</code> expects Z-forward).</p>
+<div class="admonition success">
+<p class="admonition-title">Solution</p>
+<p>Use the "Track Adj" controls in the Asset Viewer to set <strong>Z-Rotation to 270</strong>.</p>
+</div>
 <h3 id="flickering-vanishing-tracks">Flickering / Vanishing Tracks<a class="headerlink" href="#flickering-vanishing-tracks" title="Permanent link">&para;</a></h3>
 <p><strong>Cause:</strong>
-Gimbal lock when the track tangent aligns with the World Y-axis.
-<strong>Solution:</strong>
-Ensure the "Up" vector in the Asset Viewer is set to <strong>X (Axle)</strong>.</p>
+Gimbal lock when the track tangent aligns with the World Y-axis.</p>
+<div class="admonition success">
+<p class="admonition-title">Solution</p>
+<p>Ensure the "Up" vector in the Asset Viewer is set to <strong>X (Axle)</strong>.</p>
+</div>
 
 
 
@@ -1224,7 +1385,7 @@ Ensure the "Up" vector in the Asset Viewer is set to <strong>X (Axle)</strong>.<
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "navigation.indexes"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "navigation.indexes", "navigation.instant", "navigation.tabs", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
