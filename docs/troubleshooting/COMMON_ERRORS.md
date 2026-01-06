@@ -5,6 +5,7 @@
 ### `Failed to load resource: <SCRIPT> unknown source`
 
 !!! failure "Symptoms"
+
     - The asset viewer loads the UI but the 3D scene is empty.
     - The console (or on-screen log) shows "Failed to load resource" pointing to the main module script.
     - "Three.js imported successfully" is NOT logged.
@@ -17,8 +18,10 @@ This error occurs when the browser cannot resolve one of the JavaScript modules 
 1. **Deployment Path Issues:** In a deployed environment (e.g., GitHub Pages), the relative paths to `js/` or `node_modules/` might be incorrect if the build script didn't rewrite them properly.
 
 !!! success "Solution"
+
     **Local Development:**
     Use the Taskfile commands to start the viewer from the correct root:
+
     ```bash
     task damp:viewer
     ```
@@ -32,7 +35,9 @@ This error occurs when the browser cannot resolve one of the JavaScript modules 
 The 3D assets have not been built locally.
 
 !!! success "Solution"
+
     Run the asset build task:
+
     ```bash
     task build:assets
     ```
@@ -47,6 +52,7 @@ The 3D assets have not been built locally.
 The track link mesh orientation in the GLB does not match the animation logic (Three.js `lookAt` expects Z-forward).
 
 !!! success "Solution"
+
     Use the "Track Adj" controls in the Asset Viewer to set **Z-Rotation to 270**.
 
 ### Flickering / Vanishing Tracks
@@ -55,4 +61,5 @@ The track link mesh orientation in the GLB does not match the animation logic (T
 Gimbal lock when the track tangent aligns with the World Y-axis.
 
 !!! success "Solution"
+
     Ensure the "Up" vector in the Asset Viewer is set to **X (Axle)**.

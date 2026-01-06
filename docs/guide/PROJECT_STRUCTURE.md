@@ -25,19 +25,22 @@ The project follows a "Modern Standard" structure to separate source code, build
 ## Key Workflows
 
 ### Setup
+
 Ensure you have `uv` and `go-task` installed (handled by `.julesrc` in dev container).
 
 ### Commands
 
 === ":material-play: Run"
-    | Command | Description |
-    | :--- | :--- |
-    | `task dev` | Starts the main game server locally. |
-    | `task damp:viewer` | Starts the Asset Viewer tool. |
+
+    | Command            | Description                          |
+    | :----------------- | :----------------------------------- |
+    | `task dev`         | Starts the main game server locally. |
+    | `task damp:viewer` | Starts the Asset Viewer tool.        |
 
 === ":material-factory: Build"
-    | Command | Description |
-    | :--- | :--- |
+
+    | Command             | Description                                                   |
+    | :------------------ | :------------------------------------------------------------ |
     | `task build:assets` | Runs the full Blender pipeline to generate GLBs and textures. |
-    | `task build:dist` | Creates a production build in `dist/`. |
-    | `task docs:build` | Builds this documentation site. |
+    | `task build:dist`   | Creates a production build in `dist/`.                        |
+    | `task docs:build`   | Builds this documentation site.                               |

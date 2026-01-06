@@ -18,6 +18,7 @@ This allows you to generate assets using Python code (keeping the "Programmer" w
 1. Run `task build:assets`.
 
 !!! info "Tip: Headless Mode"
+
     The pipeline runs Blender in background mode (`-b`), so no UI window will open. If you need to debug geometry, you can open the generated GLB in a standard GLTF viewer or open Blender manually to run the script.
 
 ## Example Blender Script
