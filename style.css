@@ -296,3 +296,21 @@ body {
         font-size: 0.8rem;
     }
 }
+
+.flying-coin {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: #ffd700;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #b8860b;
+}
