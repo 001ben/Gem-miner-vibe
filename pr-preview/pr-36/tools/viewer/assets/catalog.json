@@ -1,0 +1,11 @@
+{
+  "models": [
+    "bulldozer_components.glb"
+  ],
+  "textures": [
+    "tracks_texture.png"
+  ],
+  "configs": [
+    "bulldozer_mapping.json"
+  ]
+}
