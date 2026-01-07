@@ -1,14 +1,14 @@
 # Task: Scaling Rebalance & Progression Tuning
 
-!!! info "Metadata"
+!!! info ":material-clock-time-four-outline: Metadata"
     *   **Status:** Proposed
     *   **Type:** Rebalance / Feature
     *   **Dependencies:** `docs/planning/progression_analysis.md`
 
-!!! abstract "Objective"
+!!! abstract ":material-text-box-search-outline: Context"
     Refine the game's progression curve to ensure a satisfying "Power Fantasy" loop while maintaining challenge. Resolve the conflict between manual and automatic area unlocking.
 
-!!! quote "Plan"
+!!! quote ":material-clipboard-list-outline: Plan"
     1.  **Resolve Unlock Logic**
         *   Remove the "Auto Unlock" feature from `gem.js`. Making area unlocks a deliberate Purchase Decision creates a stronger short-term goal for the player ("I need 500 gold to open the gate").
         *   Keep the Zone Progress notification but change the reward to a large "Bonus Cash" drop or simply a "Zone Clear" badge.
@@ -40,8 +40,8 @@
         *   Ensure the "Next Upgrade Cost" is clearly visible *before* purchase (currently displayed on the pad?).
         *   Add a visual indicator when an upgrade is affordable (e.g., Pad glows green).
 
-!!! example "Execution Log"
-    *   [ ] Remove auto-unlock from `src/entities/gem.js`.
-    *   [ ] Update `src/entities/shop.js` to ensure Gate Unlock costs are balanced (500, 2500?).
-    *   [ ] Update `src/core/state.js` costs logic to use `1.3` multiplier.
-    *   [ ] Tweak `src/entities/bulldozer.js` stats.
+!!! example ":material-console: Execution Log"
+    - [ ] Remove auto-unlock from `src/entities/gem.js`.
+    - [ ] Update `src/entities/shop.js` to ensure Gate Unlock costs are balanced (500, 2500?).
+    - [ ] Update `src/core/state.js` costs logic to use `1.3` multiplier.
+    - [ ] Tweak `src/entities/bulldozer.js` stats.
