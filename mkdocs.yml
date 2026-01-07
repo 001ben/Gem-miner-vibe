@@ -15,7 +15,7 @@ theme:
 
 nav:
   - Home: README.md
-  - Guide:
+  - Guides & Tutorials:
       - Project Structure: guide/PROJECT_STRUCTURE.md
       - Design Principles: guide/game_design_principles.md
   - Planning:
