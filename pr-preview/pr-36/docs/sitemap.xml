@@ -41,15 +41,19 @@
          <lastmod>2026-01-07</lastmod>
     </url>
     <url>
-         <loc>https://example.com/planning/doc_rewrite/</loc>
-         <lastmod>2026-01-07</lastmod>
-    </url>
-    <url>
          <loc>https://example.com/planning/roadmap/</loc>
          <lastmod>2026-01-07</lastmod>
     </url>
     <url>
+         <loc>https://example.com/planning/ui_gameplay_polish/</loc>
+         <lastmod>2026-01-07</lastmod>
+    </url>
+    <url>
          <loc>https://example.com/planning/archive/2025-05-18_refactoring/</loc>
+         <lastmod>2026-01-07</lastmod>
+    </url>
+    <url>
+         <loc>https://example.com/planning/archive/doc_rewrite/</loc>
          <lastmod>2026-01-07</lastmod>
     </url>
     <url>
