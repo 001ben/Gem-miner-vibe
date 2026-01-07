@@ -11,16 +11,9 @@ const tracks = [];
 let trackTexture;
 let dirtTexture;
 let lastDozerPos = null;
-let coinPileGroup = null;
-let coinStacksGroup = null; // Separate group for dynamic coins
 const gemInstancedMeshes = {}; // Map of colorHex -> InstancedMesh
 const dummy = new THREE.Object3D();
 const MAX_GEMS_PER_TYPE = 1000;
-
-// Bank Area Configuration
-const BANK_POS = { x: -400, y: 400 }; // Near Shop Area
-const COINS_PER_STACK = 100;
-const PILE_RADIUS = 30; // Reduced to 1/3rd for tighter piles
 
 export function initThree() {
   scene = new THREE.Scene();
@@ -66,7 +59,6 @@ export function initThree() {
 
   createDirtTexture();
   createTrackTexture();
-  createCoinPile();
 
   // Ground
   const planeGeo = new THREE.PlaneGeometry(10000, 10000);
@@ -109,46 +101,6 @@ export function initThree() {
     scene.add(mesh);
     gemInstancedMeshes[color] = mesh;
   });
-}
-function createCoinPile() {
-  // A group for the bank area
-  coinPileGroup = new THREE.Group();
-  coinPileGroup.position.set(BANK_POS.x, 0, BANK_POS.y);
-  scene.add(coinPileGroup);
-
-  // Sub-group for actual coins
-  coinStacksGroup = new THREE.Group();
-  coinPileGroup.add(coinStacksGroup);
-
-  // Bank Mat (Visual Base)
-  const matRadius = PILE_RADIUS * 1.3; // Tighter margin
-  const matGeo = new THREE.CircleGeometry(matRadius, 32);
-  const matMat = new THREE.MeshStandardMaterial({
-    color: 0x111111,
-    roughness: 0.4,
-    metalness: 0.5,
-    side: THREE.DoubleSide
-  });
-  const matMesh = new THREE.Mesh(matGeo, matMat);
-  matMesh.rotation.x = -Math.PI / 2;
-  matMesh.position.y = 0.1; // Back to a natural level
-  matMesh.receiveShadow = true;
-  coinPileGroup.add(matMesh);
-
-  // Mat Border (Gold Ring)
-  const ringGeo = new THREE.TorusGeometry(matRadius, 1.5, 8, 64);
-  const ringMat = new THREE.MeshStandardMaterial({
-    color: 0xffd700,
-    metalness: 0.9,
-    roughness: 0.1,
-    emissive: 0xffd700,
-    emissiveIntensity: 0.2
-  });
-  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-  ringMesh.rotation.x = -Math.PI / 2;
-  ringMesh.position.y = 0.2;
-  coinPileGroup.add(ringMesh);
-  console.log("[DEBUG] Bank Mat created at:", BANK_POS);
 }
 
 // Map to store textures for pads to avoid recreation if text doesn't change
@@ -706,88 +658,42 @@ export function spawnFloatingText(text, pos, color = '#ffffff') {
 }
 
 export function spawnCoinDrop(amount, startPos) {
-  // Spawn a flying coin visual
-  const targetPos = { x: BANK_POS.x, z: BANK_POS.y };
-  // Use gem position as start, or fallback to 0,0
-  const start = startPos ? { x: startPos.x, z: startPos.y } : { x: 0, z: 400 };
+  // Spawn a flying coin visual (DOM based)
+  const start = startPos ? new THREE.Vector3(startPos.x, 10, startPos.y) : new THREE.Vector3(0, 10, 400);
 
-  const geo = new THREE.CylinderGeometry(5, 5, 2, 16);
-  const mat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8 });
-  const mesh = new THREE.Mesh(geo, mat);
+  // Project start position to screen coordinates
+  start.project(camera);
 
-  mesh.rotation.x = Math.PI / 2; // Flat coin
-  mesh.position.set(start.x, 10, start.z);
+  const x = (start.x * 0.5 + 0.5) * window.innerWidth;
+  const y = -(start.y * 0.5 - 0.5) * window.innerHeight;
 
-  scene.add(mesh);
+  const el = document.createElement('div');
+  el.className = 'flying-coin';
+  el.innerText = '$';
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  document.body.appendChild(el);
 
-  particles.push({
-    mesh,
-    startPos: start,
-    targetPos: targetPos,
-    startTime: Date.now(),
-    duration: 800, // ms
-    arcHeight: 200,
-    type: 'coin_fly'
+  // Target: #money element
+  const moneyEl = document.getElementById('money');
+  const moneyRect = moneyEl.getBoundingClientRect();
+  const targetX = moneyRect.left + moneyRect.width / 2;
+  const targetY = moneyRect.top + moneyRect.height / 2;
+
+  // Animate using Web Animations API for smoother performance
+  const animation = el.animate([
+    { transform: `translate(0, 0) scale(1)` },
+    { transform: `translate(${targetX - x}px, ${targetY - y}px) scale(0.5)` }
+  ], {
+    duration: 800,
+    easing: 'ease-in'
   });
+
+  animation.onfinish = () => {
+    el.remove();
+  };
 }
 
-function updateCoinPile() {
-  if (!coinStacksGroup) return;
-
-  // Calculate desired number of stacks
-  const targetStacks = Math.floor(state.money / COINS_PER_STACK);
-  const currentStacks = coinStacksGroup.children.length;
-
-  // Add stacks
-  if (currentStacks < targetStacks) {
-    const diff = targetStacks - currentStacks;
-    const addCount = Math.min(diff, 5);
-
-    for (let i = 0; i < addCount; i++) {
-      // Random pile distribution for "Classic Heap" look
-      const r = Math.sqrt(Math.random()) * PILE_RADIUS;
-      const theta = Math.random() * 2 * Math.PI;
-
-      const x = r * Math.cos(theta);
-      const z = r * Math.sin(theta);
-
-      // Create stack mesh (Taller for more "vertical" feel)
-      const geo = new THREE.CylinderGeometry(5, 5, 20, 8);
-      const mat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
-      const mesh = new THREE.Mesh(geo, mat);
-
-      // Randomize rotation slightly for messiness
-      mesh.rotation.x = (Math.random() - 0.5) * 0.5;
-      mesh.rotation.z = (Math.random() - 0.5) * 0.5;
-      mesh.rotation.y = Math.random() * Math.PI;
-
-      mesh.position.set(x, 10, z); // Half of height 20
-
-      mesh.scale.set(0.1, 0.1, 0.1);
-      mesh.userData.targetScale = 1.0;
-
-      coinStacksGroup.add(mesh);
-    }
-  }
-
-  // Remove stacks (if spent)
-  if (currentStacks > targetStacks) {
-    const removeCount = Math.min(currentStacks - targetStacks, 10);
-    for (let i = 0; i < removeCount; i++) {
-      const child = coinStacksGroup.children[coinStacksGroup.children.length - 1];
-      coinStacksGroup.remove(child);
-      if (child.geometry) child.geometry.dispose();
-      if (child.material) child.material.dispose();
-    }
-  }
-
-  // Animate growing stacks
-  coinStacksGroup.children.forEach(child => {
-    if (child.userData.targetScale) {
-      child.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
-    }
-  });
-}
 
 export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
   const bodies = Matter.Composite.allBodies(world);
@@ -980,7 +886,6 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
     }
   }
 
-  updateCoinPile();
   updateParticles();
 
   // Update all gem types
@@ -995,3 +900,5 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
 
   renderer.render(scene, camera);
 }
+
+window.spawnCoinDrop = spawnCoinDrop;

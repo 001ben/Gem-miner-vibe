@@ -39,14 +39,12 @@ export function createCollector() {
     // So if collectorLevel > 1.
 
     if (state.collectorLevel > 1) {
-        // Double length: 50 * 2^(level-1) ? That gets huge fast.
-        // User said: "doubling in length"
-        // Let's interpret "doubling in length" as doubling *each time* relative to previous, or base doubling?
-        // Let's try 50 * Math.pow(2, state.collectorLevel - 2).
-        // L2: 50 * 2^0 = 50.
-        // L3: 50 * 2^1 = 100.
-        // L4: 200.
-        const beltLength = 50 * Math.pow(2, state.collectorLevel - 2);
+        // Linear increase in length to avoid clipping through walls
+        let beltLength = 50 + (state.collectorLevel - 2) * 50;
+
+        // Cap length to prevent hitting walls (Map width is 1200 => -600 to 600)
+        // Collector is at 0. Max extent ~500.
+        if (beltLength > 500) beltLength = 500;
 
         // Start thicker (60) and intersperse thickness upgrades (every 2 levels +20)
         const beltWidth = 60 + (Math.floor((state.collectorLevel - 2) / 2) * 20);
