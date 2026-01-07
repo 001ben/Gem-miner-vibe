@@ -20,7 +20,7 @@ nav:
       - Design Principles: guide/game_design_principles.md
   - Planning:
       - Roadmap: planning/roadmap.md
-      - Current Task: planning/task_doc_restructure.md
+      - Current Task: planning/task_scaling_rebalance.md
       - Analysis: planning/progression_analysis.md
       - Archive:
           - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
