@@ -8,20 +8,29 @@ theme:
   features:
     - navigation.expand
     - navigation.indexes
+    - navigation.instant
+    - navigation.tabs
+    - content.code.copy
+    - content.action.edit
 
 nav:
   - Home: README.md
+  - Guide:
+      - Project Structure: guide/PROJECT_STRUCTURE.md
   - Planning:
-      - Current Plan: planning/current.md
-  - Pipeline:
-      - Architecture: DAMP_PIPELINE_REVIEW.md
-      - Maintainability: DAMP_MAINTAINABILITY.md
-      - Gemini History: GEMINI.md
+      - Roadmap: planning/roadmap.md
+      - Current Task: planning/doc_rewrite.md
+      - Archive:
+          - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
+  - Architecture:
+      - Pipeline Review: architecture/DAMP_PIPELINE_REVIEW.md
+      - Maintainability: architecture/DAMP_MAINTAINABILITY.md
+      - Blender Pipeline: architecture/BLENDER_PIPELINE.md
   - Troubleshooting:
-      - Common Errors: COMMON_ERRORS.md
-      - Graphics: GRAPHICS_TROUBLESHOOTING.md
-  - Project Info:
-      - Structure: PROJECT_STRUCTURE.md
+      - Common Errors: troubleshooting/COMMON_ERRORS.md
+      - Graphics: troubleshooting/GRAPHICS_TROUBLESHOOTING.md
+  - History:
+      - Gemini Session (Dec 2025): history/GEMINI_2025_12.md
 
 extra_javascript:
   - js/nav-overlay.js
@@ -30,8 +39,17 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - toc:
       permalink: true
 
 plugins:
   - search
+  - awesome-pages

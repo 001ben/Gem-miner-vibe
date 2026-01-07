@@ -37,13 +37,18 @@ tasks:
   docs:build:
     desc: Build documentation site
     cmds:
-      # Use mkdocs via uvx, with material theme injected
-      - uvx --from mkdocs --with mkdocs-material mkdocs build -d dist/docs
+      # Use mkdocs via uvx, with material theme and plugins
+      - uvx --from mkdocs --with mkdocs-material --with mkdocs-awesome-pages-plugin mkdocs build -d dist/docs
 
   docs:format:
-    desc: Format documentation
+    desc: Format documentation (Fix)
     cmds:
-      - uvx --from mdformat --with mdformat-gfm --with mdformat-frontmatter --with mdformat-mkdocs mdformat docs/ README.md GEMINI.md
+      - ./pipeline/scripts/format_docs.py
+
+  docs:lint:
+    desc: Lint documentation (Check only)
+    cmds:
+      - ./pipeline/scripts/format_docs.py --check
 
   build:assets:
     desc: Build DAMP assets (GLB, Textures, Catalog)
