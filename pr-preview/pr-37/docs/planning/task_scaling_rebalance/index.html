@@ -1170,12 +1170,11 @@
 </li>
 <li><strong>Refactor Physics Scaling (Engine)</strong><ul>
 <li>Make Density scaling linear.</li>
-<li>Calculate Force based on Mass: <code>Force = Mass * DesiredAcceleration</code>.</li>
-<li>Define <code>DesiredAcceleration</code> to increase by 10% per level.</li>
+<li>Switch to "Power Rating" based Force calculation: <code>Force = 0.012 * 1.2^Level</code>. This naturally balances against Mass increases.</li>
 </ul>
 </li>
 <li><strong>Adjust Upgrade Curves (Plow &amp; Collector)</strong><ul>
-<li><strong>Plow:</strong> Increase width scaling to <code>+8</code> per level.</li>
+<li><strong>Plow:</strong> Increase width scaling to <code>+8</code> per level. Wings scale with level.</li>
 <li><strong>Collector:</strong> Ensure Belts visual scaling matches physics scaling.</li>
 </ul>
 </li>
@@ -1188,10 +1187,10 @@
 <div class="admonition example">
 <p class="admonition-title"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12zm0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm-7 14v-2h5v2zm-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59z"/></svg></span> Execution Log</p>
 <ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Physics Fix</strong>: Refactor density and force calculations.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Physics Fix</strong>: Refactor density to linear, Force to Power-based model.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Unlock Logic</strong>: Remove auto-unlock and update Shop logic.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Economy</strong>: Tune Zone 3 gem values.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Upgrades</strong>: Adjust plow width and smoothing cost curves.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Upgrades</strong>: Adjust plow width/wings and smoothing cost curves.</li>
 </ul>
 </div>
 

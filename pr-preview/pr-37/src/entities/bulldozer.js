@@ -41,10 +41,12 @@ export function createBulldozer() {
 
     let parts = [chassis, plow];
 
-    // ... [Wing logic stays same]
+    // Wing Logic
     if (state.plowLevel >= 3) {
-        const wingLength = 40;
-        const wingWidth = 15;
+        // Wings also scale with plow level to look proportional
+        const scaleFactor = 1.0 + (state.plowLevel - 3) * 0.1;
+        const wingLength = 40 * scaleFactor;
+        const wingWidth = 15 * scaleFactor;
         const wingAngle = Math.PI / 8; // 22.5 degrees flare
 
         // Left Wing
