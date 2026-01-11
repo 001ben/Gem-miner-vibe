@@ -27,7 +27,8 @@ export function initGems() {
 
     spawnZoneGems(1, 400, -500, 500, -500, 500, 8, 12, ['#00FFFF', '#FF00FF']);
     spawnZoneGems(2, 400, -500, 500, -1700, -700, 25, 40, ['#FFFF00']);
-    spawnZoneGems(3, 400, -500, 500, -2900, -1900, 60, 100, ['#00FF00']);
+    // Inflation Adjustment: Zone 3 Gems are now "Big Ticket" items (100-200)
+    spawnZoneGems(3, 400, -500, 500, -2900, -1900, 100, 200, ['#00FF00']);
 }
 
 function spawnZoneGems(zoneId, count, xMin, xMax, yMin, yMax, valMin, valMax, colors) {
@@ -100,28 +101,14 @@ export function collectGem(gem) {
 
 function checkZoneUnlock(zoneId) {
   const p = state.zoneProgress[zoneId];
-  // Unlock next zone if 50% cleared
-  if (p.collected >= p.total * 0.5) {
-    // If we are in zone 1, we unlock zone 2 (which means areaLevel goes from 1 to 2)
-    // If we are in zone 2, we unlock zone 3 (areaLevel goes from 2 to 3)
-    // Zone 3 is the last zone.
-
-    if (state.areaLevel === zoneId) {
-      // If we are at max area (3), do not increment further.
-      if (state.areaLevel >= 3) {
-        return;
-      }
-
-      // Unlock next area
-      state.areaLevel++;
-
-      // Update costs for next unlock if any
-      if (state.areaLevel === 2) costs.area = 2000;
-      else costs.area = 999999; // Maxed out basically
-
-      createMap(); // Removes gate
-      showNotification(`Area ${state.areaLevel} Unlocked!`);
-    }
+  // Bonus Reward if 50% cleared (but NO auto-unlock)
+  if (!p.bonusAwarded && p.collected >= p.total * 0.5) {
+    p.bonusAwarded = true;
+    const bonus = 500 * zoneId; // 500, 1000, 1500
+    state.money += bonus;
+    showNotification(`Zone ${zoneId} Cleared! Bonus: $${bonus}`);
+    spawnCoinDrop(bonus, { x: 0, y: 0 }); // Spawn from center or player? Player is better but we don't have ref here easily.
+    updateUI();
   }
 
   // Check for Victory (Global gem count)

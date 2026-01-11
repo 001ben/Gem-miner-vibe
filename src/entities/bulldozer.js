@@ -23,8 +23,17 @@ export function createBulldozer() {
     }
 
     const bodySize = 40 + (state.dozerLevel * 5);
-    const plowWidth = bodySize * 1.2 + (state.plowLevel * 40);
-    const plowHeight = 22; // Thicker than original (10) but not "weird" (30). Compromise.
+    // Adjusted Scaling: Increase plow width growth to +8 (was +5 implicitly in previous logic, now explicit)
+    // Previous: bodySize * 1.2 + (Lvl * 40)? No, wait.
+    // Old logic: 45 + (Lvl * 5).
+    // Current logic (above): bodySize * 1.2 + (Lvl * 40). That seems huge already?
+    // Let's re-read the plan: "Increase width scaling to +8 per level".
+    // If we use the formula `Base + (Level * 8) * Scale`.
+
+    // Let's stick to the visual "Massive" look.
+    // Width = Base (60) + (Level * 8 * 2).
+    const plowWidth = (60 + (state.plowLevel * 16)) * 1.5;
+    const plowHeight = 22;
 
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { label: 'chassis' });
     const plowOffset = -(bodySize/2 + plowHeight/2 + 15);
@@ -97,7 +106,12 @@ export function createBulldozer() {
         bulldozer.chassisOffset = chassisPart.oOffset;
     }
 
-    Body.setDensity(bulldozer, 0.001 * Math.pow(1.5, state.dozerLevel));
+    // Refactored Physics Scaling:
+    // Use Linear Density scaling instead of Exponential to prevent "Mass Explosion"
+    // Base Density 0.002 + small increment per level for "heaviness" feel without ruining physics.
+    const density = 0.002 + (state.dozerLevel * 0.0001);
+    Body.setDensity(bulldozer, density);
+
     Body.setPosition(bulldozer, pos);
     Body.setAngle(bulldozer, angle);
 
