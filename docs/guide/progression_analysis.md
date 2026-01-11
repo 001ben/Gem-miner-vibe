@@ -2,7 +2,7 @@
 
 !!! info "Metadata"
     -   **Date:** 2024-10-25
-    -   **Version:** 1.0
+    -   **Version:** 1.1
     -   **Scope:** Current values for costs, entity stats, and economy.
 
 !!! abstract "Context"
@@ -42,10 +42,13 @@ All upgrades follow a simple exponential growth curve: `NewCost = floor(OldCost 
 ## 3. Entity Scaling
 
 ### Bulldozer (Engine)
--   **Base Speed Factor:** `0.002`
--   **Growth:** `+0.0005` per level (Linear).
--   **Turn Speed:** `0.04` (Constant).
--   **Effect:** A Level 10 dozer moves ~3.25x faster than Level 1.
+-   **Density:** Scales exponentially: `0.001 * (1.5 ^ Level)`.
+-   **Force:** Scales exponentially: `0.01 * (1.6 ^ Level)`.
+-   **Volume:** Increases quadratically as the chassis and plow grow (`40 + 5*Level` width/height).
+-   **Resulting Physics:**
+    -   **Mass:** grows extremely fast (Volume * Density).
+    -   **Acceleration:** ($Force / Mass$) actually **decreases** at high levels because the Force multiplier (1.6x) cannot keep up with the combined Density (1.5x) + Volume growth.
+    -   *Observation:* The bulldozer becomes sluggish and hard to turn at high levels, contrary to the "Power Fantasy" goal.
 
 ### Plow
 -   **Base Width:** `45` units (Physically scaled x10 -> 450px).
@@ -64,4 +67,5 @@ All upgrades follow a simple exponential growth curve: `NewCost = floor(OldCost 
 ## 4. Analysis
 -   **Total Money Cap:** With ~$49,000 total in the world, the player effectively hits a "Soft Cap" on upgrades around Level 12-13 for a single item, or Level 9-10 spread across all three.
 -   **Pacing:** The exponential cost curve means early upgrades are frequent, but late game upgrades become grindy.
+-   **Physics Imbalance:** The Engine upgrade logic is flawed. By scaling Density exponentially to make the dozer "heavy" (good for pushing piles of gems), we inadvertently made it too heavy for its own engine.
 -   **Redundancy:** The "Buy Area" shop pad conflicts with the "Auto Unlock" mechanic in `gem.js`.
