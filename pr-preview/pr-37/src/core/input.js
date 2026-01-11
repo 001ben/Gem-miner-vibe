@@ -88,9 +88,18 @@ export function initInput() {
 
         // Apply drive force
         if (throttle !== 0) {
-            // Balanced force for juicy but controllable movement
-            // Mass scales by 1.5x, so Force must scale by 2.0x to ensure acceleration increases
-            const forceMagnitude = throttle * 0.01 * Math.pow(1.6, state.dozerLevel);
+            // Refactored Physics Scaling:
+            // Calculate Force based on Mass * DesiredAcceleration.
+            // This ensures consistent handling regardless of how heavy the bulldozer gets.
+
+            // Base Accel: 0.0025 (slightly faster start)
+            // Growth: +10% per level (1.1^Level)
+            const desiredAccel = 0.0025 * Math.pow(1.1, state.dozerLevel);
+
+            // Force = Mass * Acceleration
+            // We use throttle as a -1 to 1 multiplier.
+            const forceMagnitude = throttle * bulldozer.mass * desiredAccel;
+
             const angle = bulldozer.angle - Math.PI/2;
             const force = {
                 x: Math.cos(angle) * forceMagnitude,

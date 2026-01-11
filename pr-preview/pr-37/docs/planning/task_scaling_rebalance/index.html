@@ -1147,7 +1147,7 @@
 <div class="admonition info">
 <p class="admonition-title"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20c4.4 0 8-3.6 8-8s-3.6-8-8-8-8 3.6-8 8 3.6 8 8 8m0-18c5.5 0 10 4.5 10 10s-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2m5 11.9-.7 1.3-5.3-2.9V7h1.5v4.4z"/></svg></span> Metadata</p>
 <ul>
-<li><strong>Status:</strong> Proposed</li>
+<li><strong>Status:</strong> In Progress</li>
 <li><strong>Type:</strong> Rebalance / Feature</li>
 <li><strong>Dependencies:</strong> <code>docs/guide/progression_analysis.md</code></li>
 </ul>
@@ -1159,60 +1159,28 @@
 <div class="admonition quote">
 <p class="admonition-title"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1M7 7h10V5h2v14H5V5h2zm5 10v-2h5v2zm0-6V9h5v2zm-4 1V9H7V8h2v4zm1.25 2c.41 0 .75.34.75.75 0 .2-.08.39-.21.52L8.12 17H10v1H7v-.92L9 15H7v-1z"/></svg></span> Plan</p>
 <ol>
-<li>
-<p><strong>Resolve Unlock Logic</strong></p>
-<ul>
-<li>Remove the "Auto Unlock" feature from <code>gem.js</code>. Making area unlocks a deliberate Purchase Decision creates a stronger short-term goal for the player ("I need 500 gold to open the gate").</li>
-<li>Keep the Zone Progress notification but change the reward to a large "Bonus Cash" drop or simply a "Zone Clear" badge.</li>
+<li><strong>Resolve Unlock Logic</strong><ul>
+<li>Remove the "Auto Unlock" feature from <code>gem.js</code>.</li>
+<li>Keep the Zone Progress notification but change the reward to a large "Bonus Cash" drop.</li>
 </ul>
 </li>
-<li>
-<p><strong>Tune Economy (Inflation)</strong></p>
-<ul>
-<li>Current Total: ~$50k.</li>
-<li>Target Total: ~$100k.</li>
-<li>Action: Increase Gem Values in Zone 3 (Make them "Big Ticket" items, 100-200 value).</li>
-<li>This supports a few more high-level upgrades (Levels 12-15).</li>
+<li><strong>Tune Economy (Inflation)</strong><ul>
+<li>Increase Gem Values in Zone 3 (100-200 value).</li>
 </ul>
 </li>
-<li>
-<p><strong>Refactor Physics Scaling (Engine)</strong></p>
-<ul>
-<li><strong>Problem:</strong> Current implementation scales Density (1.5x) and Force (1.6x) exponentially. Combined with Volume growth, Mass outpaces Force, reducing acceleration.</li>
-<li><strong>Solution:</strong> Decouple "Pushing Power" (Mass/Density) from "Movement Speed" (Force).</li>
-<li><strong>Proposal:</strong><ul>
-<li>Make Density scaling linear or constant (e.g., <code>0.002 + Lvl*0.0001</code>).</li>
+<li><strong>Refactor Physics Scaling (Engine)</strong><ul>
+<li>Make Density scaling linear.</li>
 <li>Calculate Force based on Mass: <code>Force = Mass * DesiredAcceleration</code>.</li>
 <li>Define <code>DesiredAcceleration</code> to increase by 10% per level.</li>
 </ul>
 </li>
+<li><strong>Adjust Upgrade Curves (Plow &amp; Collector)</strong><ul>
+<li><strong>Plow:</strong> Increase width scaling to <code>+8</code> per level.</li>
+<li><strong>Collector:</strong> Ensure Belts visual scaling matches physics scaling.</li>
 </ul>
 </li>
-<li>
-<p><strong>Adjust Upgrade Curves (Plow &amp; Collector)</strong></p>
-<ul>
-<li><strong>Plow:</strong> Increase width scaling slightly. <code>+8</code> per level instead of <code>+5</code>. Players love seeing the plow get massive.</li>
-<li><strong>Collector:</strong><ul>
-<li>Level 1 is very weak (small circle).</li>
-<li>Make Level 1 slightly larger.</li>
-<li>Ensure Belts visual scaling matches physics scaling (currently procedural).</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p><strong>Cost Curve Smoothing</strong></p>
-<ul>
-<li>The <code>x1.5</code> curve is harsh.</li>
-<li>Proposal: Change to <code>Cost = Base * (1.3 ^ (Level - 1))</code>.</li>
-<li>This allows players to reach higher levels (15-20) where the visual upgrades are most satisfying.</li>
-</ul>
-</li>
-<li>
-<p><strong>Visual Feedback</strong></p>
-<ul>
-<li>Ensure the "Next Upgrade Cost" is clearly visible <em>before</em> purchase (currently displayed on the pad?).</li>
-<li>Add a visual indicator when an upgrade is affordable (e.g., Pad glows green).</li>
+<li><strong>Cost Curve Smoothing</strong><ul>
+<li>Change to <code>Cost = Base * (1.3 ^ (Level - 1))</code>.</li>
 </ul>
 </li>
 </ol>
@@ -1220,10 +1188,10 @@
 <div class="admonition example">
 <p class="admonition-title"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12zm0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm-7 14v-2h5v2zm-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59z"/></svg></span> Execution Log</p>
 <ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Physics Fix</strong>: Refactor <code>src/entities/bulldozer.js</code> (density) and <code>src/core/input.js</code> (force) to ensure acceleration increases.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Remove auto-unlock from <code>src/entities/gem.js</code>.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update <code>src/entities/shop.js</code> to ensure Gate Unlock costs are balanced (500, 2500?).</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update <code>src/core/state.js</code> costs logic to use <code>1.3</code> multiplier.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Physics Fix</strong>: Refactor density and force calculations.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Unlock Logic</strong>: Remove auto-unlock and update Shop logic.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Economy</strong>: Tune Zone 3 gem values.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Upgrades</strong>: Adjust plow width and smoothing cost curves.</li>
 </ul>
 </div>
 
