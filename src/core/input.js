@@ -88,17 +88,48 @@ export function initInput() {
 
         // Apply drive force
         if (throttle !== 0) {
-            // Refactored Physics Scaling:
-            // Calculate Force based on Mass * DesiredAcceleration.
-            // This ensures consistent handling regardless of how heavy the bulldozer gets.
+            // Refactored Physics Scaling (Iteration 2):
+            // Problem: Pure `Mass * DesiredAccel` negates the weight of the plow completely.
+            // We want the engine to be powerful, but a massive plow SHOULD reduce acceleration slightly
+            // unless the engine is upgraded to match.
 
-            // Base Accel: 0.0025 (slightly faster start)
+            // Solution: Calculate force based on the *Chassis* mass (which scales with engine level)
+            // plus a partial factor of the total mass.
+            // Or simpler: Use Total Mass but reduce Desired Accel.
+
+            // Base Accel reduced to 0.0015 (slower start to feel weight)
             // Growth: +10% per level (1.1^Level)
-            const desiredAccel = 0.0025 * Math.pow(1.1, state.dozerLevel);
+            const baseAccel = 0.0015 * Math.pow(1.1, state.dozerLevel);
 
-            // Force = Mass * Acceleration
-            // We use throttle as a -1 to 1 multiplier.
-            const forceMagnitude = throttle * bulldozer.mass * desiredAccel;
+            // Load Factor: If the plow is massive (high mass), it should drag.
+            // But since Mass is in the Force equation, physics handles F=ma.
+            // If we provide F = m * a_desired, we get exactly a_desired.
+            // To make "Load" matter, we shouldn't fully compensate for mass.
+
+            // Let's use a "Power Rating" instead of Desired Accel.
+            // Force = Power * Throttle.
+            // Power scales with Engine Level.
+            // Mass scales with Plow Level + Engine Level (Chassis).
+            // This naturally means higher mass = lower accel if Power is constant.
+
+            // Power Calculation:
+            // Let's assume a Level 1 dozer (Mass ~5) needs Force ~0.01 to move well.
+            // Power = 0.01 * (1.2 ^ DozerLevel).
+
+            // We need to check actual mass values.
+            // Chassis: 45x45 * 0.002 ~ 4.
+            // Plow: 60x22 * 0.002 ~ 2.6.
+            // Total Mass ~ 6-7.
+            // Force needed for accel 0.002: 7 * 0.002 = 0.014.
+
+            // Let's try: Force = 0.01 * (1.2 ^ DozerLevel).
+            // If Mass doubles (Level 10), accel will drop by half unless DozerLevel matches.
+            // 1.2^10 = 6.19. Power increases 6x.
+            // Mass increases ~3-4x.
+            // So accel will increase overall, which is good (Power Fantasy).
+
+            const power = 0.012 * Math.pow(1.2, state.dozerLevel);
+            const forceMagnitude = throttle * power;
 
             const angle = bulldozer.angle - Math.PI/2;
             const force = {

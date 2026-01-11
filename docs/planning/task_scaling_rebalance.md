@@ -16,16 +16,15 @@
         -   Increase Gem Values in Zone 3 (100-200 value).
     3.  **Refactor Physics Scaling (Engine)**
         -   Make Density scaling linear.
-        -   Calculate Force based on Mass: `Force = Mass * DesiredAcceleration`.
-        -   Define `DesiredAcceleration` to increase by 10% per level.
+        -   Switch to "Power Rating" based Force calculation: `Force = 0.012 * 1.2^Level`. This naturally balances against Mass increases.
     4.  **Adjust Upgrade Curves (Plow & Collector)**
-        -   **Plow:** Increase width scaling to `+8` per level.
+        -   **Plow:** Increase width scaling to `+8` per level. Wings scale with level.
         -   **Collector:** Ensure Belts visual scaling matches physics scaling.
     5.  **Cost Curve Smoothing**
         -   Change to `Cost = Base * (1.3 ^ (Level - 1))`.
 
 !!! example ":material-console: Execution Log"
-    -   [x] **Physics Fix**: Refactor density and force calculations.
+    -   [x] **Physics Fix**: Refactor density to linear, Force to Power-based model.
     -   [x] **Unlock Logic**: Remove auto-unlock and update Shop logic.
     -   [x] **Economy**: Tune Zone 3 gem values.
-    -   [x] **Upgrades**: Adjust plow width and smoothing cost curves.
+    -   [x] **Upgrades**: Adjust plow width/wings and smoothing cost curves.
