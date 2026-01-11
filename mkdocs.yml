@@ -15,13 +15,13 @@ theme:
 
 nav:
   - Home: README.md
-  - Guides & Tutorials:
+  - Guide:
       - Project Structure: guide/PROJECT_STRUCTURE.md
       - Design Principles: guide/game_design_principles.md
+      - Analysis: guide/progression_analysis.md
   - Planning:
       - Roadmap: planning/roadmap.md
       - Current Task: planning/task_scaling_rebalance.md
-      - Analysis: planning/progression_analysis.md
       - Archive:
           - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
   - Architecture:
