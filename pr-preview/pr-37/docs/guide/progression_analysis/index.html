@@ -1359,7 +1359,7 @@
 <p class="admonition-title">Metadata</p>
 <ul>
 <li><strong>Date:</strong> 2024-10-25</li>
-<li><strong>Version:</strong> 1.0</li>
+<li><strong>Version:</strong> 1.1</li>
 <li><strong>Scope:</strong> Current values for costs, entity stats, and economy.</li>
 </ul>
 </div>
@@ -1470,10 +1470,15 @@
 <h2 id="3-entity-scaling">3. Entity Scaling<a class="headerlink" href="#3-entity-scaling" title="Permanent link">&para;</a></h2>
 <h3 id="bulldozer-engine">Bulldozer (Engine)<a class="headerlink" href="#bulldozer-engine" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Base Speed Factor:</strong> <code>0.002</code></li>
-<li><strong>Growth:</strong> <code>+0.0005</code> per level (Linear).</li>
-<li><strong>Turn Speed:</strong> <code>0.04</code> (Constant).</li>
-<li><strong>Effect:</strong> A Level 10 dozer moves ~3.25x faster than Level 1.</li>
+<li><strong>Density:</strong> Scales exponentially: <code>0.001 * (1.5 ^ Level)</code>.</li>
+<li><strong>Force:</strong> Scales exponentially: <code>0.01 * (1.6 ^ Level)</code>.</li>
+<li><strong>Volume:</strong> Increases quadratically as the chassis and plow grow (<code>40 + 5*Level</code> width/height).</li>
+<li><strong>Resulting Physics:</strong><ul>
+<li><strong>Mass:</strong> grows extremely fast (Volume * Density).</li>
+<li><strong>Acceleration:</strong> ($Force / Mass$) actually <strong>decreases</strong> at high levels because the Force multiplier (1.6x) cannot keep up with the combined Density (1.5x) + Volume growth.</li>
+<li><em>Observation:</em> The bulldozer becomes sluggish and hard to turn at high levels, contrary to the "Power Fantasy" goal.</li>
+</ul>
+</li>
 </ul>
 <h3 id="plow">Plow<a class="headerlink" href="#plow" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1497,6 +1502,7 @@
 <ul>
 <li><strong>Total Money Cap:</strong> With ~$49,000 total in the world, the player effectively hits a "Soft Cap" on upgrades around Level 12-13 for a single item, or Level 9-10 spread across all three.</li>
 <li><strong>Pacing:</strong> The exponential cost curve means early upgrades are frequent, but late game upgrades become grindy.</li>
+<li><strong>Physics Imbalance:</strong> The Engine upgrade logic is flawed. By scaling Density exponentially to make the dozer "heavy" (good for pushing piles of gems), we inadvertently made it too heavy for its own engine.</li>
 <li><strong>Redundancy:</strong> The "Buy Area" shop pad conflicts with the "Auto Unlock" mechanic in <code>gem.js</code>.</li>
 </ul>
 

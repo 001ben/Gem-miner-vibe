@@ -1176,9 +1176,21 @@
 </ul>
 </li>
 <li>
-<p><strong>Adjust Upgrade Curves</strong></p>
+<p><strong>Refactor Physics Scaling (Engine)</strong></p>
 <ul>
-<li><strong>Engine:</strong> The linear speed increase is good, but maybe start slightly faster? Base <code>0.0025</code>.</li>
+<li><strong>Problem:</strong> Current implementation scales Density (1.5x) and Force (1.6x) exponentially. Combined with Volume growth, Mass outpaces Force, reducing acceleration.</li>
+<li><strong>Solution:</strong> Decouple "Pushing Power" (Mass/Density) from "Movement Speed" (Force).</li>
+<li><strong>Proposal:</strong><ul>
+<li>Make Density scaling linear or constant (e.g., <code>0.002 + Lvl*0.0001</code>).</li>
+<li>Calculate Force based on Mass: <code>Force = Mass * DesiredAcceleration</code>.</li>
+<li>Define <code>DesiredAcceleration</code> to increase by 10% per level.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Adjust Upgrade Curves (Plow &amp; Collector)</strong></p>
+<ul>
 <li><strong>Plow:</strong> Increase width scaling slightly. <code>+8</code> per level instead of <code>+5</code>. Players love seeing the plow get massive.</li>
 <li><strong>Collector:</strong><ul>
 <li>Level 1 is very weak (small circle).</li>
@@ -1193,13 +1205,7 @@
 <ul>
 <li>The <code>x1.5</code> curve is harsh.</li>
 <li>Proposal: Change to <code>Cost = Base * (1.3 ^ (Level - 1))</code>.</li>
-<li>Comparison (Base 100):<ul>
-<li>Lvl 5: x1.5 -&gt; 506 | x1.3 -&gt; 285</li>
-<li>Lvl 10: x1.5 -&gt; 3844 | x1.3 -&gt; 1060</li>
-<li>Lvl 15: x1.5 -&gt; 29k | x1.3 -&gt; 3900</li>
-</ul>
-</li>
-<li>This allows players to reach higher levels (15-20) where the visual upgrades (massive plow, complex belts) are most satisfying.</li>
+<li>This allows players to reach higher levels (15-20) where the visual upgrades are most satisfying.</li>
 </ul>
 </li>
 <li>
@@ -1214,10 +1220,10 @@
 <div class="admonition example">
 <p class="admonition-title"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 19V7H4v12zm0-16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm-7 14v-2h5v2zm-3.42-4L5.57 9H8.4l3.3 3.3c.39.39.39 1.03 0 1.42L8.42 17H5.59z"/></svg></span> Execution Log</p>
 <ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Physics Fix</strong>: Refactor <code>src/entities/bulldozer.js</code> (density) and <code>src/core/input.js</code> (force) to ensure acceleration increases.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Remove auto-unlock from <code>src/entities/gem.js</code>.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update <code>src/entities/shop.js</code> to ensure Gate Unlock costs are balanced (500, 2500?).</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update <code>src/core/state.js</code> costs logic to use <code>1.3</code> multiplier.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Tweak <code>src/entities/bulldozer.js</code> stats.</li>
 </ul>
 </div>
 
