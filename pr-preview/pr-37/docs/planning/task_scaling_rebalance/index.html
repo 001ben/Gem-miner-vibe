@@ -496,7 +496,7 @@
   <span class="md-ellipsis">
     
   
-    Analysis
+    Progression Analysis
   
 
     
@@ -1170,7 +1170,7 @@
 </li>
 <li><strong>Refactor Physics Scaling (Engine)</strong><ul>
 <li>Make Density scaling linear.</li>
-<li>Switch to "Power Rating" based Force calculation: <code>Force = 0.012 * 1.2^Level</code>. This naturally balances against Mass increases.</li>
+<li>Switch to "Power Rating" based Force calculation: <code>Force = 0.012 * 1.25^Level</code>. This provides a stronger acceleration curve than the previous 1.2x.</li>
 </ul>
 </li>
 <li><strong>Adjust Upgrade Curves (Plow &amp; Collector)</strong><ul>
@@ -1191,6 +1191,7 @@
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Unlock Logic</strong>: Remove auto-unlock and update Shop logic.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Economy</strong>: Tune Zone 3 gem values.</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Upgrades</strong>: Adjust plow width/wings and smoothing cost curves.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>Re-tuning</strong>: Increased engine power scaling to 1.25x to overcome quadratic mass growth.</li>
 </ul>
 </div>
 

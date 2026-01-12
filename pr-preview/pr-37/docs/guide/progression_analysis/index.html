@@ -25,7 +25,7 @@
     
     
       
-        <title>Analysis - Gem Miner Docs</title>
+        <title>Progression Analysis - Gem Miner Docs</title>
       
     
     
@@ -108,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Analysis
+              Progression Analysis
             
           </span>
         </div>
@@ -508,7 +508,7 @@
   <span class="md-ellipsis">
     
   
-    Analysis
+    Progression Analysis
   
 
     
@@ -526,7 +526,7 @@
   <span class="md-ellipsis">
     
   
-    Analysis
+    Progression Analysis
   
 
     
@@ -1470,13 +1470,13 @@
 <h2 id="3-entity-scaling">3. Entity Scaling<a class="headerlink" href="#3-entity-scaling" title="Permanent link">&para;</a></h2>
 <h3 id="bulldozer-engine">Bulldozer (Engine)<a class="headerlink" href="#bulldozer-engine" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Density:</strong> Scales exponentially: <code>0.001 * (1.5 ^ Level)</code>.</li>
-<li><strong>Force:</strong> Scales exponentially: <code>0.01 * (1.6 ^ Level)</code>.</li>
-<li><strong>Volume:</strong> Increases quadratically as the chassis and plow grow (<code>40 + 5*Level</code> width/height).</li>
+<li><strong>Density:</strong> Scales linearly (<code>0.002 + Level * 0.0001</code>) to prevent excessive mass growth.</li>
+<li><strong>Force:</strong> Calculated dynamically as <code>Power * Throttle</code>, where Power scales with level (<code>0.012 * 1.25^Level</code>).</li>
+<li><strong>Volume:</strong> Increases quadratically (<code>40 + 5*Level</code>).</li>
 <li><strong>Resulting Physics:</strong><ul>
-<li><strong>Mass:</strong> grows extremely fast (Volume * Density).</li>
-<li><strong>Acceleration:</strong> ($Force / Mass$) actually <strong>decreases</strong> at high levels because the Force multiplier (1.6x) cannot keep up with the combined Density (1.5x) + Volume growth.</li>
-<li><em>Observation:</em> The bulldozer becomes sluggish and hard to turn at high levels, contrary to the "Power Fantasy" goal.</li>
+<li><strong>Mass:</strong> Grows quadratically due to volume, but controlled by linear density.</li>
+<li><strong>Acceleration:</strong> By tuning the Force scaling to 1.25x or higher, we ensure it outpaces the Mass growth, resulting in a net increase in acceleration per level.</li>
+<li><em>Correction:</em> Previous exponential density scaling (1.5x) caused mass to outpace force. This has been refactored.</li>
 </ul>
 </li>
 </ul>
