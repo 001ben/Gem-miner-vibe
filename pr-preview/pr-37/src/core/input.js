@@ -112,21 +112,34 @@ export function initInput() {
             // Mass scales with Plow Level + Engine Level (Chassis).
             // This naturally means higher mass = lower accel if Power is constant.
 
-            // Power Calculation:
-            // Let's assume a Level 1 dozer (Mass ~5) needs Force ~0.01 to move well.
-            // Power = 0.01 * (1.2 ^ DozerLevel).
+            // Power Calculation Refactor: "Engine vs Plow"
+            // Max Speed should increase with Engine Level (base Force increases).
+            // Acceleration should depend on the difference between Engine and Plow levels.
 
-            // We need to check actual mass values.
-            // Chassis: 45x45 * 0.002 ~ 4.
-            // Plow: 60x22 * 0.002 ~ 2.6.
-            // Total Mass ~ 6-7.
-            // Force needed for accel 0.002: 7 * 0.002 = 0.014.
+            // 1. Calculate Base Power based on Engine Level
+            // This ensures Max Speed goes up because Force overcomes linear drag (FrictionAir).
+            // Base Power scales with 1.25x per level to keep up with mass.
+            let power = 0.012 * Math.pow(1.25, state.dozerLevel);
 
-            // Let's try: Force = 0.012 * (1.25 ^ DozerLevel).
-            // Increased from 1.2 to 1.25 to ensure the engine feels punchy at higher levels
-            // despite the quadratic growth of the bulldozer's mass.
+            // 2. Adjust for "Load" (Engine vs Plow difference)
+            // Difference = Engine - Plow.
+            // +Diff (Engine > Plow): Faster acceleration (lighter feel).
+            // -Diff (Engine < Plow): Slower acceleration (drag/heavy feel).
 
-            const power = 0.012 * Math.pow(1.25, state.dozerLevel);
+            const levelDiff = state.dozerLevel - state.plowLevel;
+
+            // Clamp difference to +/- 2 levels as requested
+            const clampedDiff = Math.max(-2, Math.min(2, levelDiff));
+
+            // Tuning factor: How much does each level of difference impact performance?
+            // Let's say +/- 10% per level of difference.
+            // +2 levels = +20% force (zippy).
+            // -2 levels = -20% force (sluggish).
+            const loadFactor = 1.0 + (clampedDiff * 0.1);
+
+            // Apply Load Factor
+            power *= loadFactor;
+
             const forceMagnitude = throttle * power;
 
             const angle = bulldozer.angle - Math.PI/2;
