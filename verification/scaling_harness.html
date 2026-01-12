@@ -76,7 +76,11 @@
                     Matter.Engine.update(engine, 1000/60);
                 }
 
-                const power = 0.012 * Math.pow(1.25, state.dozerLevel);
+                // Updated Power Calculation to match PROPOSED logic in input.js
+                // We must ensure this logic MATCHES what we put in input.js
+                // Proposed: (0.012 * 1.35^Level) + (Mass * 0.001)
+                const power = (0.012 * Math.pow(1.35, state.dozerLevel)) + (dozer.mass * 0.001);
+
                 const forceMag = 1.0 * power;
 
                 for(let i=0; i<frames; i++) {

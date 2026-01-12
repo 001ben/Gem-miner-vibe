@@ -30,7 +30,8 @@ def run_scaling_analysis():
 
         results = []
 
-        for level in range(1, 21):
+        levels = list(range(1, 11)) + [20] # 1-10 and 20
+        for level in levels:
             # Run Static Test
             static_stats = page.evaluate(f"window.runTest({level})")
 

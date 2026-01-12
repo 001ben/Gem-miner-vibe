@@ -6,10 +6,10 @@ import { createMap } from '../entities/map.js';
 export function updateUI() {
     document.getElementById('money').innerText = state.money;
 
-    // Power increases 1.25x per level (Force), adjusted by load factor.
-    // Base Power: 100 * 1.25^(L-1).
+    // Power increases 1.35x per level (Force), adjusted by load factor.
+    // Base Power: 100 * 1.35^(L-1).
     // Load adjustment is dynamic, but for stats we can show base Power.
-    const powerVal = Math.round(100 * Math.pow(1.25, state.dozerLevel - 1));
+    const powerVal = Math.round(100 * Math.pow(1.35, state.dozerLevel - 1));
     const powerEl = document.getElementById('stats-power');
     if (powerEl) powerEl.innerText = `Power: ${powerVal}%`;
 }
