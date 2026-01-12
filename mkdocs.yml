@@ -18,7 +18,7 @@ nav:
   - Guide:
       - Project Structure: guide/PROJECT_STRUCTURE.md
       - Design Principles: guide/game_design_principles.md
-      - Analysis: guide/progression_analysis.md
+      - Progression Analysis: guide/progression_analysis.md
   - Planning:
       - Roadmap: planning/roadmap.md
       - Current Task: planning/task_scaling_rebalance.md

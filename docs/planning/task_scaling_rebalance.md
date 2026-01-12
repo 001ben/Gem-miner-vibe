@@ -16,7 +16,7 @@
         -   Increase Gem Values in Zone 3 (100-200 value).
     3.  **Refactor Physics Scaling (Engine)**
         -   Make Density scaling linear.
-        -   Switch to "Power Rating" based Force calculation: `Force = 0.012 * 1.2^Level`. This naturally balances against Mass increases.
+        -   Switch to "Power Rating" based Force calculation: `Force = 0.012 * 1.25^Level`. This provides a stronger acceleration curve than the previous 1.2x.
     4.  **Adjust Upgrade Curves (Plow & Collector)**
         -   **Plow:** Increase width scaling to `+8` per level. Wings scale with level.
         -   **Collector:** Ensure Belts visual scaling matches physics scaling.
@@ -28,3 +28,4 @@
     -   [x] **Unlock Logic**: Remove auto-unlock and update Shop logic.
     -   [x] **Economy**: Tune Zone 3 gem values.
     -   [x] **Upgrades**: Adjust plow width/wings and smoothing cost curves.
+    -   [x] **Re-tuning**: Increased engine power scaling to 1.25x to overcome quadratic mass growth.

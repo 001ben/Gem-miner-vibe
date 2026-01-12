@@ -122,13 +122,11 @@ export function initInput() {
             // Total Mass ~ 6-7.
             // Force needed for accel 0.002: 7 * 0.002 = 0.014.
 
-            // Let's try: Force = 0.01 * (1.2 ^ DozerLevel).
-            // If Mass doubles (Level 10), accel will drop by half unless DozerLevel matches.
-            // 1.2^10 = 6.19. Power increases 6x.
-            // Mass increases ~3-4x.
-            // So accel will increase overall, which is good (Power Fantasy).
+            // Let's try: Force = 0.012 * (1.25 ^ DozerLevel).
+            // Increased from 1.2 to 1.25 to ensure the engine feels punchy at higher levels
+            // despite the quadratic growth of the bulldozer's mass.
 
-            const power = 0.012 * Math.pow(1.2, state.dozerLevel);
+            const power = 0.012 * Math.pow(1.25, state.dozerLevel);
             const forceMagnitude = throttle * power;
 
             const angle = bulldozer.angle - Math.PI/2;

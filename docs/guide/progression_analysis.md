@@ -42,13 +42,13 @@ All upgrades follow a simple exponential growth curve: `NewCost = floor(OldCost 
 ## 3. Entity Scaling
 
 ### Bulldozer (Engine)
--   **Density:** Scales exponentially: `0.001 * (1.5 ^ Level)`.
--   **Force:** Scales exponentially: `0.01 * (1.6 ^ Level)`.
--   **Volume:** Increases quadratically as the chassis and plow grow (`40 + 5*Level` width/height).
+-   **Density:** Scales linearly (`0.002 + Level * 0.0001`) to prevent excessive mass growth.
+-   **Force:** Calculated dynamically as `Power * Throttle`, where Power scales with level (`0.012 * 1.25^Level`).
+-   **Volume:** Increases quadratically (`40 + 5*Level`).
 -   **Resulting Physics:**
-    -   **Mass:** grows extremely fast (Volume * Density).
-    -   **Acceleration:** ($Force / Mass$) actually **decreases** at high levels because the Force multiplier (1.6x) cannot keep up with the combined Density (1.5x) + Volume growth.
-    -   *Observation:* The bulldozer becomes sluggish and hard to turn at high levels, contrary to the "Power Fantasy" goal.
+    -   **Mass:** Grows quadratically due to volume, but controlled by linear density.
+    -   **Acceleration:** By tuning the Force scaling to 1.25x or higher, we ensure it outpaces the Mass growth, resulting in a net increase in acceleration per level.
+    -   *Correction:* Previous exponential density scaling (1.5x) caused mass to outpace force. This has been refactored.
 
 ### Plow
 -   **Base Width:** `45` units (Physically scaled x10 -> 450px).
