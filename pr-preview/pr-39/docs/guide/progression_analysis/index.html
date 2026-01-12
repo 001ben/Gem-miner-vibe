@@ -1359,7 +1359,7 @@
 <p class="admonition-title">Metadata</p>
 <ul>
 <li><strong>Date:</strong> 2024-10-25</li>
-<li><strong>Version:</strong> 1.1</li>
+<li><strong>Version:</strong> 1.2</li>
 <li><strong>Scope:</strong> Current values for costs, entity stats, and economy.</li>
 </ul>
 </div>
@@ -1471,12 +1471,12 @@
 <h3 id="bulldozer-engine">Bulldozer (Engine)<a class="headerlink" href="#bulldozer-engine" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Density:</strong> Scales linearly (<code>0.002 + Level * 0.0001</code>) to prevent excessive mass growth.</li>
-<li><strong>Force:</strong> Calculated dynamically as <code>Power * Throttle</code>, where Power scales with level (<code>0.012 * 1.25^Level</code>).</li>
-<li><strong>Volume:</strong> Increases quadratically (<code>40 + 5*Level</code>).</li>
+<li><strong>Force (Power):</strong> Scales dynamically with level (<code>0.012 * 1.25^Level</code>), adjusted by a Load Factor based on the difference between Engine and Plow levels (+/- 10% per level difference).</li>
+<li><strong>Volume:</strong> Increases roughly quadratically due to dimension changes (<code>40 + 5*Level</code> body size, plus plow).</li>
 <li><strong>Resulting Physics:</strong><ul>
-<li><strong>Mass:</strong> Grows quadratically due to volume, but controlled by linear density.</li>
-<li><strong>Acceleration:</strong> By tuning the Force scaling to 1.25x or higher, we ensure it outpaces the Mass growth, resulting in a net increase in acceleration per level.</li>
-<li><em>Correction:</em> Previous exponential density scaling (1.5x) caused mass to outpace force. This has been refactored.</li>
+<li><strong>Mass:</strong> Grows due to volume and increasing density. Mass scales ~1.2-1.3x early on, tapering to ~1.16x later.</li>
+<li><strong>Max Speed:</strong> Since Force (1.25x) scales roughly in parallel with Mass (1.16x - 1.3x), the <strong>Power-to-Weight ratio remains relatively constant</strong> (or decreases slightly early on).</li>
+<li><strong>Effect:</strong> The bulldozer gets massive and powerful (pushing force increases drastically), but <strong>top speed does not increase significantly</strong>. This reinforces the "Heavy Machinery" feel rather than a racing car.</li>
 </ul>
 </li>
 </ul>
@@ -1502,7 +1502,7 @@
 <ul>
 <li><strong>Total Money Cap:</strong> With ~$49,000 total in the world, the player effectively hits a "Soft Cap" on upgrades around Level 12-13 for a single item, or Level 9-10 spread across all three.</li>
 <li><strong>Pacing:</strong> The exponential cost curve means early upgrades are frequent, but late game upgrades become grindy.</li>
-<li><strong>Physics Imbalance:</strong> The Engine upgrade logic is flawed. By scaling Density exponentially to make the dozer "heavy" (good for pushing piles of gems), we inadvertently made it too heavy for its own engine.</li>
+<li><strong>Physics Imbalance:</strong> The Engine upgrade logic is designed to maintain consistent handling (speed/accel) as the vehicle grows massively in size. The slight discrepancies in scaling (Mass vs Force) mean the vehicle may feel slightly sluggish at certain intermediate levels if the Engine lags behind the Plow size.</li>
 <li><strong>Redundancy:</strong> The "Buy Area" shop pad conflicts with the "Auto Unlock" mechanic in <code>gem.js</code>.</li>
 </ul>
 
