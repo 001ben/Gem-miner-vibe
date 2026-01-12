@@ -586,10 +586,32 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#implemented-logic-tentative" class="md-nav__link">
+  <a href="#performance-curves" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Implemented Logic (Tentative)
+        Performance Curves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wingtip-offsets-plow-width-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wingtip Offsets (Plow Width Scaling)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implemented-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implemented Logic
       
     </span>
   </a>
@@ -1256,10 +1278,32 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#implemented-logic-tentative" class="md-nav__link">
+  <a href="#performance-curves" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Implemented Logic (Tentative)
+        Performance Curves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wingtip-offsets-plow-width-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wingtip Offsets (Plow Width Scaling)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implemented-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implemented Logic
       
     </span>
   </a>
@@ -1292,8 +1336,8 @@
 <div class="admonition info">
 <p class="admonition-title">Metadata</p>
 <ul>
-<li><strong>Date:</strong> 2024-05-23</li>
-<li><strong>Version:</strong> 1.5 (Tentative Implementation)</li>
+<li><strong>Date:</strong> 2026-01-13</li>
+<li><strong>Version:</strong> 1.6 (Verified Logic)</li>
 <li><strong>Scope:</strong> Current values for costs, entity stats, and economy.</li>
 </ul>
 </div>
@@ -1386,114 +1430,49 @@
 </tbody>
 </table>
 <h2 id="3-entity-scaling-verification">3. Entity Scaling Verification<a class="headerlink" href="#3-entity-scaling-verification" title="Permanent link">&para;</a></h2>
-<p><strong>Note:</strong> Values reflect the "Tentative Fix" implemented in Version 1.5.</p>
+<h3 id="performance-curves">Performance Curves<a class="headerlink" href="#performance-curves" title="Permanent link">&para;</a></h3>
+<p>The following chart illustrates the Top Speed scaling across three scenarios:
+1.  <strong>Standard:</strong> All upgrades (Engine, Plow, Collector) kept equal.
+2.  <strong>Engine Focus:</strong> Level 1 Plow/Collector, upgrading only Engine (Set B).
+3.  <strong>Engine Lag:</strong> Level 1 Engine, upgrading Collector (Set A) (Note: Collector upgrades do not impact physics mass, so this line is flat).</p>
+<p><img alt="Progression Curves" src="progression_curves.png" /></p>
+<h3 id="wingtip-offsets-plow-width-scaling">Wingtip Offsets (Plow Width Scaling)<a class="headerlink" href="#wingtip-offsets-plow-width-scaling" title="Permanent link">&para;</a></h3>
+<p>As the plow upgrades (Level 3+), "wings" are added. The table below shows the offset of the wingtip relative to the main plow edge.</p>
 <table>
 <thead>
 <tr>
-<th>Level</th>
-<th>Mass</th>
-<th>Width</th>
-<th>Height</th>
-<th>Max Speed (px/f)</th>
-<th>Accel (Dist 5s)</th>
+<th style="text-align: left;">Level</th>
+<th style="text-align: left;">Wingtip Offset (units)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1</td>
-<td>9.52</td>
-<td>114.00</td>
-<td>82.00</td>
-<td>5.0033</td>
-<td>1472.65</td>
+<td style="text-align: left;">1-2</td>
+<td style="text-align: left;">0.00</td>
 </tr>
 <tr>
-<td>2</td>
-<td>12.18</td>
-<td>87.00</td>
-<td>138.00</td>
-<td>5.1772</td>
-<td>1523.82</td>
+<td style="text-align: left;">3</td>
+<td style="text-align: left;">28.83</td>
 </tr>
 <tr>
-<td>3</td>
-<td>17.91</td>
-<td>120.83</td>
-<td>206.47</td>
-<td>4.9038</td>
-<td>1443.36</td>
+<td style="text-align: left;">5</td>
+<td style="text-align: left;">36.79</td>
 </tr>
 <tr>
-<td>4</td>
-<td>21.95</td>
-<td>129.81</td>
-<td>234.92</td>
-<td>5.2152</td>
-<td>1535.01</td>
+<td style="text-align: left;">10</td>
+<td style="text-align: left;">56.70</td>
 </tr>
 <tr>
-<td>5</td>
-<td>26.43</td>
-<td>138.79</td>
-<td>263.37</td>
-<td>5.6216</td>
-<td>1654.64</td>
-</tr>
-<tr>
-<td>6</td>
-<td>31.40</td>
-<td>147.77</td>
-<td>291.81</td>
-<td>6.1363</td>
-<td>1806.11</td>
-</tr>
-<tr>
-<td>7</td>
-<td>36.86</td>
-<td>156.76</td>
-<td>320.26</td>
-<td>6.7783</td>
-<td>1995.07</td>
-</tr>
-<tr>
-<td>8</td>
-<td>42.85</td>
-<td>165.74</td>
-<td>348.71</td>
-<td>7.5732</td>
-<td>2229.03</td>
-</tr>
-<tr>
-<td>9</td>
-<td>49.38</td>
-<td>174.72</td>
-<td>377.16</td>
-<td>8.5538</td>
-<td>2517.68</td>
-</tr>
-<tr>
-<td>10</td>
-<td>56.48</td>
-<td>183.70</td>
-<td>405.60</td>
-<td>9.7623</td>
-<td>2873.36</td>
-</tr>
-<tr>
-<td>20</td>
-<td>163.55</td>
-<td>273.53</td>
-<td>690.08</td>
-<td>56.7815</td>
-<td>16712.69</td>
+<td style="text-align: left;">20</td>
+<td style="text-align: left;">96.53</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Observations (Post-Fix):</strong>
 -   <strong>Baseline Improvement:</strong> Starting speed is now ~5.0 px/f (vs ~2.9), making the base bulldozer feel more responsive.
--   <strong>Progression Gap:</strong> The Level 3 "Dip" has been significantly mitigated (only a ~5% drop from Lvl 2, recovering by Lvl 4).
+-   <strong>Progression Gap:</strong> The Level 3 "Dip" has been significantly mitigated.
 -   <strong>Late Game:</strong> Speed scales aggressively (up to ~56 px/f at Lvl 20), delivering the requested "Power Fantasy".</p>
-<h3 id="implemented-logic-tentative">Implemented Logic (Tentative)<a class="headerlink" href="#implemented-logic-tentative" title="Permanent link">&para;</a></h3>
+<h3 id="implemented-logic">Implemented Logic<a class="headerlink" href="#implemented-logic" title="Permanent link">&para;</a></h3>
 <p><code>Force = (0.012 * 1.35^Level) + (Mass * 0.001)</code></p>
 <ul>
 <li><strong>Base Power:</strong> Increased exponent from 1.25 to 1.35.</li>
