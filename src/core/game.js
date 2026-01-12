@@ -5,7 +5,7 @@ import { createMap } from '../entities/map.js';
 import { createBulldozer, getBulldozer } from '../entities/bulldozer.js';
 import { createCollector } from '../entities/collector.js';
 import { initGems, collectGem } from '../entities/gem.js';
-import { updateUI, initUI, showNotification } from './ui.js';
+import { updateUI, initUI, showNotification, updateSpeedometer } from './ui.js';
 import { createShopPads, checkShopCollisions } from '../entities/shop.js';
 import { initInput } from './input.js';
 import { initConsole } from './console.js';
@@ -126,6 +126,10 @@ function animate(currentTime = performance.now()) {
     const dozer = getBulldozer();
     
     updateGraphics(dozer, bulldozerRenderer, alpha);
+
+    if (dozer) {
+        updateSpeedometer(dozer.speed);
+    }
     
     // FPS Calculation
     frameCount++;
