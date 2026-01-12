@@ -1,8 +1,8 @@
 # Progression Analysis (Current State)
 
 !!! info "Metadata"
-    -   **Date:** 2024-05-23
-    -   **Version:** 1.5 (Tentative Implementation)
+    -   **Date:** 2026-01-13
+    -   **Version:** 1.6 (Verified Logic)
     -   **Scope:** Current values for costs, entity stats, and economy.
 
 !!! abstract "Context"
@@ -31,28 +31,33 @@ All upgrades follow a simple exponential growth curve: `NewCost = floor(OldCost 
 
 ## 3. Entity Scaling Verification
 
-**Note:** Values reflect the "Tentative Fix" implemented in Version 1.5.
+### Performance Curves
 
-| Level | Mass | Width | Height | Max Speed (px/f) | Accel (Dist 5s) |
-|-------|------|-------|--------|------------------|-----------------|
-| 1 | 9.52 | 114.00 | 82.00 | 5.0033 | 1472.65 |
-| 2 | 12.18 | 87.00 | 138.00 | 5.1772 | 1523.82 |
-| 3 | 17.91 | 120.83 | 206.47 | 4.9038 | 1443.36 |
-| 4 | 21.95 | 129.81 | 234.92 | 5.2152 | 1535.01 |
-| 5 | 26.43 | 138.79 | 263.37 | 5.6216 | 1654.64 |
-| 6 | 31.40 | 147.77 | 291.81 | 6.1363 | 1806.11 |
-| 7 | 36.86 | 156.76 | 320.26 | 6.7783 | 1995.07 |
-| 8 | 42.85 | 165.74 | 348.71 | 7.5732 | 2229.03 |
-| 9 | 49.38 | 174.72 | 377.16 | 8.5538 | 2517.68 |
-| 10 | 56.48 | 183.70 | 405.60 | 9.7623 | 2873.36 |
-| 20 | 163.55 | 273.53 | 690.08 | 56.7815 | 16712.69 |
+The following chart illustrates the Top Speed scaling across three scenarios:
+1.  **Standard:** All upgrades (Engine, Plow, Collector) kept equal.
+2.  **Engine Focus:** Level 1 Plow/Collector, upgrading only Engine (Set B).
+3.  **Engine Lag:** Level 1 Engine, upgrading Collector (Set A) (Note: Collector upgrades do not impact physics mass, so this line is flat).
+
+![Progression Curves](progression_curves.png)
+
+### Wingtip Offsets (Plow Width Scaling)
+
+As the plow upgrades (Level 3+), "wings" are added. The table below shows the offset of the wingtip relative to the main plow edge.
+
+| Level | Wingtip Offset (units) |
+| :--- | :--- |
+| 1-2 | 0.00 |
+| 3 | 28.83 |
+| 5 | 36.79 |
+| 10 | 56.70 |
+| 20 | 96.53 |
 
 **Observations (Post-Fix):**
 -   **Baseline Improvement:** Starting speed is now ~5.0 px/f (vs ~2.9), making the base bulldozer feel more responsive.
--   **Progression Gap:** The Level 3 "Dip" has been significantly mitigated (only a ~5% drop from Lvl 2, recovering by Lvl 4).
+-   **Progression Gap:** The Level 3 "Dip" has been significantly mitigated.
 -   **Late Game:** Speed scales aggressively (up to ~56 px/f at Lvl 20), delivering the requested "Power Fantasy".
 
-### Implemented Logic (Tentative)
+### Implemented Logic
 `Force = (0.012 * 1.35^Level) + (Mass * 0.001)`
 
 -   **Base Power:** Increased exponent from 1.25 to 1.35.
