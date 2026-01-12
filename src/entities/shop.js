@@ -129,28 +129,31 @@ function handleShopInteraction(pad) {
         lastPurchaseTime = Date.now();
 
         // Execute Upgrade
+        // Cost Curve Smoothing: Base * 1.3 ^ (Lvl-1)
+        // We update the stored cost for the *next* level.
+
         if (pad.type === 'dozer') {
             state.dozerLevel++;
-            costs.dozer = Math.floor(costs.dozer * 1.5);
+            costs.dozer = Math.floor(100 * Math.pow(1.3, state.dozerLevel));
             createBulldozer();
             rebuildBulldozerRenderer();
             spawnFloatingText("Engine Up!", { x: pad.x, y: pad.y }, '#f39c12');
             showNotification(`Engine Upgraded to Level ${state.dozerLevel}!`);
         } else if (pad.type === 'plow') {
             state.plowLevel++;
-            costs.plow = Math.floor(costs.plow * 1.5);
+            costs.plow = Math.floor(100 * Math.pow(1.3, state.plowLevel));
             createBulldozer();
             spawnFloatingText("Plow Up!", { x: pad.x, y: pad.y }, '#d35400');
             showNotification(`Plow Upgraded to Level ${state.plowLevel}!`);
         } else if (pad.type === 'collector') {
             state.collectorLevel++;
-            costs.collector = Math.floor(costs.collector * 1.5);
+            costs.collector = Math.floor(150 * Math.pow(1.3, state.collectorLevel));
             createCollector();
             spawnFloatingText("Collector Up!", { x: pad.x, y: pad.y }, '#00ff00');
             showNotification(`Collector Upgraded to Level ${state.collectorLevel}!`);
         } else if (pad.type === 'area') {
             state.areaLevel++;
-            if (state.areaLevel === 2) costs.area = 2000;
+            if (state.areaLevel === 2) costs.area = 2500; // Unlock Zone 3
             else costs.area = 999999;
             createMap();
             spawnFloatingText("Area Unlocked!", { x: pad.x, y: pad.y }, '#e74c3c');

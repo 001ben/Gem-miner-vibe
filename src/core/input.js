@@ -88,9 +88,60 @@ export function initInput() {
 
         // Apply drive force
         if (throttle !== 0) {
-            // Balanced force for juicy but controllable movement
-            // Mass scales by 1.5x, so Force must scale by 2.0x to ensure acceleration increases
-            const forceMagnitude = throttle * 0.01 * Math.pow(1.6, state.dozerLevel);
+            // Refactored Physics Scaling (Iteration 2):
+            // Problem: Pure `Mass * DesiredAccel` negates the weight of the plow completely.
+            // We want the engine to be powerful, but a massive plow SHOULD reduce acceleration slightly
+            // unless the engine is upgraded to match.
+
+            // Solution: Calculate force based on the *Chassis* mass (which scales with engine level)
+            // plus a partial factor of the total mass.
+            // Or simpler: Use Total Mass but reduce Desired Accel.
+
+            // Base Accel reduced to 0.0015 (slower start to feel weight)
+            // Growth: +10% per level (1.1^Level)
+            const baseAccel = 0.0015 * Math.pow(1.1, state.dozerLevel);
+
+            // Load Factor: If the plow is massive (high mass), it should drag.
+            // But since Mass is in the Force equation, physics handles F=ma.
+            // If we provide F = m * a_desired, we get exactly a_desired.
+            // To make "Load" matter, we shouldn't fully compensate for mass.
+
+            // Let's use a "Power Rating" instead of Desired Accel.
+            // Force = Power * Throttle.
+            // Power scales with Engine Level.
+            // Mass scales with Plow Level + Engine Level (Chassis).
+            // This naturally means higher mass = lower accel if Power is constant.
+
+            // Power Calculation Refactor: "Engine vs Plow"
+            // Max Speed should increase with Engine Level (base Force increases).
+            // Acceleration should depend on the difference between Engine and Plow levels.
+
+            // 1. Calculate Base Power based on Engine Level
+            // This ensures Max Speed goes up because Force overcomes linear drag (FrictionAir).
+            // Base Power scales with 1.25x per level to keep up with mass.
+            let power = 0.012 * Math.pow(1.25, state.dozerLevel);
+
+            // 2. Adjust for "Load" (Engine vs Plow difference)
+            // Difference = Engine - Plow.
+            // +Diff (Engine > Plow): Faster acceleration (lighter feel).
+            // -Diff (Engine < Plow): Slower acceleration (drag/heavy feel).
+
+            const levelDiff = state.dozerLevel - state.plowLevel;
+
+            // Clamp difference to +/- 2 levels as requested
+            const clampedDiff = Math.max(-2, Math.min(2, levelDiff));
+
+            // Tuning factor: How much does each level of difference impact performance?
+            // Let's say +/- 10% per level of difference.
+            // +2 levels = +20% force (zippy).
+            // -2 levels = -20% force (sluggish).
+            const loadFactor = 1.0 + (clampedDiff * 0.1);
+
+            // Apply Load Factor
+            power *= loadFactor;
+
+            const forceMagnitude = throttle * power;
+
             const angle = bulldozer.angle - Math.PI/2;
             const force = {
                 x: Math.cos(angle) * forceMagnitude,
