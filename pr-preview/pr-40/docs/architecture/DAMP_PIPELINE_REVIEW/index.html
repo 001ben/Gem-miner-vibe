@@ -941,10 +941,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#assetssourceblenderbulldozerpy" class="md-nav__link">
+  <a href="#pipelineblenderbulldozerpy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        assets/source/blender/bulldozer.py
+        pipeline/blender/bulldozer.py
       
     </span>
   </a>
@@ -979,22 +979,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-proposed-improvements-roadmap" class="md-nav__link">
+  <a href="#4-roadmap-status" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Proposed Improvements (Roadmap)
+        4. Roadmap &amp; Status
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4. Proposed Improvements (Roadmap)">
+    <nav class="md-nav" aria-label="4. Roadmap &amp; Status">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#phase-1-explicit-component-tagging-high-priority" class="md-nav__link">
+  <a href="#phase-1-explicit-component-tagging-completed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 1: Explicit Component Tagging (High Priority)
+        Phase 1: Explicit Component Tagging (Completed)
       
     </span>
   </a>
@@ -1429,10 +1429,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#assetssourceblenderbulldozerpy" class="md-nav__link">
+  <a href="#pipelineblenderbulldozerpy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        assets/source/blender/bulldozer.py
+        pipeline/blender/bulldozer.py
       
     </span>
   </a>
@@ -1467,22 +1467,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-proposed-improvements-roadmap" class="md-nav__link">
+  <a href="#4-roadmap-status" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Proposed Improvements (Roadmap)
+        4. Roadmap &amp; Status
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4. Proposed Improvements (Roadmap)">
+    <nav class="md-nav" aria-label="4. Roadmap &amp; Status">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#phase-1-explicit-component-tagging-high-priority" class="md-nav__link">
+  <a href="#phase-1-explicit-component-tagging-completed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Phase 1: Explicit Component Tagging (High Priority)
+        Phase 1: Explicit Component Tagging (Completed)
       
     </span>
   </a>
@@ -1551,8 +1551,8 @@
 <ol>
 <li><strong>Geometry (<code>bulldozer.py</code>)</strong>: Defines the "bones" and "shell" of the entity using Blender's Python API.</li>
 <li><strong>Texture Gen (<code>bulldozer.py</code>)</strong>: Captures procedural details into static PNGs to avoid expensive real-time procedural overhead.</li>
-<li><strong>Orchestration (<code>build-assets.js</code>)</strong>: Compiles raw assets into a <code>catalog.json</code> for the web runtime and ensures consistent directory structures.</li>
-<li><strong>Configuration (<code>bulldozer_mapping.json</code>)</strong>: Defines the "skin"—mapping textures and material physics (roughness, metalness, transparency) to specific meshes.</li>
+<li><strong>Orchestration (<code>task</code>)</strong>: Compiles raw assets into a <code>catalog.json</code> for the web runtime and ensures consistent directory structures.</li>
+<li><strong>Configuration (<code>assets/configs/*.json</code>)</strong>: A manually created "Contract" file that defines the "skin"—mapping textures and material physics (roughness, metalness, transparency) to specific meshes via <code>damp_id</code>.</li>
 <li><strong>Runtime (<code>bulldozer_render.js</code>)</strong>: Interprets the GLB + Config to assemble the final high-fidelity entity in the game engine.</li>
 </ol>
 <hr />
@@ -1572,10 +1572,10 @@
 </ul>
 <hr />
 <h2 id="3-technical-review-cleanup">3. Technical Review &amp; Cleanup<a class="headerlink" href="#3-technical-review-cleanup" title="Permanent link">&para;</a></h2>
-<h3 id="assetssourceblenderbulldozerpy"><code>assets/source/blender/bulldozer.py</code><a class="headerlink" href="#assetssourceblenderbulldozerpy" title="Permanent link">&para;</a></h3>
+<h3 id="pipelineblenderbulldozerpy"><code>pipeline/blender/bulldozer.py</code><a class="headerlink" href="#pipelineblenderbulldozerpy" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Review</strong>: Highly functional script. Current logic joins components (Cabin/Body) into a single mesh for simplicity.</li>
-<li><strong>Suggestion</strong>: Transition to <strong>Parenting</strong> instead of <code>bpy.ops.object.join()</code>. Keeping components as separate objects in the GLB allows the renderer to find them directly by name without complex mapping logic.</li>
+<li><strong>Status</strong>: Updated to use Parenting.</li>
+<li><strong>Implementation</strong>: The script now parents components (Wheels, Cabin) to the Body and uses <code>tag_contract</code> to assign <code>damp_id</code> custom properties. This allows the GLB to maintain a hierarchy and precise identification.</li>
 </ul>
 <h3 id="jsentitiesbulldozer_renderjs"><code>js/entities/bulldozer_render.js</code><a class="headerlink" href="#jsentitiesbulldozer_renderjs" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1588,13 +1588,13 @@
 <li><strong>Cleanup</strong>: Centralize component discovery within the <code>BulldozerRenderer</code> itself.</li>
 </ul>
 <hr />
-<h2 id="4-proposed-improvements-roadmap">4. Proposed Improvements (Roadmap)<a class="headerlink" href="#4-proposed-improvements-roadmap" title="Permanent link">&para;</a></h2>
-<h3 id="phase-1-explicit-component-tagging-high-priority">Phase 1: Explicit Component Tagging (High Priority)<a class="headerlink" href="#phase-1-explicit-component-tagging-high-priority" title="Permanent link">&para;</a></h3>
-<p>Instead of matching strings like <code>"Cube"</code>, we should use <strong>Blender Custom Properties</strong>.</p>
+<h2 id="4-roadmap-status">4. Roadmap &amp; Status<a class="headerlink" href="#4-roadmap-status" title="Permanent link">&para;</a></h2>
+<h3 id="phase-1-explicit-component-tagging-completed">Phase 1: Explicit Component Tagging (Completed)<a class="headerlink" href="#phase-1-explicit-component-tagging-completed" title="Permanent link">&para;</a></h3>
+<p>We have implemented <strong>Blender Custom Properties</strong> to identify meshes.</p>
 <ul>
-<li><strong>Blender Python</strong>: <code>obj["damp_id"] = "Chassis"</code></li>
-<li><strong>Three.js Runtime</strong>: The GLTF loader preserves these in <code>mesh.userData.damp_id</code>.</li>
-<li><strong>Result</strong>: 100% reliable mapping regardless of mesh joining or renaming.</li>
+<li><strong>Blender Python</strong>: <code>obj["damp_id"] = "chassis"</code></li>
+<li><strong>Three.js Runtime</strong>: The GLTF loader reads these from <code>mesh.userData.damp_id</code>.</li>
+<li><strong>Result</strong>: Reliable mapping independent of Blender's internal naming or joining order.</li>
 </ul>
 <h3 id="phase-2-unified-material-schema">Phase 2: Unified Material Schema<a class="headerlink" href="#phase-2-unified-material-schema" title="Permanent link">&para;</a></h3>
 <p>Formalize the mapping JSON into a generic schema that supports:</p>

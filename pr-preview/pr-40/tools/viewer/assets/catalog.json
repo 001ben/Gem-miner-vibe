@@ -7,6 +7,7 @@
     "tracks_texture.png"
   ],
   "configs": [
-    "bulldozer_mapping.json"
+    "bulldozer_mapping.json",
+    "plow_mapping.json"
   ]
 }

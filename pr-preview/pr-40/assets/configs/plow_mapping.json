@@ -1,0 +1,10 @@
+{
+  "assetId": "plow.glb",
+  "components": {
+    "plow_segment": {
+      "preset": "YellowMetallic",
+      "roughness": 0.2,
+      "metalness": 0.7
+    }
+  }
+}
