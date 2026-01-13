@@ -85,9 +85,15 @@ const ConsoleOverlay = ({ logs, visible, onClose }) => {
     useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [logs, visible]);
     return html`
         <div id="console-overlay" className=${visible ? 'visible' : ''} ref=${ref}>
-            <div style=${{position: 'sticky', top: 0, background: '#111', padding: '2px', borderBottom: '1px solid #444', marginBottom: '5px', display: 'flex', justifyContent: 'space-between'}}>
-                <strong>CONSOLE LOGS</strong>
-                <button onClick=${onClose} style=${{background: 'none', border: 'none', color: '#fff', cursor: 'pointer'}}>CLOSE ✕</button>
+            <div style=${{position: 'sticky', top: 0, background: '#111', padding: '10px', borderBottom: '1px solid #444', marginBottom: '5px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <strong style=${{color: '#fff'}}>CONSOLE LOGS</strong>
+                <div>
+                    <button onClick=${() => {
+                        const text = logs.map(l => `[${l.time}] ${l.msg}`).join('\n');
+                        navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
+                    }} style=${{background: '#333', border: '1px solid #555', color: '#0af', cursor: 'pointer', marginRight: '10px', padding: '4px 8px', borderRadius: '4px'}}>COPY</button>
+                    <button onClick=${onClose} style=${{background: '#333', border: '1px solid #555', color: '#fff', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px'}}>CLOSE ✕</button>
+                </div>
             </div>
             ${logs.map((l, i) => html`
                 <div key=${i} className=${`log-entry ${l.type === 'warn' ? 'log-warn' : l.type === 'error' ? 'log-error' : ''}`}>
