@@ -11,9 +11,9 @@ Welcome to the Gem Miner technical documentation.
 
 The **Distributed Asset & Material Pipeline (DAMP)** is the core of our asset generation workflow.
 
-- **[:material-book-open-page-variant: Maintainability "Bible"](living/architecture/DAMP_MAINTAINABILITY.md)**: The "Explicit Contract" model and core pillars.
-- **[:material-history: Pipeline Review](living/architecture/DAMP_PIPELINE_REVIEW.md)**: Context on the transition to DAMP.
-- **[:material-blender-software: Blender Pipeline](living/architecture/BLENDER_PIPELINE.md)**: How to create assets using our Python API.
+- **[:material-map-legend: Overview](living/architecture/OVERVIEW.md)**: High-level structure and the "Four Pillars".
+- **[:material-shield-star: The DAMP Strategy](living/architecture/DAMP.md)**: The "Explicit Contract" model and core philosophy.
+- **[:material-blender-software: Blender API](living/architecture/BLENDER_API.md)**: How to write asset generation scripts.
 
 ## 🔧 Troubleshooting
 

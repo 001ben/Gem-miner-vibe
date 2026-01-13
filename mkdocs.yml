@@ -17,9 +17,9 @@ nav:
   - Home: README.md
   - Living Documentation:
       - Architecture:
-          - Pipeline Review: living/architecture/DAMP_PIPELINE_REVIEW.md
-          - Maintainability: living/architecture/DAMP_MAINTAINABILITY.md
-          - Blender Pipeline: living/architecture/BLENDER_PIPELINE.md
+          - Overview: living/architecture/OVERVIEW.md
+          - The DAMP Strategy: living/architecture/DAMP.md
+          - Blender API: living/architecture/BLENDER_API.md
       - Guide:
           - Project Structure: living/guide/PROJECT_STRUCTURE.md
           - Design Principles: living/guide/game_design_principles.md

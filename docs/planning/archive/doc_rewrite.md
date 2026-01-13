@@ -14,7 +14,7 @@
 
     1. **Consolidate and Clean Up**: Remove duplicate files and archive old plans.
     1. **Restructure**: Organize `docs/` into logical subdirectories (`architecture`, `troubleshooting`, `history`).
-    1. **Update Content**: Rewrite key architectural docs (`DAMP_MAINTAINABILITY.md`) to reflect the current "Explicit Contract" state.
+    1. **Update Content**: Rewrite key architectural docs (`DAMP.md`) to reflect the current "Explicit Contract" state.
     1. **Enhance**: Add `mkdocs-material` plugins and formatting.
     1. **Tooling**: Add a pre-commit script to enforce documentation formatting.
 
@@ -40,6 +40,6 @@
 
     **Next Steps for Future Agents:**
 
-    - Refer to `docs/living/architecture/DAMP_MAINTAINABILITY.md` for architectural decisions.
+    - Refer to `docs/living/architecture/DAMP.md` for architectural decisions.
     - Use `docs/planning/roadmap.md` to track future work.
     - Ensure all new docs pass `task docs:lint`.
