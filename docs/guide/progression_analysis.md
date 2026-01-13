@@ -50,6 +50,8 @@ All upgrades follow a simple exponential growth curve: `NewCost = floor(OldCost 
     -   **Acceleration:** By tuning the Force scaling to 1.25x or higher, we ensure it outpaces the Mass growth, resulting in a net increase in acceleration per level.
     -   *Correction:* Previous exponential density scaling (1.5x) caused mass to outpace force. This has been refactored.
 
+![Physics Scaling Plot](../assets/progression_plot.png)
+
 ### Plow
 -   **Base Width:** `45` units (Physically scaled x10 -> 450px).
 -   **Growth:** `+5` units per level.
