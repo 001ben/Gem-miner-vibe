@@ -3,7 +3,7 @@
 !!! info "Metadata"
 
     - **Date:** 2026-01-13
-    - **Version:** 1.7 (Verified Logic & Plots)
+    - **Version:** 1.8 (Deep Permutation Analysis)
     - **Scope:** Current values for costs, entity stats, and economy.
 
 !!! abstract "Context"
@@ -35,11 +35,13 @@ All upgrades follow a simple exponential growth curve: `NewCost = floor(OldCost 
 
 ### Performance Curves
 
-The following charts illustrate **Top Speed** (px/frame) and **Acceleration** (Distance traveled in 5s) across three progression scenarios:
+The following charts illustrate **Top Speed** (px/frame) and **Acceleration** (Distance traveled in 5s) across five progression scenarios:
 
-1. **A: Engine Lag (Engine=1, Plow=1):** The "Control" group. The player upgrades only the Collector. Since the Collector is a static sensor body, it does not affect the bulldozer's mass or physics. This line is expected to be flat.
+1. **A: Engine Lag (Engine=1, Plow=1):** The "Control" group. The player upgrades only the Collector. Since the Collector is a static sensor body, it does not affect the bulldozer's mass or physics. This line is flat.
 1. **B: Engine Focus (Plow=1):** The "Racer" build. The player upgrades only the Engine, keeping the Plow at Level 1. This minimizes mass gain while maximizing power, resulting in the highest possible speeds.
-1. **C: Balanced (All Levels Equal):** The "Standard" progression. The player upgrades Engine, Plow, and Collector roughly equally. This curve represents the intended "Power Fantasy", balancing increased mass (from the Plow) with increased power.
+1. **C: Balanced (All Levels Equal):** The "Standard" progression. The player upgrades Engine, Plow, and Collector roughly equally.
+1. **D: Collector Lead +1 (Engine=L, Plow=L, Coll=L+1):** Verifies that having the Collector one level ahead of the drivetrain does not negatively impact physics. This line overlaps "Balanced".
+1. **E: Collector Lead +2 (Engine=L, Plow=L, Coll=L+2):** Verifies that having the Collector two levels ahead does not impact physics. This line overlaps "Balanced".
 
 ![Progression Curves](progression_curves.png)
 
@@ -67,6 +69,7 @@ As the plow upgrades (Level 3+), "wings" are added. The table below shows the of
 - **Baseline Improvement:** Starting speed is now ~5.0 px/f (vs ~2.9), making the base bulldozer feel more responsive.
 - **Progression Gap:** The Level 3 "Dip" has been significantly mitigated.
 - **Late Game:** Speed scales aggressively (up to ~56 px/f at Lvl 20), delivering the requested "Power Fantasy".
+- **Collector Impact:** Upgrading the collector (Scenarios D & E) has zero impact on physics, as confirmed by the curves overlapping the Standard progression.
 
 ### Implemented Logic
 
