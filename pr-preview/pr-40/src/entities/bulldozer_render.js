@@ -22,6 +22,11 @@ export class BulldozerRenderer {
       verticalOffset: -0.53
     };
 
+    this.plowParams = {
+      segmentCount: 1,
+      segmentWidth: 1.0
+    };
+
     this.scale = 10.0;
     this._position = new THREE.Vector3();
     this._tangent = new THREE.Vector3();
@@ -63,6 +68,12 @@ export class BulldozerRenderer {
         if (tracks.verticalOffset !== undefined) this.trackParams.verticalOffset = tracks.verticalOffset;
         if (tracks.rotZ !== undefined) this.trackParams.rotZ = tracks.rotZ;
         console.log(`[CONTRACT] Applied assembly offsets: Spread=${this.trackParams.spread}, Vert=${this.trackParams.verticalOffset}, RotZ=${this.trackParams.rotZ}`);
+      }
+      const plow = this.config.assembly.plow;
+      if (plow) {
+        if (plow.segmentCount !== undefined) this.plowParams.segmentCount = plow.segmentCount;
+        if (plow.segmentWidth !== undefined) this.plowParams.segmentWidth = plow.segmentWidth;
+        console.log(`[CONTRACT] Applied plow config: Count=${this.plowParams.segmentCount}, Width=${this.plowParams.segmentWidth}`);
       }
     }
 
@@ -185,6 +196,38 @@ export class BulldozerRenderer {
 
         for (const node of genericRoots) {
             console.log(`[DEBUG] Processing generic node: ${node.name}`);
+
+            // Special handling for instantiable segments
+            if (node.name.includes("Plow_Segment")) {
+                 console.log(`[DEBUG] Converting ${node.name} to InstancedMesh`);
+                 // Find the mesh inside the node
+                 let meshNode = null;
+                 node.traverse(c => { if (c.isMesh && !meshNode) meshNode = c; });
+
+                 if (meshNode) {
+                     const count = 50; // Max capacity
+                     const instancedMesh = new THREE.InstancedMesh(meshNode.geometry.clone(), meshNode.material.clone(), count);
+                     instancedMesh.name = "Instanced_Plow_Segment";
+                     instancedMesh.userData.damp_id = node.userData.damp_id || meshNode.userData.damp_id;
+
+                     // Ensure material contract tag
+                     if (meshNode.material && meshNode.material.userData.damp_id) {
+                        instancedMesh.material.userData.damp_id = meshNode.material.userData.damp_id;
+                     }
+
+                     instancedMesh.castShadow = true;
+                     instancedMesh.receiveShadow = true;
+                     this.group.add(instancedMesh);
+                     await this.applyMaterial(instancedMesh);
+
+                     // Store for update()
+                     this.plowParams.mesh = instancedMesh;
+                     this.updatePlow(); // Initial placement
+                     continue; // Skip standard cloning
+                 }
+            }
+
+            // Standard clone for other generic objects
             const clone = node.clone();
             this.group.add(clone);
 
@@ -222,6 +265,34 @@ export class BulldozerRenderer {
     this.group.scale.setScalar(this.scale);
   }
   setSpeeds(l, r) { this.animatedInstances.forEach(t => { t.speed = (t.side === -1) ? l : r; }); }
+
+  setPlowWidth(count) {
+      if (this.plowParams.segmentCount !== count) {
+          this.plowParams.segmentCount = count;
+          this.updatePlow();
+      }
+  }
+
+  updatePlow() {
+      if (!this.plowParams.mesh) return;
+
+      const count = Math.max(1, Math.min(50, this.plowParams.segmentCount));
+      const width = this.plowParams.segmentWidth;
+      const totalWidth = count * width;
+      const startX = -totalWidth / 2 + width / 2; // Center the array
+
+      this.dummy.scale.set(1, 1, 1);
+      this.dummy.rotation.set(0, 0, 0);
+
+      this.plowParams.mesh.count = count;
+
+      for (let i = 0; i < count; i++) {
+          this.dummy.position.set(startX + i * width, 0, 0);
+          this.dummy.updateMatrix();
+          this.plowParams.mesh.setMatrixAt(i, this.dummy.matrix);
+      }
+      this.plowParams.mesh.instanceMatrix.needsUpdate = true;
+  }
 
   update(delta) {
     if (!this.isLoaded) return;
