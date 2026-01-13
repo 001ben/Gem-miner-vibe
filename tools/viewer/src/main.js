@@ -270,7 +270,7 @@ const App = () => {
                 <a href="../../docs/" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Docs</a>
             </div>
 
-            <button style=${{ position: 'absolute', bottom: '10px', right: '10px', zIndex: 1000, background: '#333', color: '#fff', border: '1px solid #555', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }} onClick=${() => setShowLogs(!showLogs)}>
+            <button style=${{ position: 'absolute', top: '50px', right: collapsed ? '10px' : '310px', zIndex: 100, background: '#333', color: '#fff', border: '1px solid #555', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }} onClick=${() => setShowLogs(!showLogs)}>
                 Show Logs
             </button>
             <${ConsoleOverlay} logs=${logs} visible=${showLogs} onClose=${() => setShowLogs(false)} />
