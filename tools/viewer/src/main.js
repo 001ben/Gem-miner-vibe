@@ -80,6 +80,24 @@ const ComponentAccordion = ({ name, data, textures, presets, materialPresets, on
     `;
 };
 
+const ConsoleOverlay = ({ logs, visible, onClose }) => {
+    const ref = useRef(null);
+    useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [logs, visible]);
+    return html`
+        <div id="console-overlay" className=${visible ? 'visible' : ''} ref=${ref}>
+            <div style=${{position: 'sticky', top: 0, background: '#111', padding: '2px', borderBottom: '1px solid #444', marginBottom: '5px', display: 'flex', justifyContent: 'space-between'}}>
+                <strong>CONSOLE LOGS</strong>
+                <button onClick=${onClose} style=${{background: 'none', border: 'none', color: '#fff', cursor: 'pointer'}}>CLOSE ✕</button>
+            </div>
+            ${logs.map((l, i) => html`
+                <div key=${i} className=${`log-entry ${l.type === 'warn' ? 'log-warn' : l.type === 'error' ? 'log-error' : ''}`}>
+                    [${l.time}] ${l.msg}
+                </div>
+            `)}
+        </div>
+    `;
+};
+
 const App = () => {
     const [catalog, setCatalog] = useState({ models: [], textures: [], configs: [] });
     const [presets, setPresets] = useState([]);
@@ -91,10 +109,27 @@ const App = () => {
     const [lightRot, setLightRot] = useState(45);
     const [animSpeed, setAnimSpeed] = useState(0.02);
     const [collapsed, setCollapsed] = useState(false);
+    const [showLogs, setShowLogs] = useState(false);
+    const [logs, setLogs] = useState([]);
 
     const sceneRef = useRef(null);
     const dirLightRef = useRef(null);
     const dozerRef = useRef(null);
+
+    // Capture logs
+    useEffect(() => {
+        const wrap = (type) => {
+            const original = console[type];
+            console[type] = (...args) => {
+                original(...args);
+                const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+                setLogs(prev => [...prev.slice(-99), { time: new Date().toLocaleTimeString(), type, msg }]);
+            };
+        };
+        wrap('log');
+        wrap('warn');
+        wrap('error');
+    }, []);
 
     // 1. Initialize Three.js (Run once)
     useEffect(() => {
@@ -234,6 +269,11 @@ const App = () => {
                 <a href="../../" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Game</a>
                 <a href="../../docs/" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Docs</a>
             </div>
+
+            <button style=${{ position: 'absolute', bottom: '10px', right: '10px', zIndex: 1000, background: '#333', color: '#fff', border: '1px solid #555', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }} onClick=${() => setShowLogs(!showLogs)}>
+                Show Logs
+            </button>
+            <${ConsoleOverlay} logs=${logs} visible=${showLogs} onClose=${() => setShowLogs(false)} />
 
             <button id="ui-toggle" style=${{ right: collapsed ? '10px' : '310px' }} onClick=${() => setCollapsed(!collapsed)}>☰</button>
             <div id="ui-container" className=${collapsed ? 'collapsed' : ''}>

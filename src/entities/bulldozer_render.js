@@ -80,7 +80,20 @@ export class BulldozerRenderer {
           if (c.name.includes("Asset_TrackPath_R")) pathRNode = c;
         });
 
-        // Setup Body
+        // Helper to check if a node is part of the special machinery (Body or Tracks)
+        const specialRoots = [bodyMeshNode, trackLinkNode, pathLNode, pathRNode].filter(n => n);
+        const isSpecial = (node) => {
+            if (specialRoots.includes(node)) return true;
+            // Check ancestors
+            let parent = node.parent;
+            while(parent) {
+                if (specialRoots.includes(parent)) return true;
+                parent = parent.parent;
+            }
+            return false;
+        };
+
+        // 1. Setup Body (Special)
         if (bodyMeshNode) {
           console.log(`[DEBUG] Found body node: ${bodyMeshNode.name}`);
           const body = bodyMeshNode.clone();
@@ -101,7 +114,7 @@ export class BulldozerRenderer {
           }
         }
 
-        // Setup Tracks
+        // 2. Setup Tracks (Special)
         if (trackLinkNode && pathLNode && pathRNode) {
           const setupTrack = async (pathNode, side) => {
             const attr = pathNode.geometry.attributes.position;
@@ -159,6 +172,36 @@ export class BulldozerRenderer {
           };
           await setupTrack(pathLNode, -1);
           await setupTrack(pathRNode, 1);
+        }
+
+        // 3. Setup Generic Components (Fallthrough)
+        // Identify any root children that are NOT special and add them
+        const genericRoots = [];
+        gltf.scene.children.forEach(child => {
+             if (!isSpecial(child)) {
+                 genericRoots.push(child);
+             }
+        });
+
+        for (const node of genericRoots) {
+            console.log(`[DEBUG] Processing generic node: ${node.name}`);
+            const clone = node.clone();
+            this.group.add(clone);
+
+            const meshes = [];
+            clone.traverse(c => { if(c.isMesh) meshes.push(c); });
+            for (const c of meshes) {
+                // Try to find source to map userData
+                const sourceNode = node.getObjectByName(c.name) || node;
+                if (sourceNode) {
+                    if (sourceNode.userData.damp_id) c.userData.damp_id = sourceNode.userData.damp_id;
+                    if (sourceNode.material && sourceNode.material.userData.damp_id) {
+                         c.material.userData.damp_id = sourceNode.material.userData.damp_id;
+                    }
+                }
+                c.castShadow = c.receiveShadow = true;
+                await this.applyMaterial(c);
+            }
         }
 
         this.isLoaded = true;
