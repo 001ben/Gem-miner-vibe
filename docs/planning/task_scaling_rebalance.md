@@ -3,7 +3,7 @@
 !!! info ":material-clock-time-four-outline: Metadata"
     -   **Status:** In Progress
     -   **Type:** Rebalance / Feature
-    -   **Dependencies:** `docs/guide/progression_analysis.md`
+    -   **Dependencies:** `docs/living/guide/progression_analysis.md`
 
 !!! abstract ":material-text-box-search-outline: Context"
     Refine the game's progression curve to ensure a satisfying "Power Fantasy" loop while maintaining challenge. Resolve the conflict between manual and automatic area unlocking.

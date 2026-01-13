@@ -40,6 +40,6 @@
 
     **Next Steps for Future Agents:**
 
-    - Refer to `docs/architecture/DAMP_MAINTAINABILITY.md` for architectural decisions.
+    - Refer to `docs/living/architecture/DAMP_MAINTAINABILITY.md` for architectural decisions.
     - Use `docs/planning/roadmap.md` to track future work.
     - Ensure all new docs pass `task docs:lint`.

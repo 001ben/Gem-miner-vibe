@@ -15,24 +15,33 @@ theme:
 
 nav:
   - Home: README.md
-  - Guide:
-      - Project Structure: guide/PROJECT_STRUCTURE.md
-      - Design Principles: guide/game_design_principles.md
-      - Progression Analysis: guide/progression_analysis.md
-  - Planning:
+  - Living Documentation:
+      - Architecture:
+          - Pipeline Review: living/architecture/DAMP_PIPELINE_REVIEW.md
+          - Maintainability: living/architecture/DAMP_MAINTAINABILITY.md
+          - Blender Pipeline: living/architecture/BLENDER_PIPELINE.md
+      - Guide:
+          - Project Structure: living/guide/PROJECT_STRUCTURE.md
+          - Design Principles: living/guide/game_design_principles.md
+          - Progression Analysis: living/guide/progression_analysis.md
+  - Knowledge Artifacts:
+      - Troubleshooting:
+          - Common Errors: knowledge/troubleshooting/COMMON_ERRORS.md
+          - Graphics: knowledge/troubleshooting/GRAPHICS_TROUBLESHOOTING.md
+      - History:
+          - Gemini Session (Dec 2025): knowledge/history/GEMINI_2025_12.md
+      - Archive:
+          - Asset Pipeline (Legacy): knowledge/archive/ASSET_PIPELINE.md
+          - Render Tutorial: knowledge/archive/BULLDOZER_RENDER_FRAMEWORKS_TUTORIAL.md
+          - Graphics Design: knowledge/archive/GRAPHICS_DESIGN.md
+          - SCAD vs Blender: knowledge/archive/SCAD_VS_BLENDER.md
+  - Task Tracking:
       - Roadmap: planning/roadmap.md
       - Current Task: planning/task_scaling_rebalance.md
       - Archive:
           - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
-  - Architecture:
-      - Pipeline Review: architecture/DAMP_PIPELINE_REVIEW.md
-      - Maintainability: architecture/DAMP_MAINTAINABILITY.md
-      - Blender Pipeline: architecture/BLENDER_PIPELINE.md
-  - Troubleshooting:
-      - Common Errors: troubleshooting/COMMON_ERRORS.md
-      - Graphics: troubleshooting/GRAPHICS_TROUBLESHOOTING.md
-  - History:
-      - Gemini Session (Dec 2025): history/GEMINI_2025_12.md
+          - UI Polish (Jan 2026): planning/archive/2026-01-07_ui_gameplay_polish.md
+          - Doc Rewrite (May 2025): planning/archive/doc_rewrite.md
 
 extra_javascript:
   - js/nav-overlay.js
