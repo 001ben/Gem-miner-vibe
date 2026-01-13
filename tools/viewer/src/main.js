@@ -111,6 +111,7 @@ const App = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [showLogs, setShowLogs] = useState(false);
     const [logs, setLogs] = useState([]);
+    const [plowSegmentCount, setPlowSegmentCount] = useState(1);
 
     const sceneRef = useRef(null);
     const dirLightRef = useRef(null);
@@ -237,6 +238,12 @@ const App = () => {
             });
 
             setConfig(conf);
+
+            // Sync initial plow settings
+            if (dozer.plowParams && dozer.plowParams.segmentCount) {
+                setPlowSegmentCount(dozer.plowParams.segmentCount);
+            }
+
             dozer.setSpeeds(animSpeed, animSpeed);
         };
         load();
@@ -322,8 +329,11 @@ const App = () => {
                     ${config && config.assembly && config.assembly.plow && html`
                         <div className="control-group">
                             <label>PLOW ASSEMBLY</label>
-                            <${Slider} label="Segments" min=${1} max=${15} step=${1} value=${dozerRef.current?.plowParams?.segmentCount || 1}
-                                onChange=${v => dozerRef.current?.setPlowWidth(v)} />
+                            <${Slider} label="Segments" min=${1} max=${15} step=${1} value=${plowSegmentCount}
+                                onChange=${v => {
+                                    setPlowSegmentCount(v);
+                                    dozerRef.current?.setPlowWidth(v);
+                                }} />
                         </div>
                     `}
                 </div>
