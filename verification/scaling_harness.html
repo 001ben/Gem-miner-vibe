@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scaling Harness</title>
+    <!-- Import Map to mock dependencies -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.182.0/build/three.module.js",
+            "/src/core/graphics.js": "./mocks/graphics.js",
+            "/src/core/ui.js": "./mocks/ui.js"
+        }
+    }
+    </script>
+    <!-- Matter.js Global -->
+    <script src="https://unpkg.com/matter-js@0.19.0/build/matter.min.js"></script>
+</head>
+<body>
+    <div id="status">Loading...</div>
+    <script type="module">
+        try {
+            console.log("Loading modules...");
+            const { state } = await import('/src/core/state.js');
+            const { createBulldozer, getBulldozer } = await import('/src/entities/bulldozer.js');
+            const { createCollector } = await import('/src/entities/collector.js');
+            const { engine, Runner, Body, Events } = await import('/src/core/physics.js');
+
+            console.log("Modules loaded.");
+
+            window.state = state;
+            window.getBulldozer = getBulldozer;
+            window.engine = engine;
+
+            // Initialize Physics Runner
+            const runner = Runner.create();
+            Runner.run(runner, engine);
+
+            window.runTest = (dozerLvl, plowLvl, collLvl) => {
+                state.dozerLevel = dozerLvl;
+                state.plowLevel = plowLvl;
+                state.collectorLevel = collLvl;
+
+                createBulldozer();
+                createCollector();
+
+                const dozer = getBulldozer();
+
+                // Calculate Static Stats
+                const mass = dozer.mass;
+                const bounds = dozer.bounds;
+                const width = bounds.max.x - bounds.min.x;
+                const height = bounds.max.y - bounds.min.y;
+
+                // Wingtip Logic
+                const plow = dozer.parts.find(p => p.label === 'plow');
+                const leftWing = dozer.parts.find(p => p.label === 'plow_wing' && p.position.x < dozer.position.x);
+
+                let wingOffset = 0;
+
+                if (plow && leftWing) {
+                    const plowLeftEdge = plow.bounds.min.x;
+                    const wingLeftTip = leftWing.bounds.min.x;
+                    wingOffset = Math.abs(plowLeftEdge - wingLeftTip);
+                }
+
+                return {
+                    mass,
+                    width,
+                    height,
+                    density: dozer.density,
+                    wingOffset
+                };
+            };
+
+            window.simulateRun = (frames = 300) => {
+                const dozer = getBulldozer();
+                let maxSpeed = 0;
+
+                // Reset position
+                Body.setPosition(dozer, { x: 0, y: 0 });
+                Body.setAngle(dozer, -Math.PI/2);
+                Body.setVelocity(dozer, { x: 0, y: 0 });
+                Body.setAngularVelocity(dozer, 0);
+
+                // Wait a few frames to settle
+                for(let i=0; i<10; i++) {
+                    Matter.Engine.update(engine, 1000/60);
+                }
+
+                // Proposed Logic Implementation (must match input.js)
+                // (0.012 * 1.35^Level) + (Mass * 0.001)
+                const power = (0.012 * Math.pow(1.35, state.dozerLevel)) + (dozer.mass * 0.001);
+
+                // Calculate Load Factor (Copied from input.js)
+                const levelDiff = state.dozerLevel - state.plowLevel;
+                const clampedDiff = Math.max(-2, Math.min(2, levelDiff));
+                const loadFactor = 1.0 + (clampedDiff * 0.1);
+
+                const forceMag = 1.0 * power * loadFactor;
+
+                for(let i=0; i<frames; i++) {
+                    const angle = dozer.angle - Math.PI/2;
+                    const force = {
+                        x: Math.cos(angle) * forceMag,
+                        y: Math.sin(angle) * forceMag
+                    };
+                    Body.applyForce(dozer, dozer.position, force);
+                    Matter.Engine.update(engine, 1000/60);
+                    if (dozer.speed > maxSpeed) maxSpeed = dozer.speed;
+                }
+
+                const dist = Math.sqrt(
+                    Math.pow(dozer.position.x - 0, 2) +
+                    Math.pow(dozer.position.y - 0, 2)
+                );
+
+                return {
+                    maxSpeed,
+                    distance: dist
+                };
+            };
+
+            document.getElementById('status').innerText = "Ready";
+            console.log("Harness Ready");
+        } catch (e) {
+            console.error("Harness Error:", e);
+            document.getElementById('status').innerText = "Error: " + e.message;
+        }
+    </script>
+</body>
+</html>
