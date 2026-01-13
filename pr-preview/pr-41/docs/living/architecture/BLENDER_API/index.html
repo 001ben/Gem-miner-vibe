@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://example.com/living/architecture/DAMP_MAINTAINABILITY/">
+        <link rel="canonical" href="https://example.com/living/architecture/BLENDER_API/">
       
       
-        <link rel="prev" href="../DAMP_PIPELINE_REVIEW/">
+        <link rel="prev" href="../DAMP/">
       
       
-        <link rel="next" href="../BLENDER_PIPELINE/">
+        <link rel="next" href="../../guide/PROJECT_STRUCTURE/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>Maintainability - Gem Miner Docs</title>
+        <title>Blender API - Gem Miner Docs</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#damp-architecture-rationale" class="md-skip">
+        <a href="#blender-python-api" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Maintainability
+              Blender API
             
           </span>
         </div>
@@ -213,7 +213,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../DAMP_PIPELINE_REVIEW/" class="md-tabs__link">
+        <a href="../OVERVIEW/" class="md-tabs__link">
           
   
   
@@ -472,14 +472,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../DAMP_PIPELINE_REVIEW/" class="md-nav__link">
+      <a href="../OVERVIEW/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Pipeline Review
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DAMP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The DAMP Strategy
   
 
     
@@ -516,7 +544,7 @@
   <span class="md-ellipsis">
     
   
-    Maintainability
+    Blender API
   
 
     
@@ -534,7 +562,7 @@
   <span class="md-ellipsis">
     
   
-    Maintainability
+    Blender API
   
 
     
@@ -560,22 +588,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-core-philosophy-explicit-implicit" class="md-nav__link">
+  <a href="#quick-start" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Core Philosophy: "Explicit &gt; Implicit"
+        ⚡ Quick Start
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Core Philosophy: &#34;Explicit &gt; Implicit&#34;">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Best Practices
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📚 Best Practices">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-contract-model" class="md-nav__link">
+  <a href="#the-damp_id" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Contract Model
+        The damp_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parenting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parenting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#materials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Materials
       
     </span>
   </a>
@@ -588,93 +649,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-the-four-pillars-structure" class="md-nav__link">
+  <a href="#debugging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. The "Four Pillars" Structure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-pipeline-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Pipeline Flow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-key-architectural-decisions-rationale" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Key Architectural Decisions (Rationale)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Key Architectural Decisions (Rationale)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-parenting-vs-joining" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A. Parenting vs. Joining
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-material-level-tagging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        B. Material-Level Tagging
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-baked-transforms" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C. Baked Transforms
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d-centralized-utilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        D. Centralized Utilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-component-lifecycle" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Component Lifecycle
+        🛠 Debugging
       
     </span>
   </a>
@@ -685,34 +663,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../BLENDER_PIPELINE/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Blender Pipeline
-  
-
-    
-  </span>
-  
-  
-
-      </a>
     </li>
   
 
@@ -1650,22 +1600,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-core-philosophy-explicit-implicit" class="md-nav__link">
+  <a href="#quick-start" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Core Philosophy: "Explicit &gt; Implicit"
+        ⚡ Quick Start
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Core Philosophy: &#34;Explicit &gt; Implicit&#34;">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Best Practices
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📚 Best Practices">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-contract-model" class="md-nav__link">
+  <a href="#the-damp_id" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Contract Model
+        The damp_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parenting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parenting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#materials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Materials
       
     </span>
   </a>
@@ -1678,93 +1661,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-the-four-pillars-structure" class="md-nav__link">
+  <a href="#debugging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. The "Four Pillars" Structure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-pipeline-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Pipeline Flow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-key-architectural-decisions-rationale" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Key Architectural Decisions (Rationale)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Key Architectural Decisions (Rationale)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-parenting-vs-joining" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A. Parenting vs. Joining
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-material-level-tagging" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        B. Material-Level Tagging
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c-baked-transforms" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C. Baked Transforms
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#d-centralized-utilities" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        D. Centralized Utilities
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-component-lifecycle" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Component Lifecycle
+        🛠 Debugging
       
     </span>
   </a>
@@ -1788,85 +1688,72 @@
 
 
 
-<h1 id="damp-architecture-rationale">DAMP Architecture &amp; Rationale<a class="headerlink" href="#damp-architecture-rationale" title="Permanent link">&para;</a></h1>
-<p><strong>Distributed Asset &amp; Material Pipeline (DAMP)</strong></p>
-<p>This document outlines the architectural decisions and "Explicit Contract" model that governs the asset pipeline for the Gem Miner project.</p>
-<h2 id="1-core-philosophy-explicit-implicit">1. Core Philosophy: "Explicit &gt; Implicit"<a class="headerlink" href="#1-core-philosophy-explicit-implicit" title="Permanent link">&para;</a></h2>
-<p>The primary design principle is <strong>Explicit Contracts</strong>. We avoid "Implicit Logic" (guessing mesh names like <code>Cube001</code>, assuming default alignments, or relying on runtime discovery).</p>
-<h3 id="the-contract-model">The Contract Model<a class="headerlink" href="#the-contract-model" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Blender (Provider)</strong>: Explicitly tags Materials and Objects with a permanent <code>damp_id</code> custom property.</li>
-<li><strong>GLB (Artifact)</strong>: Carries these IDs in the standard <code>extras</code> or <code>userData</code> fields.</li>
-<li><strong>Renderer (Consumer)</strong>: Strictly enforces the contract. It looks for <code>damp_id</code> and maps functionality to it.</li>
-</ul>
-<div class="admonition failure">
-<p class="admonition-title">Implicit Logic (Bad)</p>
-<p>Searching for mesh names like <code>Cube001</code> or <code>Cylinder</code> is fragile because Blender often renames things automatically.</p>
-</div>
-<div class="admonition success">
-<p class="admonition-title">Explicit Contract (Good)</p>
-<p>The renderer only cares about <code>damp_id="chassis"</code>. The geometry name can be anything.</p>
-</div>
-<h2 id="2-the-four-pillars-structure">2. The "Four Pillars" Structure<a class="headerlink" href="#2-the-four-pillars-structure" title="Permanent link">&para;</a></h2>
-<p>To maintain separation of concerns, the codebase is divided into four distinct domains:</p>
-<ol>
-<li><strong><code>src/</code> (Game Source)</strong>: The runtime game logic. It consumes assets but does not generate them.</li>
-<li><strong><code>pipeline/</code> (Asset Factory)</strong>: The "Source of Truth" for assets. Contains Blender Python scripts and procedural texture generators.</li>
-<li><strong><code>tools/</code> (DX Tools)</strong>: Developer tools like the Asset Viewer (<code>tools/viewer</code>) that verify assets in isolation.</li>
-<li><strong><code>assets/</code> (Output/Artifacts)</strong>: The compiled <code>.glb</code> and configuration files.</li>
-</ol>
-<h2 id="3-pipeline-flow">3. Pipeline Flow<a class="headerlink" href="#3-pipeline-flow" title="Permanent link">&para;</a></h2>
-<p>The asset generation flow is automated via <code>task build:assets</code>:</p>
-<div class="highlight"><pre><span></span><code>graph LR
-    A[Blender Script] --&gt;|Generate &amp; Tag| B(GLB Artifact)
-    B --&gt;|Load| C[Asset Viewer]
-    B --&gt;|Load| D[Game Engine]
+<h1 id="blender-python-api">Blender Python API<a class="headerlink" href="#blender-python-api" title="Permanent link">&para;</a></h1>
+<p>The <code>pipeline/blender/</code> directory contains Python scripts that generate game assets.
+These scripts run in a headless Blender instance via <code>task build:assets</code>.</p>
+<h2 id="quick-start">⚡ Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<p>To create a new asset, create a file <code>pipeline/blender/my_asset.py</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">bpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mathutils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Vector</span>
+
+<span class="c1"># 1. Setup</span>
+<span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">select_all</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;SELECT&#39;</span><span class="p">)</span>
+<span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+
+<span class="c1"># 2. Generate Geometry</span>
+<span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">primitive_cube_add</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">object</span>
+
+<span class="c1"># 3. Apply Contract (Tagging)</span>
+<span class="n">obj</span><span class="p">[</span><span class="s2">&quot;damp_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;my_cube&quot;</span>
+
+<span class="c1"># 4. Cleanup (UVs, Shading)</span>
+<span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">shade_smooth</span><span class="p">()</span>
 </code></pre></div>
-<ol>
-<li><strong>Generation</strong>: <code>pipeline/blender/bulldozer.py</code> generates geometry, parents objects, injects <code>damp_id</code>, and <strong>bakes transforms</strong>.</li>
-<li><strong>Compilation</strong>: Exports a <code>.glb</code> and updates <code>catalog.json</code>.</li>
-<li><strong>Consumption</strong>: <code>BulldozerRenderer</code> loads the GLB and applies materials based on IDs.</li>
-</ol>
-<h2 id="4-key-architectural-decisions-rationale">4. Key Architectural Decisions (Rationale)<a class="headerlink" href="#4-key-architectural-decisions-rationale" title="Permanent link">&para;</a></h2>
-<h3 id="a-parenting-vs-joining">A. Parenting vs. Joining<a class="headerlink" href="#a-parenting-vs-joining" title="Permanent link">&para;</a></h3>
-<div class="admonition quote">
-<p class="admonition-title">Decision</p>
-<p>Use Object Parenting, not <code>bpy.ops.object.join()</code>.</p>
+<h2 id="best-practices">📚 Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="the-damp_id">The <code>damp_id</code><a class="headerlink" href="#the-damp_id" title="Permanent link">&para;</a></h3>
+<p>Always tag your objects. This is how you will find them in the game code.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Good</span>
+<span class="n">obj</span><span class="p">[</span><span class="s2">&quot;damp_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;turret_barrel&quot;</span>
+
+<span class="c1"># Bad (Relying on name)</span>
+<span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;TurretBarrel&quot;</span>
+</code></pre></div>
+<h3 id="parenting">Parenting<a class="headerlink" href="#parenting" title="Permanent link">&para;</a></h3>
+<p>Use parenting to create complex hierarchies without merging geometry.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create Parent</span>
+<span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">primitive_cube_add</span><span class="p">()</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">object</span>
+<span class="n">parent</span><span class="p">[</span><span class="s2">&quot;damp_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;tank_body&quot;</span>
+
+<span class="c1"># Create Child</span>
+<span class="n">bpy</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">primitive_cylinder_add</span><span class="p">()</span>
+<span class="n">child</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">object</span>
+<span class="n">child</span><span class="p">[</span><span class="s2">&quot;damp_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;tank_turret&quot;</span>
+
+<span class="c1"># Link</span>
+<span class="n">child</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+</code></pre></div>
+<h3 id="materials">Materials<a class="headerlink" href="#materials" title="Permanent link">&para;</a></h3>
+<p>You can create placeholder materials in Blender. The Game Engine will likely replace them, but they are useful for tagging.</p>
+<div class="highlight"><pre><span></span><code><span class="n">mat</span> <span class="o">=</span> <span class="n">bpy</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;GlassMaterial&quot;</span><span class="p">)</span>
+<span class="n">mat</span><span class="p">[</span><span class="s2">&quot;damp_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;glass&quot;</span>  <span class="c1"># &lt;--- Important!</span>
+<span class="n">obj</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="debugging">🛠 Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h2>
+<p>Since the pipeline runs headless, debugging can be tricky.</p>
+<div class="admonition tip">
+<p class="admonition-title">Open the GLB</p>
+<p>The easiest way to debug is to open the generated <code>.glb</code> file (in <code>dist/assets/models/</code>) using a tool like <a href="https://gltf-viewer.donmccurdy.com/">gltf-viewer.donmccurdy.com</a> or Blender itself.</p>
 </div>
-<p><strong>Rationale</strong>: Joining meshes destroys object-level metadata and forces Three.js to split primitives at runtime, causing race conditions and losing the <code>damp_id</code> on sub-parts. Parenting preserves the logical hierarchy and metadata.</p>
-<h3 id="b-material-level-tagging">B. Material-Level Tagging<a class="headerlink" href="#b-material-level-tagging" title="Permanent link">&para;</a></h3>
-<div class="admonition quote">
-<p class="admonition-title">Decision</p>
-<p>Tag Materials (<code>mat["damp_id"]</code>) in addition to Objects.</p>
+<div class="admonition tip">
+<p class="admonition-title">Run Manually</p>
+<p>You can run the script inside Blender interactively:
+1. Open Blender.
+2. Go to the Scripting tab.
+3. Open your <code>.py</code> file.
+4. Click "Run Script".</p>
 </div>
-<p><strong>Rationale</strong>: Custom properties on Materials are more resilient. Even if geometry is merged or instanced, Three.js preserves material slots, allowing the renderer to reliably identify "Glass" vs "Steel" parts.</p>
-<h3 id="c-baked-transforms">C. Baked Transforms<a class="headerlink" href="#c-baked-transforms" title="Permanent link">&para;</a></h3>
-<div class="admonition quote">
-<p class="admonition-title">Decision</p>
-<p>Bake scale and rotation in Blender; avoid runtime adjustments.</p>
-</div>
-<p><strong>Rationale</strong>: Early iterations attempted to fix rotation (Y-up vs Z-up) in JavaScript. This led to "Tiny Bodies and Giant Tracks" bugs. Baking the transforms ensures that <code>(1,1,1)</code> in the game engine matches the intended visual size.</p>
-<h3 id="d-centralized-utilities">D. Centralized Utilities<a class="headerlink" href="#d-centralized-utilities" title="Permanent link">&para;</a></h3>
-<div class="admonition quote">
-<p class="admonition-title">Decision</p>
-<p>Move cache-busting (<code>cb()</code>) and common logic to <code>src/utils/graphics-utils.js</code>.</p>
-</div>
-<p><strong>Rationale</strong>: Previously, the Viewer and the Game had separate utility implementations, leading to "ghost bugs" where one saw cached assets and the other saw new ones. A shared utility ensures consistency.</p>
-<h2 id="5-component-lifecycle">5. Component Lifecycle<a class="headerlink" href="#5-component-lifecycle" title="Permanent link">&para;</a></h2>
-<p>The standard lifecycle for an asset-based entity (like the Bulldozer) is:</p>
-<ol>
-<li><strong><code>init()</code></strong>: Physics body created (invisible).</li>
-<li><strong><code>load()</code></strong>: <code>BulldozerRenderer</code> fetches the GLB.</li>
-<li><strong><code>setup()</code></strong>:<ul>
-<li>Traverses GLB.</li>
-<li>Identifies Tracks (extracts Curves).</li>
-<li>Identifies Chassis/Parts (applies Materials).</li>
-</ul>
-</li>
-<li><strong><code>update()</code></strong>: Syncs the root Mesh position/rotation to the Physics Body.</li>
-</ol>
-<hr />
-<p><em>Last Updated: 2025-05-19</em></p>
 
 
 

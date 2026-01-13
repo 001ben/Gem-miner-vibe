@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://example.com/living/architecture/DAMP_PIPELINE_REVIEW/">
+        <link rel="canonical" href="https://example.com/living/architecture/OVERVIEW/">
       
       
         <link rel="prev" href="../../..">
       
       
-        <link rel="next" href="../DAMP_MAINTAINABILITY/">
+        <link rel="next" href="../DAMP/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>Pipeline Review - Gem Miner Docs</title>
+        <title>Overview - Gem Miner Docs</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#damp-pipeline-review-design-commentary" class="md-skip">
+        <a href="#architecture-overview" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Pipeline Review
+              Overview
             
           </span>
         </div>
@@ -488,7 +488,7 @@
   <span class="md-ellipsis">
     
   
-    Pipeline Review
+    Overview
   
 
     
@@ -506,7 +506,7 @@
   <span class="md-ellipsis">
     
   
-    Pipeline Review
+    Overview
   
 
     
@@ -532,22 +532,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-architectural-overview" class="md-nav__link">
+  <a href="#the-four-pillars" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Architectural Overview
+        🏛 The Four Pillars
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Architectural Overview">
+    <nav class="md-nav" aria-label="🏛 The Four Pillars">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-flow" class="md-nav__link">
+  <a href="#1-game-source-src" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Flow:
+        1. Game Source (src/)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-pipeline-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Pipeline (pipeline/)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-developer-tools-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Developer Tools (tools/)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-asset-configuration-assets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Asset Configuration (assets/)
       
     </span>
   </a>
@@ -560,149 +593,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-design-commentary" class="md-nav__link">
+  <a href="#the-pipeline-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Design Commentary
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Design Commentary">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#strengths" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Strengths
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#current-challenges-the-magic-mapping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Current Challenges (The "Magic" Mapping)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-technical-review-cleanup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Technical Review &amp; Cleanup
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Technical Review &amp; Cleanup">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#assetssourceblenderbulldozerpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        assets/source/blender/bulldozer.py
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#jsentitiesbulldozer_renderjs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        js/entities/bulldozer_render.js
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#viewersrcmainjs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        viewer/src/main.js
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-proposed-improvements-roadmap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Proposed Improvements (Roadmap)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Proposed Improvements (Roadmap)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#phase-1-explicit-component-tagging-high-priority" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 1: Explicit Component Tagging (High Priority)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#phase-2-unified-material-schema" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 2: Unified Material Schema
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#phase-3-build-pipeline-hardening" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 3: Build Pipeline Hardening
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-immediate-cleanup-checklist" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Immediate Cleanup Checklist
+        🔄 The Pipeline Flow
       
     </span>
   </a>
@@ -725,14 +619,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../DAMP_MAINTAINABILITY/" class="md-nav__link">
+      <a href="../DAMP/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Maintainability
+    The DAMP Strategy
   
 
     
@@ -753,14 +647,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../BLENDER_PIPELINE/" class="md-nav__link">
+      <a href="../BLENDER_API/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Blender Pipeline
+    Blender API
   
 
     
@@ -1706,22 +1600,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-architectural-overview" class="md-nav__link">
+  <a href="#the-four-pillars" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Architectural Overview
+        🏛 The Four Pillars
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="1. Architectural Overview">
+    <nav class="md-nav" aria-label="🏛 The Four Pillars">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#the-flow" class="md-nav__link">
+  <a href="#1-game-source-src" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Flow:
+        1. Game Source (src/)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-pipeline-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Pipeline (pipeline/)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-developer-tools-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Developer Tools (tools/)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-asset-configuration-assets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Asset Configuration (assets/)
       
     </span>
   </a>
@@ -1734,149 +1661,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-design-commentary" class="md-nav__link">
+  <a href="#the-pipeline-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Design Commentary
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Design Commentary">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#strengths" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Strengths
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#current-challenges-the-magic-mapping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Current Challenges (The "Magic" Mapping)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-technical-review-cleanup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Technical Review &amp; Cleanup
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Technical Review &amp; Cleanup">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#assetssourceblenderbulldozerpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        assets/source/blender/bulldozer.py
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#jsentitiesbulldozer_renderjs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        js/entities/bulldozer_render.js
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#viewersrcmainjs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        viewer/src/main.js
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-proposed-improvements-roadmap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Proposed Improvements (Roadmap)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Proposed Improvements (Roadmap)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#phase-1-explicit-component-tagging-high-priority" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 1: Explicit Component Tagging (High Priority)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#phase-2-unified-material-schema" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 2: Unified Material Schema
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#phase-3-build-pipeline-hardening" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Phase 3: Build Pipeline Hardening
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-immediate-cleanup-checklist" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Immediate Cleanup Checklist
+        🔄 The Pipeline Flow
       
     </span>
   </a>
@@ -1900,80 +1688,71 @@
 
 
 
-<h1 id="damp-pipeline-review-design-commentary">DAMP Pipeline Review &amp; Design Commentary<a class="headerlink" href="#damp-pipeline-review-design-commentary" title="Permanent link">&para;</a></h1>
-<h2 id="1-architectural-overview">1. Architectural Overview<a class="headerlink" href="#1-architectural-overview" title="Permanent link">&para;</a></h2>
-<p>The Distributed Asset &amp; Material Pipeline (DAMP) successfully bridges the gap between <strong>Programmatic CAD (Blender/Python)</strong> and <strong>Real-time Web Rendering (Three.js)</strong>. It follows a "Source-of-Truth" model where geometry is generated on-demand, and a JSON configuration layer decouples the visual styling from the raw mesh data.</p>
-<h3 id="the-flow">The Flow:<a class="headerlink" href="#the-flow" title="Permanent link">&para;</a></h3>
+<h1 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h1>
+<div class="admonition abstract">
+<p class="admonition-title"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 15a3 3 0 0 1 3 3 3 3 0 0 1-3 3 2.99 2.99 0 0 1-2.83-2H14v-2h1.17c.41-1.17 1.52-2 2.83-2m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m0-9a1.43 1.43 0 0 0 1.43-1.43 1.43 1.43 0 1 0-2.86 0A1.43 1.43 0 0 0 18 8m0-5.43a4 4 0 0 1 4 4C22 9.56 18 14 18 14s-4-4.44-4-7.43a4 4 0 0 1 4-4M8.83 17H10v2H8.83A2.99 2.99 0 0 1 6 21a3 3 0 0 1-3-3c0-1.31.83-2.42 2-2.83V14h2v1.17c.85.3 1.53.98 1.83 1.83M6 17a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1M6 3a3 3 0 0 1 3 3c0 1.31-.83 2.42-2 2.83V10H5V8.83A2.99 2.99 0 0 1 3 6a3 3 0 0 1 3-3m0 2a1 1 0 0 0-1 1 1 1 0 0 0 1 1 1 1 0 0 0 1-1 1 1 0 0 0-1-1m5 14v-2h2v2zm-4-6H5v-2h2z"/></svg></span> Roadmap</p>
+<p>This document outlines the high-level structure of the Gem Miner codebase and the philosophy behind the "Distributed Asset &amp; Material Pipeline" (DAMP).</p>
+</div>
+<h2 id="the-four-pillars">🏛 The Four Pillars<a class="headerlink" href="#the-four-pillars" title="Permanent link">&para;</a></h2>
+<p>To ensure maintainability and strict separation of concerns, the project is divided into four distinct domains.</p>
+<div class="highlight"><pre><span></span><code>graph TD
+    SRC[&quot;:material-code-json: src/&quot;] --&gt;|Runtime Logic| GAME(Game Engine)
+    PIPE[&quot;:material-factory: pipeline/&quot;] --&gt;|Asset Generation| ASSETS(Compiled Assets)
+    TOOLS[&quot;:material-tools: tools/&quot;] --&gt;|Verification| VIEWER(Asset Viewer)
+    CONF[&quot;:material-file-cog: assets/&quot;] --&gt;|Configuration| PIPE
+
+    style SRC fill:#e1f5fe,stroke:#01579b
+    style PIPE fill:#f3e5f5,stroke:#4a148c
+    style TOOLS fill:#e8f5e9,stroke:#1b5e20
+    style CONF fill:#fff3e0,stroke:#e65100
+</code></pre></div>
+<h3 id="1-game-source-src">1. <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 3h2v2H5v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5h2v2H5c-1.07-.27-2-.9-2-2v-4a2 2 0 0 0-2-2H0v-2h1a2 2 0 0 0 2-2V5a2 2 0 0 1 2-2m14 0a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1v2h-1a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3zm-7 12a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m-4 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1m8 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1"/></svg></span> Game Source (<code>src/</code>)<a class="headerlink" href="#1-game-source-src" title="Permanent link">&para;</a></h3>
+<p>The <strong>Runtime Application</strong>. This is the standard ES6 JavaScript game code.
+It follows a strict rule: <strong>It consumes assets, it never generates them.</strong></p>
+<ul>
+<li><strong>Core</strong>: <code>src/core/</code> (Physics, Graphics, UI, Input)</li>
+<li><strong>Entities</strong>: <code>src/entities/</code> (Bulldozer, Gems, Map)</li>
+</ul>
+<h3 id="2-pipeline-pipeline">2. <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 18v2h4v-2zm0-4v2h10v-2zm6 4v2h4v-2zm6-4v2h4v-2zm0 4v2h4v-2zM2 22V8l5 4V8l5 4V8l5 4 1-10h3l1 10v10z"/></svg></span> Pipeline (<code>pipeline/</code>)<a class="headerlink" href="#2-pipeline-pipeline" title="Permanent link">&para;</a></h3>
+<p>The <strong>Asset Factory</strong>. This is the "Source of Truth" for all visual content.
+Unlike traditional workflows where artists push binary <code>.blend</code> files, we define assets as <strong>Python Scripts</strong>.</p>
+<ul>
+<li><strong>Blender Scripts</strong>: <code>pipeline/blender/</code> (Geometry generation)</li>
+<li><strong>Texture Scripts</strong>: <code>pipeline/textures/</code> (Procedural texture generation)</li>
+</ul>
+<h3 id="3-developer-tools-tools">3. <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m21.71 20.29-1.42 1.42a1 1 0 0 1-1.41 0L7 9.85A3.8 3.8 0 0 1 6 10a4 4 0 0 1-3.78-5.3l2.54 2.54.53-.53 1.42-1.42.53-.53L4.7 2.22A4 4 0 0 1 10 6a3.8 3.8 0 0 1-.15 1l11.86 11.88a1 1 0 0 1 0 1.41M2.29 18.88a1 1 0 0 0 0 1.41l1.42 1.42a1 1 0 0 0 1.41 0l5.47-5.46-2.83-2.83M20 2l-4 2v2l-2.17 2.17 2 2L18 8h2l2-4Z"/></svg></span> Developer Tools (<code>tools/</code>)<a class="headerlink" href="#3-developer-tools-tools" title="Permanent link">&para;</a></h3>
+<p>Standalone applications for verification and debugging.</p>
+<ul>
+<li><strong>Asset Viewer</strong>: <code>tools/viewer/</code> (A dedicated app to inspect GLBs and Material Contracts)</li>
+<li><strong>Physics Playground</strong>: <code>tools/physics-playground/</code> (Headless physics tuning)</li>
+</ul>
+<h3 id="4-asset-configuration-assets">4. <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 2c-1.11 0-2 .89-2 2v16a2 2 0 0 0 2 2h6.68a7 7 0 0 1-.68-3 7 7 0 0 1 7-7 7 7 0 0 1 1 .08V8l-6-6zm7 1.5L18.5 9H13zM18 14a.26.26 0 0 0-.26.21l-.19 1.32c-.3.13-.59.29-.85.47l-1.24-.5c-.11 0-.24 0-.31.13l-1 1.73c-.06.11-.04.24.06.32l1.06.82a4.2 4.2 0 0 0 0 1l-1.06.82a.26.26 0 0 0-.06.32l1 1.73c.06.13.19.13.31.13l1.24-.5c.26.18.54.35.85.47l.19 1.32c.02.12.12.21.26.21h2c.11 0 .22-.09.24-.21l.19-1.32c.3-.13.57-.29.84-.47l1.23.5c.13 0 .26 0 .33-.13l1-1.73a.26.26 0 0 0-.06-.32l-1.07-.82c.02-.17.04-.33.04-.5s-.01-.33-.04-.5l1.06-.82a.26.26 0 0 0 .06-.32l-1-1.73c-.06-.13-.19-.13-.32-.13l-1.23.5c-.27-.18-.54-.35-.85-.47l-.19-1.32A.236.236 0 0 0 20 14zm1 3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5c-.84 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5"/></svg></span> Asset Configuration (<code>assets/</code>)<a class="headerlink" href="#4-asset-configuration-assets" title="Permanent link">&para;</a></h3>
+<p>Input data and configuration files.</p>
+<ul>
+<li><strong>Contracts</strong>: <code>assets/configs/</code> (JSON files defining material properties)</li>
+<li><strong>Reference</strong>: <code>assets/source/</code> (Reference images or data)</li>
+</ul>
+<hr />
+<h2 id="the-pipeline-flow">🔄 The Pipeline Flow<a class="headerlink" href="#the-pipeline-flow" title="Permanent link">&para;</a></h2>
+<p>The build process transforms Python scripts into optimized GLTF artifacts.</p>
+<div class="highlight"><pre><span></span><code>sequenceDiagram
+    participant P as Python Script
+    participant B as Blender (Headless)
+    participant C as Compiler
+    participant G as Game Runtime
+
+    P-&gt;&gt;B: Execute Geometry Logic
+    Note over B: Apply Modifiers&lt;br&gt;UV Unwrap&lt;br&gt;Assign damp_id
+    B-&gt;&gt;C: Export GLB
+    C-&gt;&gt;C: Update catalog.json
+    C-&gt;&gt;G: Load Asset (via Fetch)
+</code></pre></div>
 <ol>
-<li><strong>Geometry (<code>bulldozer.py</code>)</strong>: Defines the "bones" and "shell" of the entity using Blender's Python API.</li>
-<li><strong>Texture Gen (<code>bulldozer.py</code>)</strong>: Captures procedural details into static PNGs to avoid expensive real-time procedural overhead.</li>
-<li><strong>Orchestration (<code>build-assets.js</code>)</strong>: Compiles raw assets into a <code>catalog.json</code> for the web runtime and ensures consistent directory structures.</li>
-<li><strong>Configuration (<code>bulldozer_mapping.json</code>)</strong>: Defines the "skin"—mapping textures and material physics (roughness, metalness, transparency) to specific meshes.</li>
-<li><strong>Runtime (<code>bulldozer_render.js</code>)</strong>: Interprets the GLB + Config to assemble the final high-fidelity entity in the game engine.</li>
+<li><strong>Generation</strong>: <code>task build:assets</code> runs Blender in the background.</li>
+<li><strong>Tagging</strong>: Scripts inject a <code>damp_id</code> custom property into meshes and materials.</li>
+<li><strong>Compilation</strong>: The compiler generates a <code>.glb</code> file and updates the <code>catalog.json</code> index.</li>
+<li><strong>Runtime</strong>: The game fetches the GLB and applies materials based on the <strong>Explicit Contract</strong> (see <a href="../DAMP/">DAMP Strategy</a>).</li>
 </ol>
-<hr />
-<h2 id="2-design-commentary">2. Design Commentary<a class="headerlink" href="#2-design-commentary" title="Permanent link">&para;</a></h2>
-<h3 id="strengths">Strengths<a class="headerlink" href="#strengths" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>WYSIWYG Development</strong>: The Asset Director (Viewer) allows for real-time material tuning that can be exported directly to the game's config files.</li>
-<li><strong>Decoupled Logic</strong>: Geometry changes in Blender don't require code changes in the game engine, provided the naming conventions remain stable.</li>
-<li><strong>Performance Optimization</strong>: By baking procedural textures into PNGs during the build step, client-side GPU load is kept low while maintaining high visual detail.</li>
-<li><strong>Material Presets</strong>: The "Preset" system (e.g., Glass, Track) allows for high-fidelity Three.js materials to be defined in code while still being configurable via JSON.</li>
-</ul>
-<h3 id="current-challenges-the-magic-mapping">Current Challenges (The "Magic" Mapping)<a class="headerlink" href="#current-challenges-the-magic-mapping" title="Permanent link">&para;</a></h3>
-<p>The most brittle part of the current design is the <strong>Generic Mesh Mapping</strong>.</p>
-<ul>
-<li><strong>Issue</strong>: When Blender joins meshes, it creates names like <code>Cube001</code>, <code>Cube001_1</code>. The renderer has to "guess" that <code>Cube001_1</code> is a wheel based on material or generic string matches.</li>
-<li><strong>Risk</strong>: Changes in Blender's joining order could swap these names, breaking the texture mapping in the game.</li>
-</ul>
-<hr />
-<h2 id="3-technical-review-cleanup">3. Technical Review &amp; Cleanup<a class="headerlink" href="#3-technical-review-cleanup" title="Permanent link">&para;</a></h2>
-<h3 id="assetssourceblenderbulldozerpy"><code>assets/source/blender/bulldozer.py</code><a class="headerlink" href="#assetssourceblenderbulldozerpy" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Review</strong>: Highly functional script. Current logic joins components (Cabin/Body) into a single mesh for simplicity.</li>
-<li><strong>Suggestion</strong>: Transition to <strong>Parenting</strong> instead of <code>bpy.ops.object.join()</code>. Keeping components as separate objects in the GLB allows the renderer to find them directly by name without complex mapping logic.</li>
-</ul>
-<h3 id="jsentitiesbulldozer_renderjs"><code>js/entities/bulldozer_render.js</code><a class="headerlink" href="#jsentitiesbulldozer_renderjs" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Review</strong>: The <code>applyMaterial</code> logic currently performs heavy string matching to "fix" generic Blender export names.</li>
-<li><strong>Cleanup</strong>: Standardize the <code>cb()</code> (cache-busting) utility across the project to reduce code duplication.</li>
-</ul>
-<h3 id="viewersrcmainjs"><code>viewer/src/main.js</code><a class="headerlink" href="#viewersrcmainjs" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Review</strong>: The UI "Discovery" logic is clever but can be prone to race conditions with the renderer's initial load.</li>
-<li><strong>Cleanup</strong>: Centralize component discovery within the <code>BulldozerRenderer</code> itself.</li>
-</ul>
-<hr />
-<h2 id="4-proposed-improvements-roadmap">4. Proposed Improvements (Roadmap)<a class="headerlink" href="#4-proposed-improvements-roadmap" title="Permanent link">&para;</a></h2>
-<h3 id="phase-1-explicit-component-tagging-high-priority">Phase 1: Explicit Component Tagging (High Priority)<a class="headerlink" href="#phase-1-explicit-component-tagging-high-priority" title="Permanent link">&para;</a></h3>
-<p>Instead of matching strings like <code>"Cube"</code>, we should use <strong>Blender Custom Properties</strong>.</p>
-<ul>
-<li><strong>Blender Python</strong>: <code>obj["damp_id"] = "Chassis"</code></li>
-<li><strong>Three.js Runtime</strong>: The GLTF loader preserves these in <code>mesh.userData.damp_id</code>.</li>
-<li><strong>Result</strong>: 100% reliable mapping regardless of mesh joining or renaming.</li>
-</ul>
-<h3 id="phase-2-unified-material-schema">Phase 2: Unified Material Schema<a class="headerlink" href="#phase-2-unified-material-schema" title="Permanent link">&para;</a></h3>
-<p>Formalize the mapping JSON into a generic schema that supports:</p>
-<ul>
-<li><code>emissive</code> properties for glowing lights.</li>
-<li><code>normalMap</code> support for surface bump details.</li>
-<li><code>envMapIntensity</code> for more realistic glass reflections.</li>
-</ul>
-<h3 id="phase-3-build-pipeline-hardening">Phase 3: Build Pipeline Hardening<a class="headerlink" href="#phase-3-build-pipeline-hardening" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Schema Validation</strong>: Validate JSON configs against a schema during the build step to catch typos before runtime.</li>
-<li><strong>Automated Thumbnails</strong>: Integrate a headless browser step to generate preview thumbnails for the <code>catalog.json</code>.</li>
-</ul>
-<hr />
-<h2 id="5-immediate-cleanup-checklist">5. Immediate Cleanup Checklist<a class="headerlink" href="#5-immediate-cleanup-checklist" title="Permanent link">&para;</a></h2>
-<ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Consolidate Utilities</strong>: Move <code>cb()</code> cache-busting to a shared utility file.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Blender Refactor</strong>: Update <code>bulldozer.py</code> to use parenting instead of joining for critical components.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Remove Legacy Artifacts</strong>: Delete <code>existing_pipeline_files.txt</code> and unused <code>/verification</code> scripts.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Standardize Interfaces</strong>: Ensure all renderers use the same <code>setPose(position, angle)</code> interface.</li>
-</ul>
-<hr />
-<p><em>Review Date: Thursday 18 December 2025</em></p>
 
 
 
