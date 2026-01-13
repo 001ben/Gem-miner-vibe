@@ -6,20 +6,24 @@ import { createMap } from '../entities/map.js';
 export function updateUI() {
     document.getElementById('money').innerText = state.money;
 
-    // We no longer update button states since they are removed.
-
-    // Speed increases ~33% per level relative to previous.
-    // L1 = 100%. L2 = 133%.
-    // Formula: 100 * Math.pow(1.333, state.dozerLevel - 1)
-    const speedVal = Math.round(100 * Math.pow(1.3333, state.dozerLevel - 1));
-    const speedEl = document.getElementById('stats-speed');
-    if (speedEl) speedEl.innerText = `Speed: ${speedVal}%`;
-
-    // Power increases 2.0x per level (Force).
-    // L1 = 100%. L2 = 200%.
-    const powerVal = Math.round(100 * Math.pow(2.0, state.dozerLevel - 1));
+    // Power increases 1.35x per level (Force), adjusted by load factor.
+    // Base Power: 100 * 1.35^(L-1).
+    // Load adjustment is dynamic, but for stats we can show base Power.
+    const powerVal = Math.round(100 * Math.pow(1.35, state.dozerLevel - 1));
     const powerEl = document.getElementById('stats-power');
     if (powerEl) powerEl.innerText = `Power: ${powerVal}%`;
+}
+
+// Called every frame by game loop
+export function updateSpeedometer(speed) {
+    const speedEl = document.getElementById('stats-speed');
+    if (speedEl) {
+        // Convert physics speed (pixels/step) to a display value (e.g. km/h approximation)
+        // 1 px/step @ 60fps = 60 px/s.
+        // Let's say 10 "Speed Units" = 1 px/step.
+        const displaySpeed = Math.round(speed * 10);
+        speedEl.innerText = `Speed: ${displaySpeed} km/h`;
+    }
 }
 
 export function showNotification(message) {
