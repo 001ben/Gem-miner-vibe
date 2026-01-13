@@ -1,5 +1,11 @@
 {
   "assetId": "plow.glb",
+  "assembly": {
+    "plow": {
+      "segmentCount": 3,
+      "segmentWidth": 1.0
+    }
+  },
   "components": {
     "plow_segment": {
       "preset": "YellowMetallic",
