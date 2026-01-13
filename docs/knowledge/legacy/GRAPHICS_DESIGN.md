@@ -1,4 +1,7 @@
-# Graphics System Design & Analysis
+# Graphics System Design & Analysis (Legacy)
+
+!!! warning ":material-archive: Legacy Document (May 2025)"
+    This analysis predates the DAMP implementation. It correctly identified the need for a GLTF pipeline and Instanced Rendering, which have since been implemented.
 
 ## Current Implementation
 

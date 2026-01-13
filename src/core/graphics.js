@@ -328,8 +328,9 @@ export function createMesh(body) {
     mesh.add(cab);
   } else if (label === 'plow') {
     // Deterministic Dimension Calculation (Matches src/entities/bulldozer.js)
-    const bodySize = 40 + (state.dozerLevel * 5);
-    const plowWidth = bodySize * 1.2 + (state.plowLevel * 40);
+    // Synchronized to fix misalignment at high levels
+    // Width = Base (60) + (Level * 8 * 2) * 1.5 scaling
+    const plowWidth = (60 + (state.plowLevel * 16)) * 1.5;
     const plowHeight = 22; 
 
     let geo;

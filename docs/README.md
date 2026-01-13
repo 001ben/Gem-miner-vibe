@@ -25,9 +25,9 @@ Welcome to the Gem Miner technical documentation. This site is organized into th
 - **[:material-alert-circle: Common Errors](knowledge/troubleshooting/COMMON_ERRORS.md)**: Solutions for setup and runtime issues.
 - **[:material-image-broken-variant: Graphics Troubleshooting](knowledge/troubleshooting/GRAPHICS_TROUBLESHOOTING.md)**: Fixing visual artifacts.
 
-### Archives
+### Reference
 - **[:material-history: History](knowledge/history/GEMINI_2025_12.md)**: Past session logs and decision records.
-- **[:material-archive: Legacy Docs](knowledge/archive/ASSET_PIPELINE.md)**: Deprecated pipelines (OpenSCAD) and design documents.
+- **[:material-archive: Legacy Docs](knowledge/legacy/ASSET_PIPELINE.md)**: Deprecated pipelines (OpenSCAD) and design documents.
 
 ---
 
@@ -36,4 +36,4 @@ Welcome to the Gem Miner technical documentation. This site is organized into th
 **Planning & Execution.** The roadmap, active tasks, and work logs.
 
 - **[:material-roadmap: Roadmap](planning/roadmap.md)**: High-level goals and backlog.
-- **[:material-loading: Current Task](planning/task_scaling_rebalance.md)**: Status of the current active work.
+- **[:material-loading: Current Task](planning/task_doc_reorg.md)**: Status of the current active work.

@@ -1,4 +1,7 @@
-# Asset Pipeline & Material Challenges
+# Asset Pipeline & Material Challenges (Legacy)
+
+!!! warning ":material-archive: Legacy Document (May 2025)"
+    This document describes the deprecated OpenSCAD pipeline. It is preserved for historical context. The current project uses the **DAMP (Blender/Python)** pipeline.
 
 ## Current Architecture
 

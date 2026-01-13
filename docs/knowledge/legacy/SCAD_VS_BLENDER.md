@@ -1,4 +1,7 @@
-# Asset Pipeline: OpenSCAD vs. Blender
+# Asset Pipeline: OpenSCAD vs. Blender (Legacy)
+
+!!! warning ":material-archive: Legacy Document (May 2025)"
+    This decision record documents the transition from OpenSCAD to Blender. The project now runs exclusively on the DAMP (Blender) pipeline.
 
 We originally explored two different pipelines for generating 3D game assets. We have decided to standardize on the **Blender** pipeline. This document summarizes the differences, benefits, and reasons for this decision.
 

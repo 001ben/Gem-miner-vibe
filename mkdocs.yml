@@ -30,14 +30,17 @@ nav:
           - Graphics: knowledge/troubleshooting/GRAPHICS_TROUBLESHOOTING.md
       - History:
           - Gemini Session (Dec 2025): knowledge/history/GEMINI_2025_12.md
-      - Archive:
-          - Asset Pipeline (Legacy): knowledge/archive/ASSET_PIPELINE.md
-          - Render Tutorial: knowledge/archive/BULLDOZER_RENDER_FRAMEWORKS_TUTORIAL.md
-          - Graphics Design: knowledge/archive/GRAPHICS_DESIGN.md
-          - SCAD vs Blender: knowledge/archive/SCAD_VS_BLENDER.md
+      - Legacy:
+          - Asset Pipeline (May 2025): knowledge/legacy/ASSET_PIPELINE.md
+          - Render Tutorial (May 2025): knowledge/legacy/BULLDOZER_RENDER_FRAMEWORKS_TUTORIAL.md
+          - Graphics Design (May 2025): knowledge/legacy/GRAPHICS_DESIGN.md
+          - SCAD vs Blender (May 2025): knowledge/legacy/SCAD_VS_BLENDER.md
   - Task Tracking:
       - Roadmap: planning/roadmap.md
-      - Current Task: planning/task_scaling_rebalance.md
+      - Active Tasks:
+          - Documentation Reorg: planning/task_doc_reorg.md
+          - Scaling Rebalance: planning/task_scaling_rebalance.md
+          - Scaling Analysis: planning/scaling_analysis.md
       - Archive:
           - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
           - UI Polish (Jan 2026): planning/archive/2026-01-07_ui_gameplay_polish.md

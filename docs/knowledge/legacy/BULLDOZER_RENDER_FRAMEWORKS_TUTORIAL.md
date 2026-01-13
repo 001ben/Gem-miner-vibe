@@ -1,4 +1,7 @@
-# Tutorial: The Bulldozer Renderer
+# Tutorial: The Bulldozer Renderer (Legacy)
+
+!!! warning ":material-archive: Legacy Document (May 2025)"
+    This tutorial explains the legacy rendering techniques including Triplanar Mapping and procedural textures. While `BulldozerRenderer` still exists, the asset loading pipeline has evolved.
 
 ## 1. The High-Level Goal
 
