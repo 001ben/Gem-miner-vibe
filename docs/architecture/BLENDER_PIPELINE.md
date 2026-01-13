@@ -11,6 +11,26 @@ This allows you to generate assets using Python code (keeping the "Programmer" w
 1. **Compilation:** `task build:assets` runs Blender to execute the script and export `.glb`.
 1. **Result:** Game-ready assets with **UVs**, **Materials**, and **Explicit IDs**.
 
+## Mapping Configuration (`assets/configs/`)
+
+For each GLB asset, you must typically create a corresponding mapping configuration file (e.g., `my_asset_mapping.json`) in `assets/configs/`. This file acts as the "Contract" between the raw geometry and the game engine's renderer.
+
+It maps the `damp_id` (defined in your Blender script) to specific material presets or textures.
+
+**Example `plow_mapping.json`:**
+```json
+{
+  "assetId": "plow.glb",
+  "components": {
+    "plow_segment": {
+      "preset": "YellowMetallic",
+      "roughness": 0.2,
+      "metalness": 0.7
+    }
+  }
+}
+```
+
 ## How to use
 
 1. Create a python script in `pipeline/blender/my_asset.py`.

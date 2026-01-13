@@ -8,8 +8,8 @@ The Distributed Asset & Material Pipeline (DAMP) successfully bridges the gap be
 
 1. **Geometry (`bulldozer.py`)**: Defines the "bones" and "shell" of the entity using Blender's Python API.
 1. **Texture Gen (`bulldozer.py`)**: Captures procedural details into static PNGs to avoid expensive real-time procedural overhead.
-1. **Orchestration (`build-assets.js`)**: Compiles raw assets into a `catalog.json` for the web runtime and ensures consistent directory structures.
-1. **Configuration (`bulldozer_mapping.json`)**: Defines the "skin"—mapping textures and material physics (roughness, metalness, transparency) to specific meshes.
+1. **Orchestration (`task`)**: Compiles raw assets into a `catalog.json` for the web runtime and ensures consistent directory structures.
+1. **Configuration (`assets/configs/*.json`)**: A manually created "Contract" file that defines the "skin"—mapping textures and material physics (roughness, metalness, transparency) to specific meshes via `damp_id`.
 1. **Runtime (`bulldozer_render.js`)**: Interprets the GLB + Config to assemble the final high-fidelity entity in the game engine.
 
 ______________________________________________________________________
@@ -34,10 +34,10 @@ ______________________________________________________________________
 
 ## 3. Technical Review & Cleanup
 
-### `assets/source/blender/bulldozer.py`
+### `pipeline/blender/bulldozer.py`
 
-- **Review**: Highly functional script. Current logic joins components (Cabin/Body) into a single mesh for simplicity.
-- **Suggestion**: Transition to **Parenting** instead of `bpy.ops.object.join()`. Keeping components as separate objects in the GLB allows the renderer to find them directly by name without complex mapping logic.
+- **Status**: Updated to use Parenting.
+- **Implementation**: The script now parents components (Wheels, Cabin) to the Body and uses `tag_contract` to assign `damp_id` custom properties. This allows the GLB to maintain a hierarchy and precise identification.
 
 ### `js/entities/bulldozer_render.js`
 
@@ -51,15 +51,15 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## 4. Proposed Improvements (Roadmap)
+## 4. Roadmap & Status
 
-### Phase 1: Explicit Component Tagging (High Priority)
+### Phase 1: Explicit Component Tagging (Completed)
 
-Instead of matching strings like `"Cube"`, we should use **Blender Custom Properties**.
+We have implemented **Blender Custom Properties** to identify meshes.
 
-- **Blender Python**: `obj["damp_id"] = "Chassis"`
-- **Three.js Runtime**: The GLTF loader preserves these in `mesh.userData.damp_id`.
-- **Result**: 100% reliable mapping regardless of mesh joining or renaming.
+- **Blender Python**: `obj["damp_id"] = "chassis"`
+- **Three.js Runtime**: The GLTF loader reads these from `mesh.userData.damp_id`.
+- **Result**: Reliable mapping independent of Blender's internal naming or joining order.
 
 ### Phase 2: Unified Material Schema
 
