@@ -43,12 +43,19 @@ export class MaterialManager {
 
         const dampId = overrideName || matDampId || meshDampId || parentDampId;
 
+        console.log(`[DEBUG] applyMaterial '${name}': damp_id='${dampId}' (mat='${matDampId}', mesh='${meshDampId}', parent='${parentDampId}')`);
+
         if (!dampId) {
             console.warn(`[CONTRACT WARNING] Mesh '${name}' has no damp_id tag.`);
             return;
         }
 
         const settings = (config && config.components) ? config.components[dampId] : null;
+        if (!settings) {
+            console.warn(`[CONTRACT WARNING] No config settings found for damp_id '${dampId}'`);
+        } else {
+            console.log(`[DEBUG] Found settings for '${dampId}':`, settings);
+        }
 
         // 1. Determine Target Material Base
         const targetPresetName = settings?.preset || (dampId === "cabin" || matName.includes("Glass") ? "Glass" : (dampId === "track_link" || name.includes("Track") ? "Track" : null));

@@ -55,7 +55,9 @@ export function createBulldozer() {
         const angleLeft = -Math.PI/2 - wingAngle;
         
         // Calculate Center Position
-        const lx = (-plowWidth / 2) + (wingLength / 2) * Math.cos(angleLeft);
+        // Overlap by 10 units to ensure visual/physical continuity and seal the gap
+        const overlap = 10;
+        const lx = (-plowWidth / 2 + overlap) + (wingLength / 2) * Math.cos(angleLeft);
         const ly = plowOffset + (wingLength / 2) * Math.sin(angleLeft);
 
         const leftWing = Bodies.rectangle(lx, ly, wingLength, wingWidth, {
@@ -67,7 +69,7 @@ export function createBulldozer() {
         // Angle: Pointing Up (-PI/2) and slightly Right (+wingAngle)
         const angleRight = -Math.PI/2 + wingAngle;
         
-        const rx = (plowWidth / 2) + (wingLength / 2) * Math.cos(angleRight);
+        const rx = (plowWidth / 2 - overlap) + (wingLength / 2) * Math.cos(angleRight);
         const ry = plowOffset + (wingLength / 2) * Math.sin(angleRight);
 
         const rightWing = Bodies.rectangle(rx, ry, wingLength, wingWidth, {

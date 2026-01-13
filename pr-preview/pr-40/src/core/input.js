@@ -117,24 +117,21 @@ export function initInput() {
             // Acceleration should depend on the difference between Engine and Plow levels.
 
             // 1. Calculate Base Power based on Engine Level
-            // This ensures Max Speed goes up because Force overcomes linear drag (FrictionAir).
-            // Base Power scales with 1.25x per level to keep up with mass.
-            let power = 0.012 * Math.pow(1.25, state.dozerLevel);
+            // Refactored to fix progression gap at level 3-4 (where mass outpaced power).
+            // New Formula: Higher exponential base (1.35) + Mass Compensation.
+
+            // Base Power: Exponential growth
+            let power = 0.012 * Math.pow(1.35, state.dozerLevel);
+
+            // Mass Compensation: Ensure a baseline acceleration regardless of weight
+            // This fixes the "dip" when wings are added or size increases drastically.
+            // Increased to 0.001 to fully smooth out the Level 3 wing addition.
+            power += (bulldozer.mass * 0.001);
 
             // 2. Adjust for "Load" (Engine vs Plow difference)
             // Difference = Engine - Plow.
-            // +Diff (Engine > Plow): Faster acceleration (lighter feel).
-            // -Diff (Engine < Plow): Slower acceleration (drag/heavy feel).
-
             const levelDiff = state.dozerLevel - state.plowLevel;
-
-            // Clamp difference to +/- 2 levels as requested
             const clampedDiff = Math.max(-2, Math.min(2, levelDiff));
-
-            // Tuning factor: How much does each level of difference impact performance?
-            // Let's say +/- 10% per level of difference.
-            // +2 levels = +20% force (zippy).
-            // -2 levels = -20% force (sluggish).
             const loadFactor = 1.0 + (clampedDiff * 0.1);
 
             // Apply Load Factor
