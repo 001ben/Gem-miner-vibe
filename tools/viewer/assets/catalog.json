@@ -1,6 +1,7 @@
 {
   "models": [
-    "bulldozer_components.glb"
+    "bulldozer_components.glb",
+    "plow.glb"
   ],
   "textures": [
     "tracks_texture.png"
