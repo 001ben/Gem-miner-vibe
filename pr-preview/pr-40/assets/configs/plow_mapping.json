@@ -7,6 +7,11 @@
     }
   },
   "components": {
+    "plow": {
+      "preset": "YellowMetallic",
+      "roughness": 0.2,
+      "metalness": 0.7
+    },
     "plow_segment": {
       "preset": "YellowMetallic",
       "roughness": 0.2,
