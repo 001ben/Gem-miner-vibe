@@ -86,6 +86,33 @@ export function initInput() {
             Body.setAngularVelocity(bulldozer, bulldozer.angularVelocity * 0.9);
         }
 
+        // Lateral Friction (Skid Damping)
+        // With low frictionAir (0.02), we need to manually dampen lateral velocity
+        // to prevent the bulldozer from drifting sideways like a hovercraft.
+        const velocity = bulldozer.velocity;
+        const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+
+        if (speed > 0.1) {
+            // Calculate "Right" vector relative to bulldozer heading
+            // Heading is (angle - PI/2).
+            // Right is Heading + 90 deg = (angle - PI/2 + PI/2) = angle.
+            // So Right vector is just (cos(angle), sin(angle)).
+            const right = { x: Math.cos(bulldozer.angle), y: Math.sin(bulldozer.angle) };
+
+            // Project velocity onto Right vector (Lateral Velocity)
+            const lateralSpeed = velocity.x * right.x + velocity.y * right.y;
+
+            // Apply opposing force to cancel lateral velocity
+            // High damping factor for "snappy" turns
+            const lateralFriction = 0.15; // Tuned for snap
+
+            // Apply impulse (Force * Mass roughly)
+            Body.applyForce(bulldozer, bulldozer.position, {
+                x: -right.x * lateralSpeed * lateralFriction * bulldozer.mass,
+                y: -right.y * lateralSpeed * lateralFriction * bulldozer.mass
+            });
+        }
+
         // Apply drive force
         if (throttle !== 0) {
             // Refactored Physics Scaling (Iteration 2):
