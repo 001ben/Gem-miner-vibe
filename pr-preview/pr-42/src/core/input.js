@@ -104,12 +104,13 @@ export function initInput() {
 
             // Apply opposing force to cancel lateral velocity
             // High damping factor for "snappy" turns
-            const lateralFriction = 0.15; // Tuned for snap
+            // Apply opposing force to cancel lateral velocity
+            // We use direct velocity modification for stability (avoiding force integrator oscillation)
+            const lateralFriction = 0.15; // Dampen 15% of lateral speed per frame
 
-            // Apply impulse (Force * Mass roughly)
-            Body.applyForce(bulldozer, bulldozer.position, {
-                x: -right.x * lateralSpeed * lateralFriction * bulldozer.mass,
-                y: -right.y * lateralSpeed * lateralFriction * bulldozer.mass
+            Body.setVelocity(bulldozer, {
+                x: velocity.x - right.x * lateralSpeed * lateralFriction,
+                y: velocity.y - right.y * lateralSpeed * lateralFriction
             });
         }
 
