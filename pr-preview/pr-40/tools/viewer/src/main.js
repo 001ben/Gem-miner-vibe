@@ -118,6 +118,8 @@ const App = () => {
     const [showLogs, setShowLogs] = useState(false);
     const [logs, setLogs] = useState([]);
     const [plowSegmentCount, setPlowSegmentCount] = useState(1);
+    const [plowWings, setPlowWings] = useState(false);
+    const [plowTeeth, setPlowTeeth] = useState(false);
 
     const sceneRef = useRef(null);
     const dirLightRef = useRef(null);
@@ -340,6 +342,20 @@ const App = () => {
                                     setPlowSegmentCount(v);
                                     dozerRef.current?.setPlowWidth(v);
                                 }} />
+                            <div style=${{display: 'flex', gap: '10px', marginTop: '10px'}}>
+                                <label style=${{display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
+                                    <input type="checkbox" checked=${plowWings} onChange=${e => {
+                                        setPlowWings(e.target.checked);
+                                        dozerRef.current?.setPlowWings(e.target.checked);
+                                    }} /> Wings
+                                </label>
+                                <label style=${{display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
+                                    <input type="checkbox" checked=${plowTeeth} onChange=${e => {
+                                        setPlowTeeth(e.target.checked);
+                                        dozerRef.current?.setPlowTeeth(e.target.checked);
+                                    }} /> Teeth
+                                </label>
+                            </div>
                         </div>
                     `}
                 </div>
