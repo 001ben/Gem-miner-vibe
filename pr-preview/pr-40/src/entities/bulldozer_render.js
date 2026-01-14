@@ -277,8 +277,6 @@ export class BulldozerRenderer {
             await this.applyGenericMaterials(clone, node);
         }
 
-        }
-
         this.isLoaded = true;
         resolve();
       }, undefined, reject);
