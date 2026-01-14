@@ -32,11 +32,16 @@ async def measure_scaling():
         time.sleep(2) # Wait for startup
 
         try:
+            # Debugging (Attach BEFORE navigation)
+            page.on("console", lambda msg: print(f"Console: {msg.text}"))
+            page.on("pageerror", lambda exc: print(f"Page Error: {exc}"))
+            page.on("requestfailed", lambda req: print(f"Request Failed: {req.url} - {req.failure}"))
+            page.on("request", lambda req: print(f"Request: {req.url}"))
+
             await page.goto("http://localhost:8081/verification/scaling_harness.html")
 
-            # Wait for "Harness Ready"
-            # We can check console logs
-            page.on("console", lambda msg: print(f"Console: {msg.text}"))
+            # Wait for window.simulation to be defined
+            await page.wait_for_function("() => window.simulation !== undefined")
 
             results = []
 
@@ -51,11 +56,11 @@ async def measure_scaling():
             for lvl in levels:
                 print(f"Testing Level {lvl}...")
 
-                # Setup: Engine = Lvl, Plow = Lvl
+                # Setup
                 await page.evaluate(f"window.simulation.setup({lvl}, {lvl})")
+                # Press W
+                await page.evaluate("window.simulation.setKeys({'KeyW': true})")
 
-                # Run 300 frames (5 seconds)
-                # We want to sample every 10 frames to build a curve
                 velocity_data = []
 
                 for i in range(30):
@@ -66,6 +71,33 @@ async def measure_scaling():
                     "Level": lvl,
                     "Data": velocity_data
                 })
+
+            # Turning Test (Reproduce Infinity Bug)
+            print("Testing Turning Stability (Level 20)...")
+            await page.evaluate("window.simulation.setup(20, 20)")
+
+            # Drive Forward 2s
+            print("Driving Forward...")
+            await page.evaluate("window.simulation.setKeys({'KeyW': true})")
+            await page.evaluate("window.simulation.step(120)")
+
+            # Turn Right (Hold D + W)
+            print("Turning Right (W+D)...")
+            await page.evaluate("window.simulation.setKeys({'KeyW': true, 'KeyD': true})")
+
+            turn_data = []
+            for i in range(20): # 2 seconds
+                data = await page.evaluate("window.simulation.step(6)") # 6*10 = 60ms? No 6 frames = 100ms
+                turn_data.append(data['speed'])
+
+            print(f"Turning Speeds: {turn_data}")
+            max_turn_speed = max(turn_data)
+            print(f"Max Turn Speed: {max_turn_speed}")
+
+            if max_turn_speed > 100:
+                print("BUG DETECTED: Speed Explosion!")
+            else:
+                print("Stability Verified.")
 
             # Generate Plot
             plt.figure(figsize=(10, 6))
