@@ -16,6 +16,17 @@
       "preset": "YellowMetallic",
       "roughness": 0.2,
       "metalness": 0.7
+    },
+    "plow_wing": {
+      "preset": "YellowMetallic",
+      "roughness": 0.2,
+      "metalness": 0.7
+    },
+    "plow_tooth": {
+      "preset": "Track",
+      "roughness": 0.9,
+      "metalness": 0.1,
+      "color": "#333333"
     }
   }
 }

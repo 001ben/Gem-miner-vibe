@@ -26,58 +26,6 @@ def apply_transforms(obj):
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
 def create_plow_segment(name, width=1.0, material=None):
-    # Profile definition (Y, Z) pairs for the blade curve
-    # Y is forward, Z is up.
-    # Blade is concave, so Y should be negative in the middle?
-    # Or if Y=0 is the mounting point, the blade curves forward.
-    # Let's say the back of the blade is at Y=0.
-
-    # Vertices for the profile (Y, Z)
-    profile = [
-        (0.2, 1.5),   # Top lip
-        (0.0, 1.4),   # Top back
-        (-0.1, 0.8),  # Middle back (deepest point of curve)
-        (0.0, 0.2),   # Bottom back
-        (0.3, 0.0),   # Cutting edge tip (The "Parky" thing)
-        (0.0, 0.0),   # Bottom flat
-    ]
-
-    # We need to extrude this profile along X from -width/2 to width/2
-    verts = []
-    faces = []
-
-    n_profile = len(profile)
-
-    # Left side (x = -width/2)
-    for y, z in profile:
-        verts.append((-width/2, y, z))
-
-    # Right side (x = width/2)
-    for y, z in profile:
-        verts.append((width/2, y, z))
-
-    # Create faces connecting left and right
-    # This creates the "ribbon" of the blade
-    for i in range(n_profile - 1):
-        # Indices:
-        # Left: i, i+1
-        # Right: i + n_profile, i + n_profile + 1
-
-        # Face: (L_i, R_i, R_i+1, L_i+1)
-        faces.append((i, i + n_profile, i + n_profile + 1, i + 1))
-
-    # Close the sides? Maybe not needed for a segment if they tile perfectly.
-    # But for a solid look, let's close the ends?
-    # Actually, if we instance them side-by-side, internal faces are wasteful/z-fighting.
-    # But the user might want "individual" segments.
-    # Let's leave ends open for tiling, or maybe close them?
-    # User said "bucket segment... repeatable".
-    # If I repeat them, I don't want side faces.
-
-    # However, to give it thickness, I should probably make it a closed volume (solid).
-    # My profile above is just a line.
-    # Let's make a solid profile.
-
     # Revised Profile (Closed loop Y, Z)
     solid_profile = [
         # Outer surface (Blade face)
@@ -107,30 +55,101 @@ def create_plow_segment(name, width=1.0, material=None):
     for i in range(n_pts):
         next_i = (i + 1) % n_pts
 
-        # Indices:
-        # Left ring: 0 to n_pts-1
-        # Right ring: n_pts to 2*n_pts-1
-
         l1 = i
         l2 = next_i
         r1 = i + n_pts
         r2 = next_i + n_pts
 
-        # Quad face connecting left and right
-        # Order to ensure normals face out?
-        # If profile is CCW:
         faces.append((l1, r1, r2, l2))
-
-    # End caps (Left and Right sides)
-    # We might want to omit these if we want perfect seamless tiling without Z-fighting.
-    # But if the segment is used alone, it needs caps.
-    # Let's add caps. If they Z-fight on tiling, we can adjust later or the shader handles it.
-    # Actually, usually tiled meshes omit caps.
-    # Let's omit caps for now to be safe for tiling.
 
     mesh = bpy.data.meshes.new(name + "_Mesh")
     mesh.from_pydata(verts, [], faces)
 
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+
+    if material:
+        obj.data.materials.append(material)
+
+    return obj
+
+def create_plow_wing(name, side, material=None):
+    # Wing is a curved "cheek" plate on the side
+    # It should roughly match the profile but flare out or close off
+
+    # Simple Wing: A flat plate with the profile shape, slightly scaled up
+    profile = [
+        (0.2, 1.5), (-0.1, 0.8), (0.4, 0.0), (0.0, 0.0), (-0.3, 0.8), (0.0, 1.5)
+    ]
+
+    thickness = 0.2
+    verts = []
+    faces = []
+
+    # Inner face (x=0) and Outer face (x=thickness * side)
+    # Side is 1 (Right) or -1 (Left)
+
+    for x in [0, thickness * side]:
+        for y, z in profile:
+            verts.append((x, y, z))
+
+    n_pts = len(profile)
+
+    # Faces for lofting
+    for i in range(n_pts):
+        next_i = (i + 1) % n_pts
+        l1, l2 = i, next_i
+        r1, r2 = i + n_pts, next_i + n_pts
+
+        # If side is 1 (Right), normal order is l1, r1, r2, l2
+        # If side is -1 (Left), we might need to flip, but let's check later.
+        # Let's just create faces and rely on backface culling or DoubleSide.
+        faces.append((l1, r1, r2, l2))
+
+    # Cap the outer face
+    # Simple fan for convex, but this is concave.
+    # Just single ngon for now.
+    faces.append(list(range(n_pts))) # Inner
+    faces.append(list(range(n_pts, 2*n_pts))) # Outer
+
+    mesh = bpy.data.meshes.new(name + "_Mesh")
+    mesh.from_pydata(verts, [], faces)
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+
+    if material:
+        obj.data.materials.append(material)
+
+    return obj
+
+def create_plow_tooth(name, material=None):
+    # A distinct tooth that sticks out the bottom front
+    # Wedge shape
+
+    verts = [
+        (-0.1, 0.4, 0.1), (0.1, 0.4, 0.1), # Top back
+        (-0.1, 0.6, -0.2), (0.1, 0.6, -0.2), # Tip
+        (-0.1, 0.0, 0.0), (0.1, 0.0, 0.0)  # Bottom back
+    ]
+
+    # Simple wedge
+    verts = [
+        (-0.15, 0.35, 0.05), (0.15, 0.35, 0.05), # Base Top
+        (-0.15, 0.0, 0.0), (0.15, 0.0, 0.0),   # Base Bottom
+        (0.0, 0.5, -0.2) # Tip
+    ]
+
+    # 0,1,2,3 base, 4 tip
+    faces = [
+        (0, 1, 3, 2), # Base
+        (0, 1, 4), # Top Face
+        (1, 3, 4), # Right Face
+        (3, 2, 4), # Bottom Face
+        (2, 0, 4)  # Left Face
+    ]
+
+    mesh = bpy.data.meshes.new(name + "_Mesh")
+    mesh.from_pydata(verts, [], faces)
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
 
@@ -151,13 +170,23 @@ plow_mat = create_placeholder_material("plow_mat")
 tag_material_contract(plow_mat, "plow")
 
 # 2. Geometry
-# Create a single segment centered at origin
+# Segment
 segment = create_plow_segment("Plow_Segment", width=1.0, material=plow_mat)
-
-# 3. Contract Tags
 tag_contract(segment, "plow_segment")
 
-# 4. Export
+# Wings
+wing_l = create_plow_wing("Plow_Wing_L", side=-1, material=plow_mat)
+tag_contract(wing_l, "plow_wing")
+
+wing_r = create_plow_wing("Plow_Wing_R", side=1, material=plow_mat)
+tag_contract(wing_r, "plow_wing")
+
+# Tooth (Single, centered)
+tooth = create_plow_tooth("Plow_Tooth", material=plow_mat)
+tag_contract(tooth, "plow_tooth")
+
+
+# 3. Export
 bpy.ops.export_scene.gltf(
     filepath=OUTPUT_PATH,
     export_format='GLB',

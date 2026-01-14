@@ -24,7 +24,13 @@ export class BulldozerRenderer {
 
     this.plowParams = {
       segmentCount: 1,
-      segmentWidth: 1.0
+      segmentWidth: 1.0,
+      hasWings: false,
+      hasTeeth: false,
+      mesh: null,
+      teethMesh: null,
+      wingL: null,
+      wingR: null
     };
 
     this.scale = 10.0;
@@ -200,7 +206,6 @@ export class BulldozerRenderer {
             // Special handling for instantiable segments
             if (node.name.includes("Plow_Segment")) {
                  console.log(`[DEBUG] Converting ${node.name} to InstancedMesh`);
-                 // Find the mesh inside the node
                  let meshNode = null;
                  node.traverse(c => { if (c.isMesh && !meshNode) meshNode = c; });
 
@@ -209,48 +214,91 @@ export class BulldozerRenderer {
                      const instancedMesh = new THREE.InstancedMesh(meshNode.geometry.clone(), meshNode.material.clone(), count);
                      instancedMesh.name = "Instanced_Plow_Segment";
                      instancedMesh.userData.damp_id = node.userData.damp_id || meshNode.userData.damp_id;
-
-                     // Ensure material contract tag
                      if (meshNode.material && meshNode.material.userData.damp_id) {
                         instancedMesh.material.userData.damp_id = meshNode.material.userData.damp_id;
                      }
-
                      instancedMesh.castShadow = true;
                      instancedMesh.receiveShadow = true;
                      this.group.add(instancedMesh);
                      await this.applyMaterial(instancedMesh);
 
-                     // Store for update()
                      this.plowParams.mesh = instancedMesh;
-                     this.updatePlow(); // Initial placement
-                     continue; // Skip standard cloning
+                     this.updatePlow();
+                     continue;
                  }
+            }
+
+            // Special handling for teeth
+            if (node.name.includes("Plow_Tooth")) {
+                 console.log(`[DEBUG] Converting ${node.name} to InstancedMesh`);
+                 let meshNode = null;
+                 node.traverse(c => { if (c.isMesh && !meshNode) meshNode = c; });
+
+                 if (meshNode) {
+                     const count = 50;
+                     const instancedMesh = new THREE.InstancedMesh(meshNode.geometry.clone(), meshNode.material.clone(), count);
+                     instancedMesh.name = "Instanced_Plow_Tooth";
+                     instancedMesh.userData.damp_id = node.userData.damp_id || meshNode.userData.damp_id;
+                     if (meshNode.material && meshNode.material.userData.damp_id) {
+                        instancedMesh.material.userData.damp_id = meshNode.material.userData.damp_id;
+                     }
+                     instancedMesh.castShadow = true;
+                     instancedMesh.receiveShadow = true;
+                     this.group.add(instancedMesh);
+                     await this.applyMaterial(instancedMesh);
+
+                     this.plowParams.teethMesh = instancedMesh;
+                     this.updatePlow();
+                     continue;
+                 }
+            }
+
+            // Special handling for Wings
+            if (node.name.includes("Plow_Wing_L")) {
+                const clone = node.clone();
+                this.group.add(clone);
+                this.plowParams.wingL = clone;
+                await this.applyGenericMaterials(clone, node);
+                this.updatePlow();
+                continue;
+            }
+            if (node.name.includes("Plow_Wing_R")) {
+                const clone = node.clone();
+                this.group.add(clone);
+                this.plowParams.wingR = clone;
+                await this.applyGenericMaterials(clone, node);
+                this.updatePlow();
+                continue;
             }
 
             // Standard clone for other generic objects
             const clone = node.clone();
             this.group.add(clone);
+            await this.applyGenericMaterials(clone, node);
+        }
 
-            const meshes = [];
-            clone.traverse(c => { if(c.isMesh) meshes.push(c); });
-            for (const c of meshes) {
-                // Try to find source to map userData
-                const sourceNode = node.getObjectByName(c.name) || node;
-                if (sourceNode) {
-                    if (sourceNode.userData.damp_id) c.userData.damp_id = sourceNode.userData.damp_id;
-                    if (sourceNode.material && sourceNode.material.userData.damp_id) {
-                         c.material.userData.damp_id = sourceNode.material.userData.damp_id;
-                    }
-                }
-                c.castShadow = c.receiveShadow = true;
-                await this.applyMaterial(c);
-            }
         }
 
         this.isLoaded = true;
         resolve();
       }, undefined, reject);
     });
+  }
+
+  async applyGenericMaterials(clone, sourceRoot) {
+        const meshes = [];
+        clone.traverse(c => { if(c.isMesh) meshes.push(c); });
+        for (const c of meshes) {
+            const sourceNode = sourceRoot.getObjectByName(c.name) || sourceRoot;
+            if (sourceNode) {
+                if (sourceNode.userData.damp_id) c.userData.damp_id = sourceNode.userData.damp_id;
+                if (sourceNode.material && sourceNode.material.userData.damp_id) {
+                        c.material.userData.damp_id = sourceNode.material.userData.damp_id;
+                }
+            }
+            c.castShadow = c.receiveShadow = true;
+            await this.applyMaterial(c);
+        }
   }
 
   async applyMaterial(mesh, overrideName = null) {
@@ -273,25 +321,60 @@ export class BulldozerRenderer {
       }
   }
 
+  setPlowWings(enabled) {
+      this.plowParams.hasWings = enabled;
+      this.updatePlow();
+  }
+
+  setPlowTeeth(enabled) {
+      this.plowParams.hasTeeth = enabled;
+      this.updatePlow();
+  }
+
   updatePlow() {
       if (!this.plowParams.mesh) return;
 
       const count = Math.max(1, Math.min(50, this.plowParams.segmentCount));
       const width = this.plowParams.segmentWidth;
       const totalWidth = count * width;
-      const startX = -totalWidth / 2 + width / 2; // Center the array
+      const startX = -totalWidth / 2 + width / 2;
 
       this.dummy.scale.set(1, 1, 1);
       this.dummy.rotation.set(0, 0, 0);
 
+      // Update Segments
       this.plowParams.mesh.count = count;
-
       for (let i = 0; i < count; i++) {
           this.dummy.position.set(startX + i * width, 0, 0);
           this.dummy.updateMatrix();
           this.plowParams.mesh.setMatrixAt(i, this.dummy.matrix);
       }
       this.plowParams.mesh.instanceMatrix.needsUpdate = true;
+
+      // Update Teeth
+      if (this.plowParams.teethMesh) {
+          this.plowParams.teethMesh.count = this.plowParams.hasTeeth ? count : 0;
+          this.plowParams.teethMesh.visible = this.plowParams.hasTeeth;
+          if (this.plowParams.hasTeeth) {
+             for (let i = 0; i < count; i++) {
+                this.dummy.position.set(startX + i * width, 0, 0);
+                this.dummy.updateMatrix();
+                this.plowParams.teethMesh.setMatrixAt(i, this.dummy.matrix);
+            }
+            this.plowParams.teethMesh.instanceMatrix.needsUpdate = true;
+          }
+      }
+
+      // Update Wings
+      const wingOffset = totalWidth / 2;
+      if (this.plowParams.wingL) {
+          this.plowParams.wingL.visible = this.plowParams.hasWings;
+          this.plowParams.wingL.position.set(-wingOffset, 0, 0);
+      }
+      if (this.plowParams.wingR) {
+          this.plowParams.wingR.visible = this.plowParams.hasWings;
+          this.plowParams.wingR.position.set(wingOffset, 0, 0);
+      }
   }
 
   update(delta) {
