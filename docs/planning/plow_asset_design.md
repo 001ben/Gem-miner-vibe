@@ -25,8 +25,8 @@
         -   **Behavior:** Optional upgrade. Instanced 1 per segment.
 
     3.  **Plow Wings (`Plow_Wing_L` / `Plow_Wing_R`)**
-        -   **Role:** Funneling. Prevents spill-over.
-        -   **Shape:** Curved "horn" design. Extends forward and curves inward.
+        -   **Role:** Funneling. Increases effective capture area.
+        -   **Shape:** Curved "horn" design. Extends forward and flares OUTWARD.
         -   **Behavior:** Optional upgrade. Attached to the outermost ends of the segment array.
 
     ## Visual Reference (Procedural)
@@ -41,4 +41,5 @@
     - [x] **Refinement:** Add `Plow_Tooth` with forward-down angle.
     - [x] **Refinement:** Add `Plow_Wing` with curved funnel shape.
     - [x] **Refinement:** Reduce wing curvature and fix normals (solid horn look).
+    - [x] **Refinement:** Flip wing curvature to flare OUT (funnel).
     - [ ] Verify final look in Viewer.

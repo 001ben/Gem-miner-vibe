@@ -93,16 +93,16 @@ def create_plow_wing(name, side, material=None):
     # Let's say 5 sections
     sections = 5
     length = 1.0 # Extended Forward length
-    inward_curve = 0.25 # Reduced curvature (less aggressive)
+    curve_amount = 0.5 # Outward flare amount
 
     for i in range(sections + 1):
         t = i / sections
         y_offset = t * length
 
-        # Curve inward: x offset depends on side
-        # side=1 (Right) -> x moves negative (left)
-        # side=-1 (Left) -> x moves positive (right)
-        x_offset = -t * t * inward_curve * side
+        # Curve Outward: x offset depends on side
+        # side=1 (Right) -> x moves positive (right)
+        # side=-1 (Left) -> x moves negative (left)
+        x_offset = t * t * curve_amount * side
 
         # Scale down towards tip
         scale = 1.0 - (t * 0.5)
