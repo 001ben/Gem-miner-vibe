@@ -74,43 +74,77 @@ def create_plow_segment(name, width=1.0, material=None):
     return obj
 
 def create_plow_wing(name, side, material=None):
-    # Wing is a curved "cheek" plate on the side
-    # It should roughly match the profile but flare out or close off
+    # "Curved Horn" Wing Design
+    # Extends forward (Y+) and curves inward (X towards 0) to funnel gems
 
-    # Simple Wing: A flat plate with the profile shape, slightly scaled up
-    profile = [
+    # Key points for the curve
+    # Base: Matches plow side profile roughly
+    # Tip: Forward and Inward
+
+    # Profile at base (attached to plow)
+    base_profile = [
         (0.2, 1.5), (-0.1, 0.8), (0.4, 0.0), (0.0, 0.0), (-0.3, 0.8), (0.0, 1.5)
     ]
 
-    thickness = 0.2
     verts = []
     faces = []
 
-    # Inner face (x=0) and Outer face (x=thickness * side)
-    # Side is 1 (Right) or -1 (Left)
+    # Generate sections along the "horn" length
+    # Let's say 5 sections
+    sections = 5
+    length = 0.8 # Forward length
+    inward_curve = 0.5 # How much it curves in
 
-    for x in [0, thickness * side]:
-        for y, z in profile:
-            verts.append((x, y, z))
+    for i in range(sections + 1):
+        t = i / sections
+        y_offset = t * length
 
-    n_pts = len(profile)
+        # Curve inward: x offset depends on side
+        # side=1 (Right) -> x moves negative (left)
+        # side=-1 (Left) -> x moves positive (right)
+        x_offset = -t * t * inward_curve * side
 
-    # Faces for lofting
-    for i in range(n_pts):
-        next_i = (i + 1) % n_pts
-        l1, l2 = i, next_i
-        r1, r2 = i + n_pts, next_i + n_pts
+        # Scale down towards tip
+        scale = 1.0 - (t * 0.6)
 
-        # If side is 1 (Right), normal order is l1, r1, r2, l2
-        # If side is -1 (Left), we might need to flip, but let's check later.
-        # Let's just create faces and rely on backface culling or DoubleSide.
-        faces.append((l1, r1, r2, l2))
+        for py, pz in base_profile:
+            # Transform profile point
+            px = 0 # Local x relative to wing base line
 
-    # Cap the outer face
-    # Simple fan for convex, but this is concave.
-    # Just single ngon for now.
-    faces.append(list(range(n_pts))) # Inner
-    faces.append(list(range(n_pts, 2*n_pts))) # Outer
+            # Apply scale/offset
+            final_x = px + x_offset
+            final_y = py + y_offset
+            final_z = pz * scale
+
+            verts.append((final_x, final_y, final_z))
+
+    n_profile = len(base_profile)
+
+    # Skinning
+    for i in range(sections):
+        offset = i * n_profile
+        next_offset = (i + 1) * n_profile
+
+        for j in range(n_profile):
+            next_j = (j + 1) % n_profile
+
+            # Quads connecting sections
+            v1 = offset + j
+            v2 = next_offset + j
+            v3 = next_offset + next_j
+            v4 = offset + next_j
+
+            # Winding order check
+            if side == 1:
+                 faces.append((v1, v2, v3, v4)) # Normal
+            else:
+                 faces.append((v4, v3, v2, v1)) # Flipped for other side
+
+    # Caps
+    # Base cap (connecting to plow) - might not need if flush
+    # Tip cap
+    tip_start = sections * n_profile
+    faces.append([tip_start + j for j in range(n_profile)])
 
     mesh = bpy.data.meshes.new(name + "_Mesh")
     mesh.from_pydata(verts, [], faces)
@@ -123,35 +157,35 @@ def create_plow_wing(name, side, material=None):
     return obj
 
 def create_plow_tooth(name, material=None):
-    # A distinct tooth that sticks out the bottom front
-    # Wedge shape
+    # Angled Tooth
+    # Rotated forward around X to dig in
+
+    # Simple wedge, but points down/forward
+    # Tip at (0, 0.6, -0.4) (Forward and Down)
 
     verts = [
-        (-0.1, 0.4, 0.1), (0.1, 0.4, 0.1), # Top back
-        (-0.1, 0.6, -0.2), (0.1, 0.6, -0.2), # Tip
-        (-0.1, 0.0, 0.0), (0.1, 0.0, 0.0)  # Bottom back
+        (-0.15, 0.0, 0.1), (0.15, 0.0, 0.1),   # Top Back (Attachment)
+        (-0.15, -0.1, -0.1), (0.15, -0.1, -0.1), # Bottom Back
+        (0.0, 0.7, -0.3) # Sharp Tip (Forward Y+, Down Z-)
     ]
 
-    # Simple wedge
-    verts = [
-        (-0.15, 0.35, 0.05), (0.15, 0.35, 0.05), # Base Top
-        (-0.15, 0.0, 0.0), (0.15, 0.0, 0.0),   # Base Bottom
-        (0.0, 0.5, -0.2) # Tip
-    ]
+    # Indices: 0,1 TopBack; 2,3 BtmBack; 4 Tip
 
-    # 0,1,2,3 base, 4 tip
     faces = [
-        (0, 1, 3, 2), # Base
-        (0, 1, 4), # Top Face
-        (1, 3, 4), # Right Face
-        (3, 2, 4), # Bottom Face
-        (2, 0, 4)  # Left Face
+        (0, 1, 4), # Top
+        (1, 3, 4), # Right
+        (3, 2, 4), # Bottom
+        (2, 0, 4), # Left
+        (2, 3, 1, 0) # Back
     ]
 
     mesh = bpy.data.meshes.new(name + "_Mesh")
     mesh.from_pydata(verts, [], faces)
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
+
+    # Rotate slightly to "dig"
+    # Actually, the geometry above is already angled (Tip z is -0.3)
 
     if material:
         obj.data.materials.append(material)
