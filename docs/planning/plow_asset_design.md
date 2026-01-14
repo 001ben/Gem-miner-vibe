@@ -40,4 +40,5 @@
     - [x] Add Viewer UI for segment count configuration.
     - [x] **Refinement:** Add `Plow_Tooth` with forward-down angle.
     - [x] **Refinement:** Add `Plow_Wing` with curved funnel shape.
+    - [x] **Refinement:** Reduce wing curvature and fix normals (solid horn look).
     - [ ] Verify final look in Viewer.

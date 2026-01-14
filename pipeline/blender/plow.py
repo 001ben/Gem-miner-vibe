@@ -92,8 +92,8 @@ def create_plow_wing(name, side, material=None):
     # Generate sections along the "horn" length
     # Let's say 5 sections
     sections = 5
-    length = 0.8 # Forward length
-    inward_curve = 0.5 # How much it curves in
+    length = 1.0 # Extended Forward length
+    inward_curve = 0.25 # Reduced curvature (less aggressive)
 
     for i in range(sections + 1):
         t = i / sections
@@ -105,7 +105,7 @@ def create_plow_wing(name, side, material=None):
         x_offset = -t * t * inward_curve * side
 
         # Scale down towards tip
-        scale = 1.0 - (t * 0.6)
+        scale = 1.0 - (t * 0.5)
 
         for py, pz in base_profile:
             # Transform profile point
@@ -141,7 +141,8 @@ def create_plow_wing(name, side, material=None):
                  faces.append((v4, v3, v2, v1)) # Flipped for other side
 
     # Caps
-    # Base cap (connecting to plow) - might not need if flush
+    # Base cap
+    faces.append(list(range(n_profile)))
     # Tip cap
     tip_start = sections * n_profile
     faces.append([tip_start + j for j in range(n_profile)])
@@ -150,6 +151,14 @@ def create_plow_wing(name, side, material=None):
     mesh.from_pydata(verts, [], faces)
     obj = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(obj)
+
+    # Ensure normals are correct
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.shade_smooth()
 
     if material:
         obj.data.materials.append(material)
