@@ -117,16 +117,16 @@ export function initInput() {
             // Acceleration should depend on the difference between Engine and Plow levels.
 
             // 1. Calculate Base Power based on Engine Level
-            // Refactored to fix progression gap at level 3-4 (where mass outpaced power).
-            // New Formula: Higher exponential base (1.35) + Mass Compensation.
+            // Tuning Iteration 3: "Weight & Inertia"
+            // Previous formula was too aggressive (instant start/stop).
+            // We removed Mass Compensation to let Mass actually reduce acceleration (F=ma).
+            // We lowered frictionAir to 0.05 (in bulldozer.js), so we need less force for top speed,
+            // but more time to get there.
 
-            // Base Power: Exponential growth
-            let power = 0.012 * Math.pow(1.35, state.dozerLevel);
-
-            // Mass Compensation: Ensure a baseline acceleration regardless of weight
-            // This fixes the "dip" when wings are added or size increases drastically.
-            // Increased to 0.001 to fully smooth out the Level 3 wing addition.
-            power += (bulldozer.mass * 0.001);
+            // Base Power: Lower base, Slower growth (1.20)
+            // Lvl 1: ~0.002. Lvl 20: ~0.076.
+            // Old was: Lvl 1 ~0.02. Lvl 20: ~4.0.
+            let power = 0.002 * Math.pow(1.20, state.dozerLevel);
 
             // 2. Adjust for "Load" (Engine vs Plow difference)
             // Difference = Engine - Plow.

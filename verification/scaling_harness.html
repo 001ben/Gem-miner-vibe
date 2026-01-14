@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scaling Harness</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+    <script type="module">
+        // Mock graphics and UI to allow running physics in isolation
+        window.updateGraphics = () => {};
+        window.removeBodyMesh = () => {};
+        window.initThree = () => {};
+        window.updateUI = () => {};
+        window.initUI = () => {};
+        window.showNotification = () => {};
+        window.updateSpeedometer = () => {};
+
+        // Mock UI elements
+        const mockEl = document.createElement('div');
+        document.getElementById = (id) => mockEl;
+
+        import { state } from '../src/core/state.js';
+        import { engine, world, Body, Matter } from '../src/core/physics.js';
+        import { createBulldozer, getBulldozer } from '../src/entities/bulldozer.js';
+        import { keys } from '../src/core/input.js';
+
+        // We need to initialize input listeners, but we will inject keys manually
+        import { initInput } from '../src/core/input.js';
+
+        // Expose control functions
+        window.simulation = {
+            setup: (engineLevel, plowLevel) => {
+                // Reset World
+                Matter.World.clear(world);
+                Matter.Engine.clear(engine);
+
+                // Set Levels
+                state.dozerLevel = engineLevel;
+                state.plowLevel = plowLevel;
+
+                // Create Dozer
+                createBulldozer();
+
+                // Init Input (attaches events, but we will simulate keys)
+                // We only need the 'beforeUpdate' event hooked up
+                initInput();
+            },
+            step: (frames = 1) => {
+                const dozer = getBulldozer();
+                if (!dozer) return null;
+
+                // Simulate holding 'W'
+                keys['KeyW'] = true;
+
+                for(let i=0; i<frames; i++) {
+                    Matter.Engine.update(engine, 1000/60);
+                }
+
+                return {
+                    speed: dozer.speed,
+                    position: { x: dozer.position.x, y: dozer.position.y },
+                    velocity: { x: dozer.velocity.x, y: dozer.velocity.y }
+                };
+            },
+            stop: () => {
+                keys['KeyW'] = false;
+            }
+        };
+
+        console.log("Harness Ready");
+    </script>
+</head>
+<body>
+</body>
+</html>
