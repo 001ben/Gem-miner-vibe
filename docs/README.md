@@ -35,5 +35,5 @@ Welcome to the Gem Miner technical documentation. This site is organized into th
 
 **Planning & Execution.** The roadmap, active tasks, and work logs.
 
-- **[:material-roadmap: Roadmap](planning/roadmap.md)**: High-level goals and backlog.
+- **[:material-map-marker-path: Roadmap](planning/roadmap.md)**: High-level goals and backlog.
 - **[:material-loading: Current Task](planning/task_doc_reorg.md)**: Status of the current active work.
