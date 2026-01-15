@@ -267,7 +267,6 @@ export class BulldozerRenderer {
                      await this.applyMaterial(instancedMesh);
 
                      this.plowParams.mesh = instancedMesh;
-                     this.updatePlow();
                      continue;
                  }
             }
@@ -292,7 +291,6 @@ export class BulldozerRenderer {
                      await this.applyMaterial(instancedMesh);
 
                      this.plowParams.teethMesh = instancedMesh;
-                     this.updatePlow();
                      continue;
                  }
             }
@@ -303,7 +301,6 @@ export class BulldozerRenderer {
                 this.group.add(clone);
                 this.plowParams.wingL = clone;
                 await this.applyGenericMaterials(clone, node);
-                this.updatePlow();
                 continue;
             }
             if (node.name.includes("Plow_Wing_R")) {
@@ -311,7 +308,6 @@ export class BulldozerRenderer {
                 this.group.add(clone);
                 this.plowParams.wingR = clone;
                 await this.applyGenericMaterials(clone, node);
-                this.updatePlow();
                 continue;
             }
 

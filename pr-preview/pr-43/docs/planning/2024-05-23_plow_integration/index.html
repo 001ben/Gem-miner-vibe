@@ -1146,23 +1146,24 @@
 <p><strong>Asset Loading</strong></p>
 <ul>
 <li>Update <code>BulldozerRenderer</code> to load <code>plow.glb</code> in addition to <code>bulldozer_components.glb</code>.</li>
-<li>Ensure <code>Plow_Segment</code>, <code>Plow_Tooth</code>, and <code>Plow_Wing</code> components are extracted and managed correctly.</li>
+<li>Implement <code>loadPlow(url, configUrl)</code> to merge plow configuration into the main renderer config.</li>
+<li>Ensure <code>Plow_Segment</code>, <code>Plow_Tooth</code>, and <code>Plow_Wing</code> components are extracted from <code>plow.glb</code>.</li>
 </ul>
 </li>
 <li>
 <p><strong>Plow Upgrades (Width)</strong></p>
 <ul>
 <li>Map <code>state.plowLevel</code> to <code>segmentCount</code>.</li>
-<li>Formula: Base Count + (Level - 1).</li>
-<li>Sync this value to <code>BulldozerRenderer.setPlowWidth()</code>.</li>
+<li><strong>Formula:</strong> <code>3 + (state.plowLevel - 1)</code> segments (Level 1 = 3 segments).</li>
+<li>Sync this value via <code>BulldozerRenderer.setPlowWidth()</code>.</li>
 </ul>
 </li>
 <li>
 <p><strong>Wing Scaling</strong></p>
 <ul>
-<li>Map <code>state.plowLevel</code> to <code>wingScale</code>.</li>
-<li>Formula: <code>1.0 + (state.plowLevel - 3) * 0.1</code> (Starting from Level 3).</li>
-<li>Update <code>BulldozerRenderer.updatePlow</code> to apply scaling to wing meshes.</li>
+<li><strong>Activation:</strong> Wings appear at Level 3 (<code>state.plowLevel &gt;= 3</code>).</li>
+<li><strong>Scaling Logic:</strong> <code>1.0 + (state.plowLevel - 3) * 0.1</code> (Linear growth starting at Lvl 3).</li>
+<li>Update <code>BulldozerRenderer.updatePlow</code> to apply scaling to wing meshes (<code>wingL</code>, <code>wingR</code>).</li>
 <li>Expose <code>setPlowWings(enabled, scale)</code>.</li>
 </ul>
 </li>
@@ -1171,14 +1172,15 @@
 <ul>
 <li>Implement conditional visibility for teeth.</li>
 <li>User requirement: "I don't want the teeth to always be enabled."</li>
-<li>Logic: Enable only if <code>state.plowTeethEnabled</code> is true (default false, or toggleable).</li>
+<li>Logic: Controlled by <code>state.plowTeethEnabled</code> flag.</li>
+<li>Expose <code>setPlowTeeth(enabled)</code>.</li>
 </ul>
 </li>
 <li>
 <p><strong>Integration</strong></p>
 <ul>
-<li>Update <code>src/core/game.js</code> to trigger the load.</li>
-<li>Update <code>src/core/graphics.js</code> to drive the visual updates every frame.</li>
+<li>Update <code>src/core/game.js</code> to trigger <code>loadPlow</code> after main assets are loaded.</li>
+<li>Update <code>src/core/graphics.js</code> inside <code>updateGraphics</code> to sync visual state with game state every frame.</li>
 </ul>
 </li>
 </ol>
@@ -1186,11 +1188,11 @@
 <div class="admonition example">
 <p class="admonition-title"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 7h-2.81c-.45-.8-1.07-1.5-1.82-2L16 3.41 14.59 2l-2.17 2.17a6 6 0 0 0-2.83 0L7.41 2 6 3.41 7.62 5c-.75.5-1.36 1.21-1.81 2H3v2h2.09c-.06.33-.09.66-.09 1v1H3v2h2v1c0 .34.03.67.09 1H3v2h2.81A6 6 0 0 0 13 19.65V19c0-.57.09-1.14.25-1.69-.66.45-1.45.69-2.25.69-2.21 0-4-1.79-4-4v-4c0-2.21 1.79-4 4-4s4 1.79 4 4v4c0 .19 0 .39-.05.58.59-.54 1.29-.96 2.05-1.23V13h2v-2h-2v-1c0-.34-.03-.67-.09-1H19zm-6 2v2H9V9zm0 4v2H9v-2zm4 3v6l5-3z"/></svg></span> Execution Log</p>
 <ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Create tracking document.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Update <code>BulldozerRenderer</code> to support separate plow loading.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Implement wing scaling logic in renderer.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Hook up game state to renderer in <code>graphics.js</code>.</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Verify code logic.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Create tracking document.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Update <code>BulldozerRenderer</code> to support separate plow loading (<code>loadPlow</code>).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Implement wing scaling logic in renderer (<code>setPlowWings</code> with scale param).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Hook up game state to renderer in <code>graphics.js</code> (sync level to width/wings).</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Verify code logic via Playwright verification script.</li>
 </ul>
 </div>
 
