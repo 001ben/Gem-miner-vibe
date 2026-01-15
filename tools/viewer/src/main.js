@@ -80,6 +80,30 @@ const ComponentAccordion = ({ name, data, textures, presets, materialPresets, on
     `;
 };
 
+const ConsoleOverlay = ({ logs, visible, onClose }) => {
+    const ref = useRef(null);
+    useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [logs, visible]);
+    return html`
+        <div id="console-overlay" className=${visible ? 'visible' : ''} ref=${ref}>
+            <div style=${{position: 'sticky', top: 0, background: '#111', padding: '10px', borderBottom: '1px solid #444', marginBottom: '5px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <strong style=${{color: '#fff'}}>CONSOLE LOGS</strong>
+                <div>
+                    <button onClick=${() => {
+                        const text = logs.map(l => `[${l.time}] ${l.msg}`).join('\n');
+                        navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
+                    }} style=${{background: '#333', border: '1px solid #555', color: '#0af', cursor: 'pointer', marginRight: '10px', padding: '4px 8px', borderRadius: '4px'}}>COPY</button>
+                    <button onClick=${onClose} style=${{background: '#333', border: '1px solid #555', color: '#fff', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px'}}>CLOSE ✕</button>
+                </div>
+            </div>
+            ${logs.map((l, i) => html`
+                <div key=${i} className=${`log-entry ${l.type === 'warn' ? 'log-warn' : l.type === 'error' ? 'log-error' : ''}`}>
+                    [${l.time}] ${l.msg}
+                </div>
+            `)}
+        </div>
+    `;
+};
+
 const App = () => {
     const [catalog, setCatalog] = useState({ models: [], textures: [], configs: [] });
     const [presets, setPresets] = useState([]);
@@ -91,10 +115,30 @@ const App = () => {
     const [lightRot, setLightRot] = useState(45);
     const [animSpeed, setAnimSpeed] = useState(0.02);
     const [collapsed, setCollapsed] = useState(false);
+    const [showLogs, setShowLogs] = useState(false);
+    const [logs, setLogs] = useState([]);
+    const [plowSegmentCount, setPlowSegmentCount] = useState(1);
+    const [plowWings, setPlowWings] = useState(false);
+    const [plowTeeth, setPlowTeeth] = useState(false);
 
     const sceneRef = useRef(null);
     const dirLightRef = useRef(null);
     const dozerRef = useRef(null);
+
+    // Capture logs
+    useEffect(() => {
+        const wrap = (type) => {
+            const original = console[type];
+            console[type] = (...args) => {
+                original(...args);
+                const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+                setLogs(prev => [...prev.slice(-99), { time: new Date().toLocaleTimeString(), type, msg }]);
+            };
+        };
+        wrap('log');
+        wrap('warn');
+        wrap('error');
+    }, []);
 
     // 1. Initialize Three.js (Run once)
     useEffect(() => {
@@ -202,6 +246,12 @@ const App = () => {
             });
 
             setConfig(conf);
+
+            // Sync initial plow settings
+            if (dozer.plowParams && dozer.plowParams.segmentCount) {
+                setPlowSegmentCount(dozer.plowParams.segmentCount);
+            }
+
             dozer.setSpeeds(animSpeed, animSpeed);
         };
         load();
@@ -234,6 +284,11 @@ const App = () => {
                 <a href="../../" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Game</a>
                 <a href="../../docs/" style=${{ color: '#fff', textDecoration: 'none', fontWeight: 'bold' }}>Docs</a>
             </div>
+
+            <button style=${{ position: 'absolute', top: '50px', right: collapsed ? '10px' : '310px', zIndex: 100, background: '#333', color: '#fff', border: '1px solid #555', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }} onClick=${() => setShowLogs(!showLogs)}>
+                Show Logs
+            </button>
+            <${ConsoleOverlay} logs=${logs} visible=${showLogs} onClose=${() => setShowLogs(false)} />
 
             <button id="ui-toggle" style=${{ right: collapsed ? '10px' : '310px' }} onClick=${() => setCollapsed(!collapsed)}>☰</button>
             <div id="ui-container" className=${collapsed ? 'collapsed' : ''}>
@@ -278,6 +333,31 @@ const App = () => {
                         <${Slider} label="Track Speed" min=${-0.5} max=${0.5} step=${0.01} value=${animSpeed} 
                                 onChange=${v => { setAnimSpeed(v); dozerRef.current?.setSpeeds(v, v); }} />
                     </div>
+
+                    ${config && config.assembly && config.assembly.plow && html`
+                        <div className="control-group">
+                            <label>PLOW ASSEMBLY</label>
+                            <${Slider} label="Segments" min=${1} max=${15} step=${1} value=${plowSegmentCount}
+                                onChange=${v => {
+                                    setPlowSegmentCount(v);
+                                    dozerRef.current?.setPlowWidth(v);
+                                }} />
+                            <div style=${{display: 'flex', gap: '10px', marginTop: '10px'}}>
+                                <label style=${{display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
+                                    <input type="checkbox" checked=${plowWings} onChange=${e => {
+                                        setPlowWings(e.target.checked);
+                                        dozerRef.current?.setPlowWings(e.target.checked);
+                                    }} /> Wings
+                                </label>
+                                <label style=${{display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
+                                    <input type="checkbox" checked=${plowTeeth} onChange=${e => {
+                                        setPlowTeeth(e.target.checked);
+                                        dozerRef.current?.setPlowTeeth(e.target.checked);
+                                    }} /> Teeth
+                                </label>
+                            </div>
+                        </div>
+                    `}
                 </div>
                 <div className="actions">
                     <button className="action-btn" onClick=${copyConfig}>Copy Config JSON</button>

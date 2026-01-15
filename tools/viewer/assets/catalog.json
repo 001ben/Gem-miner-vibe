@@ -1,11 +1,13 @@
 {
   "models": [
-    "bulldozer_components.glb"
+    "bulldozer_components.glb",
+    "plow.glb"
   ],
   "textures": [
     "tracks_texture.png"
   ],
   "configs": [
-    "bulldozer_mapping.json"
+    "bulldozer_mapping.json",
+    "plow_mapping.json"
   ]
 }
