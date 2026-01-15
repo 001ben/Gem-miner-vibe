@@ -355,14 +355,18 @@ export class BulldozerRenderer {
   }
 
   setPlowWings(enabled, scale = 1.0) {
-      this.plowParams.hasWings = enabled;
-      this.plowParams.wingScale = scale;
-      this.updatePlow();
+      if (this.plowParams.hasWings !== enabled || Math.abs(this.plowParams.wingScale - scale) > 0.001) {
+          this.plowParams.hasWings = enabled;
+          this.plowParams.wingScale = scale;
+          this.updatePlow();
+      }
   }
 
   setPlowTeeth(enabled) {
-      this.plowParams.hasTeeth = enabled;
-      this.updatePlow();
+      if (this.plowParams.hasTeeth !== enabled) {
+          this.plowParams.hasTeeth = enabled;
+          this.updatePlow();
+      }
   }
 
   updatePlow() {

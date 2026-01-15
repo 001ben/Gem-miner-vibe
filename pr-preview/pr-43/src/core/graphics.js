@@ -773,8 +773,9 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
     // 2. Handle Other Bodies (Parts or Single)
     const parts = (body.parts && body.parts.length > 1) ? body.parts.slice(1) : [body];
     parts.forEach(part => {
-      // Skip chassis mesh creation as it's handled by BulldozerRenderer
+      // Skip chassis/plow mesh creation if handled by BulldozerRenderer
       if (part.label === 'chassis') return;
+      if (part.label === 'plow' && bulldozerRenderer && bulldozerRenderer.isLoaded) return;
 
       if (part.label === 'gem') {
         const color = part.gemColorHex;
