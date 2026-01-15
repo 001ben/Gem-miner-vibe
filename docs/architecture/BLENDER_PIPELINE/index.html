@@ -929,6 +929,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mapping-configuration-assetsconfigs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapping Configuration (assets/configs/)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-to-use" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1216,6 +1227,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#mapping-configuration-assetsconfigs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapping Configuration (assets/configs/)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-to-use" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1264,6 +1286,21 @@
 <li><strong>Compilation:</strong> <code>task build:assets</code> runs Blender to execute the script and export <code>.glb</code>.</li>
 <li><strong>Result:</strong> Game-ready assets with <strong>UVs</strong>, <strong>Materials</strong>, and <strong>Explicit IDs</strong>.</li>
 </ol>
+<h2 id="mapping-configuration-assetsconfigs">Mapping Configuration (<code>assets/configs/</code>)<a class="headerlink" href="#mapping-configuration-assetsconfigs" title="Permanent link">&para;</a></h2>
+<p>For each GLB asset, you must typically create a corresponding mapping configuration file (e.g., <code>my_asset_mapping.json</code>) in <code>assets/configs/</code>. This file acts as the "Contract" between the raw geometry and the game engine's renderer.</p>
+<p>It maps the <code>damp_id</code> (defined in your Blender script) to specific material presets or textures.</p>
+<p><strong>Example <code>plow_mapping.json</code>:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;assetId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;plow.glb&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;components&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;plow_segment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;preset&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;YellowMetallic&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;roughness&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;metalness&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></p>
 <h2 id="how-to-use">How to use<a class="headerlink" href="#how-to-use" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Create a python script in <code>pipeline/blender/my_asset.py</code>.</li>
