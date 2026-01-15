@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scaling Harness</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
+                "three/examples/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/",
+                "/src/core/game.js": "/verification/mocks/game.js",
+                "/src/core/graphics.js": "/verification/mocks/graphics.js"
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error("Global Error: " + e.message + " at " + e.filename + ":" + e.lineno);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error("Unhandled Rejection: " + e.reason);
+        });
+    </script>
+    <script type="module">
+        // Mock graphics and UI to allow running physics in isolation
+        window.updateGraphics = () => {};
+        window.removeBodyMesh = () => {};
+        window.initThree = () => {};
+        window.updateUI = () => {};
+        window.initUI = () => {};
+        window.showNotification = () => {};
+        window.updateSpeedometer = () => {};
+
+        // Mock UI elements
+        const mockEl = document.createElement('div');
+        document.getElementById = (id) => mockEl;
+
+        import { state } from '../src/core/state.js';
+        import { engine, world, Body, Matter } from '../src/core/physics.js';
+        import { createBulldozer, getBulldozer } from '../src/entities/bulldozer.js';
+        import { keys } from '../src/core/input.js';
+
+        // We need to initialize input listeners, but we will inject keys manually
+        import { initInput } from '../src/core/input.js';
+
+        // Expose control functions
+        window.simulation = {
+            setup: (engineLevel, plowLevel) => {
+                // Reset World
+                Matter.World.clear(world);
+                Matter.Engine.clear(engine);
+
+                // Set Levels
+                state.dozerLevel = engineLevel;
+                state.plowLevel = plowLevel;
+
+                // Create Dozer
+                createBulldozer();
+
+                // Init Input (attaches events, but we will simulate keys)
+                // We only need the 'beforeUpdate' event hooked up
+                initInput();
+            },
+            setKeys: (newKeys) => {
+                // Reset all
+                Object.keys(keys).forEach(k => keys[k] = false);
+                // Set new
+                Object.assign(keys, newKeys);
+            },
+            step: (frames = 1) => {
+                const dozer = getBulldozer();
+                if (!dozer) return null;
+
+                for(let i=0; i<frames; i++) {
+                    Matter.Engine.update(engine, 1000/60);
+                }
+
+                return {
+                    speed: dozer.speed,
+                    position: { x: dozer.position.x, y: dozer.position.y },
+                    velocity: { x: dozer.velocity.x, y: dozer.velocity.y }
+                };
+            },
+            stop: () => {
+                Object.keys(keys).forEach(k => keys[k] = false);
+            }
+        };
+
+        console.log("Harness Ready");
+    </script>
+</head>
+<body>
+</body>
+</html>
