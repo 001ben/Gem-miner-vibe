@@ -23,6 +23,7 @@ tasks:
     cmds:
       - echo "📦 [1/5] Generating Geometry (Blender)..."
       - blender --background --python {{.PIPELINE_DIR}}/blender/bulldozer.py
+      - blender --background --python {{.PIPELINE_DIR}}/blender/plow.py
     silent: true
 
   textures:gen:

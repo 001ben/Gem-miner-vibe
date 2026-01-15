@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const GLB_PATH = path.resolve(__dirname, '../../assets/models/bulldozer_components.glb');
+const targetFile = process.argv[2] || '../../assets/models/bulldozer_components.glb';
+const GLB_PATH = path.resolve(__dirname, targetFile.startsWith('/') ? targetFile : (process.argv[2] ? process.cwd() + '/' + targetFile : targetFile));
 
 function verifyGLB() {
     if (!fs.existsSync(GLB_PATH)) {
