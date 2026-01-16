@@ -740,12 +740,13 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
 
         // Sync Plow Upgrades
         // Width: Base 3 + (Level * 1)? Need to check physical match.
-        // Physical: (60 + (plowLevel * 16)) * 1.5
-        // Segment width is 1.0 (approx 10 units in scaled world?)
-        // Let's assume segmentCount matches level progression.
-        // If Base is 3 segments.
-        // For now, let's map roughly: 3 + (state.plowLevel - 1)
-        const plowSegs = 3 + (state.plowLevel - 1);
+        // Physical: (60 + (plowLevel * 16)) * 1.5 = 114 (Lvl1) to ~240 (Lvl10)
+        // Renderer Scale = 10.0. Segment Width = 1.0.
+        // Visual Width = Segments * 1.0 * 10.0 = Segments * 10.
+        // To match Physics: Segments = PhysicsWidth / 10.
+        // Lvl 1: 114 / 10 = 11.4 -> 12 segments
+        const physicsWidth = (60 + (state.plowLevel * 16)) * 1.5;
+        const plowSegs = Math.ceil(physicsWidth / 10.0);
         bulldozerRenderer.setPlowWidth(plowSegs);
 
         // Wings: Active >= Level 3.

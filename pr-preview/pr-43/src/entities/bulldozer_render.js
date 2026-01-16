@@ -381,12 +381,12 @@ export class BulldozerRenderer {
       const startX = -totalWidth / 2 + width / 2;
 
       // Z-Offset to push plow forward relative to chassis center
-      // Chassis is approx 40-60 deep. We need ~35 units offset?
-      // Since renderer scale is 10.0, and units here are local to group (unscaled by renderer scale but scaled by three.js group scale)
-      // Wait. this.group has scale 10.0.
-      // So 1 unit here = 10 units in world.
-      // We need ~35 units world offset => 3.5 units local.
-      const zOffset = -3.5;
+      // Chassis is approx 40-60 deep. We need ~50 units offset?
+      // Since renderer scale is 10.0, and units here are local to group.
+      // 1 unit here = 10 units in world.
+      // We need ~50 units world offset => 5.0 units local.
+      // Trying -5.0 to be safe and clear the chassis completely.
+      const zOffset = -5.0;
 
       console.log(`[DEBUG] updatePlow: count=${count} width=${totalWidth.toFixed(2)} offsetZ=${zOffset}`);
 
