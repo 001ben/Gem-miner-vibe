@@ -336,6 +336,9 @@ export class BulldozerRenderer {
 
   async applyMaterial(mesh, overrideName = null) {
       // Delegate to the specialized manager
+      // Silencing noisy logs (optional refactor: pass a logLevel to manager)
+      // For now, we rely on the manager not to spam if we don't want it,
+      // but the user asked to clean up logs.
       await this.materialManager.applyMaterial(mesh, this.config, overrideName);
   }
 
@@ -377,13 +380,24 @@ export class BulldozerRenderer {
       const totalWidth = count * width;
       const startX = -totalWidth / 2 + width / 2;
 
+      // Z-Offset to push plow forward relative to chassis center
+      // Chassis is approx 40-60 deep. We need ~35 units offset?
+      // Since renderer scale is 10.0, and units here are local to group (unscaled by renderer scale but scaled by three.js group scale)
+      // Wait. this.group has scale 10.0.
+      // So 1 unit here = 10 units in world.
+      // We need ~35 units world offset => 3.5 units local.
+      const zOffset = -3.5;
+
+      console.log(`[DEBUG] updatePlow: count=${count} width=${totalWidth.toFixed(2)} offsetZ=${zOffset}`);
+
       this.dummy.scale.set(1, 1, 1);
       this.dummy.rotation.set(0, 0, 0);
 
       // Update Segments
       this.plowParams.mesh.count = count;
+      this.plowParams.mesh.frustumCulled = false; // Fix visibility
       for (let i = 0; i < count; i++) {
-          this.dummy.position.set(startX + i * width, 0, 0);
+          this.dummy.position.set(startX + i * width, 0, zOffset);
           this.dummy.updateMatrix();
           this.plowParams.mesh.setMatrixAt(i, this.dummy.matrix);
       }
@@ -391,11 +405,12 @@ export class BulldozerRenderer {
 
       // Update Teeth
       if (this.plowParams.teethMesh) {
+          this.plowParams.teethMesh.frustumCulled = false;
           this.plowParams.teethMesh.count = this.plowParams.hasTeeth ? count : 0;
           this.plowParams.teethMesh.visible = this.plowParams.hasTeeth;
           if (this.plowParams.hasTeeth) {
              for (let i = 0; i < count; i++) {
-                this.dummy.position.set(startX + i * width, 0, 0);
+                this.dummy.position.set(startX + i * width, 0, zOffset);
                 this.dummy.updateMatrix();
                 this.plowParams.teethMesh.setMatrixAt(i, this.dummy.matrix);
             }
@@ -410,12 +425,12 @@ export class BulldozerRenderer {
       if (this.plowParams.wingL) {
           this.plowParams.wingL.visible = this.plowParams.hasWings;
           this.plowParams.wingL.scale.setScalar(wingScale);
-          this.plowParams.wingL.position.set(-wingOffset, 0, 0);
+          this.plowParams.wingL.position.set(-wingOffset, 0, zOffset);
       }
       if (this.plowParams.wingR) {
           this.plowParams.wingR.visible = this.plowParams.hasWings;
           this.plowParams.wingR.scale.setScalar(wingScale);
-          this.plowParams.wingR.position.set(wingOffset, 0, 0);
+          this.plowParams.wingR.position.set(wingOffset, 0, zOffset);
       }
   }
 
