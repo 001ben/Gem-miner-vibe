@@ -386,18 +386,24 @@ export class BulldozerRenderer {
       // 1 unit here = 10 units in world.
       // We need ~50 units world offset => 5.0 units local.
       // Trying -5.0 to be safe and clear the chassis completely.
-      const zOffset = -5.0;
+      const zOffset = -20.0; // DEBUG: Extreme offset
 
-      console.log(`[DEBUG] updatePlow: count=${count} width=${totalWidth.toFixed(2)} offsetZ=${zOffset}`);
+      // DEBUG: Force Material
+      if (!this.plowParams.mesh.userData.isDebugMaterial) {
+          this.plowParams.mesh.material = new THREE.MeshBasicMaterial({ color: 0xff0000, depthTest: false, transparent: true, opacity: 0.8 });
+          this.plowParams.mesh.userData.isDebugMaterial = true;
+      }
 
-      this.dummy.scale.set(1, 1, 1);
+      console.log(`!!! DEBUG: PLOW RENDER PARAMETERS !!!`, { count, totalWidth, zOffset, mesh: this.plowParams.mesh });
+
+      this.dummy.scale.set(5, 5, 5); // DEBUG: Huge scale
       this.dummy.rotation.set(0, 0, 0);
 
       // Update Segments
       this.plowParams.mesh.count = count;
       this.plowParams.mesh.frustumCulled = false; // Fix visibility
       for (let i = 0; i < count; i++) {
-          this.dummy.position.set(startX + i * width, 0, zOffset);
+          this.dummy.position.set(startX + i * width, 50, zOffset); // DEBUG: Y=50
           this.dummy.updateMatrix();
           this.plowParams.mesh.setMatrixAt(i, this.dummy.matrix);
       }
