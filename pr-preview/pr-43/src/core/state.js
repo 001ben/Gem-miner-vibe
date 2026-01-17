@@ -2,7 +2,7 @@ export const state = {
     money: 0,
     dozerLevel: 1,
     plowLevel: 1,
-    plowTeethEnabled: false,
+    plowTeethEnabled: true,
     collectorLevel: 1,
     areaLevel: 1,
     zoneProgress: {
