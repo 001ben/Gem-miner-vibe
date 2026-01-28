@@ -31,10 +31,10 @@ export function createBulldozer() {
     // If we use the formula `Base + (Level * 8) * Scale`.
 
     // Let's stick to the visual "Massive" look.
-    // Width = Base (10) + (Level * 14) * 1.5.
-    // Lvl 1: 36 (4 segments)
-    // Lvl 2: 57 (6 segments) -> +2.1 segments/level
-    const plowWidth = (10 + (state.plowLevel * 14)) * 1.5;
+    // Width = Base (26) + (Level * 14) * 1.5.
+    // Lvl 1: 60 (6 segments)
+    // Lvl 2: 81 (8 segments) -> +2.1 segments/level
+    const plowWidth = (26 + (state.plowLevel * 14)) * 1.5;
     const plowHeight = 22;
 
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { label: 'chassis' });

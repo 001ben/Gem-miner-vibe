@@ -380,14 +380,17 @@ export class BulldozerRenderer {
       const width = this.plowParams.segmentWidth;
       const totalWidth = count * width;
       const startX = -totalWidth / 2 + width / 2;
-
+      
+      // Z-Offset to push plow forward relative to chassis center
+      // Chassis is approx 40-60 deep. We need ~50 units offset?
+      // Since renderer scale is 10.0, and units here are local to group.
       // Z-Offset to push plow forward relative to chassis center
       // Chassis is approx 40-60 deep. We need ~50 units offset?
       // Since renderer scale is 10.0, and units here are local to group.
       // 1 unit here = 10 units in world.
       // We need ~50 units world offset => 5.0 units local.
-      // Trying -5.0 to be safe and clear the chassis completely.
-      const zOffset = -5.0;
+      // Trying -4.2 to be close but safe.
+      const zOffset = -4.2; 
 
       console.log(`[DEBUG] updatePlow: count=${count} width=${totalWidth.toFixed(2)} offsetZ=${zOffset}`);
 
@@ -422,7 +425,7 @@ export class BulldozerRenderer {
       // Update Wings
       const wingOffset = totalWidth / 2;
       const wingScale = this.plowParams.wingScale || 1.0;
-
+      
       if (this.plowParams.wingL) {
           this.plowParams.wingL.visible = this.plowParams.hasWings;
           this.plowParams.wingL.scale.setScalar(wingScale);
