@@ -6,6 +6,7 @@
 - [x] **Scaling Rebalance**: Rebalancing game economy and progression. (Completed)
 - [x] **Documentation Rewrite**: Full audit and restructure of project documentation to reflect current state. ([View Plan](archive/doc_rewrite.md))
 - [x] **UI & Gameplay Polish**: Replaced physical "Money Mat" with flying coin UI animation and fixed collector upgrade scaling. ([View Plan](archive/2026-01-07_ui_gameplay_polish.md))
+- [ ] **Plow Integration**: Integrate new plow asset with dynamic width and wing scaling upgrades. ([View Plan](2024-05-23_plow_integration.md))
 
 ## Backlog
 
