@@ -26,6 +26,7 @@ export class BulldozerRenderer {
       segmentCount: 1,
       segmentWidth: 1.0,
       hasWings: false,
+      wingScale: 1.0,
       hasTeeth: false,
       mesh: null,
       teethMesh: null,
@@ -54,33 +55,7 @@ export class BulldozerRenderer {
     this.config = null;
 
     if (configUrlOrObj) {
-      if (typeof configUrlOrObj === 'string') {
-        try {
-          const resp = await fetch(cb(configUrlOrObj));
-          if (resp.ok) this.config = await resp.json();
-        } catch (e) {
-          console.warn("[WARN] Failed to load bulldozer config", e);
-        }
-      } else {
-        this.config = configUrlOrObj;
-      }
-    }
-
-    // Apply Assembly Offsets from Config
-    if (this.config && this.config.assembly) {
-      const tracks = this.config.assembly.tracks;
-      if (tracks) {
-        if (tracks.spread !== undefined) this.trackParams.spread = tracks.spread;
-        if (tracks.verticalOffset !== undefined) this.trackParams.verticalOffset = tracks.verticalOffset;
-        if (tracks.rotZ !== undefined) this.trackParams.rotZ = tracks.rotZ;
-        console.log(`[CONTRACT] Applied assembly offsets: Spread=${this.trackParams.spread}, Vert=${this.trackParams.verticalOffset}, RotZ=${this.trackParams.rotZ}`);
-      }
-      const plow = this.config.assembly.plow;
-      if (plow) {
-        if (plow.segmentCount !== undefined) this.plowParams.segmentCount = plow.segmentCount;
-        if (plow.segmentWidth !== undefined) this.plowParams.segmentWidth = plow.segmentWidth;
-        console.log(`[CONTRACT] Applied plow config: Count=${this.plowParams.segmentCount}, Width=${this.plowParams.segmentWidth}`);
-      }
+      await this.loadConfig(configUrlOrObj);
     }
 
     return new Promise((resolve, reject) => {
@@ -200,9 +175,79 @@ export class BulldozerRenderer {
              }
         });
 
-        for (const node of genericRoots) {
-            console.log(`[DEBUG] Processing generic node: ${node.name}`);
+        await this.processGenericNodes(genericRoots);
 
+        this.isLoaded = true;
+        resolve();
+      }, undefined, reject);
+    });
+  }
+
+  async loadPlow(url, configUrlOrObj = null) {
+    console.log(`[DEBUG]BulldozerRenderer.loadPlow: ${url}`);
+
+    if (configUrlOrObj) {
+      await this.loadConfig(configUrlOrObj);
+    }
+
+    return new Promise((resolve, reject) => {
+      this.loader.load(cb(url), async (gltf) => {
+        // Plow assets are likely just the generic components
+        const roots = [];
+        gltf.scene.children.forEach(child => roots.push(child));
+
+        await this.processGenericNodes(roots);
+        this.updatePlow();
+        resolve();
+      }, undefined, reject);
+    });
+  }
+
+  async loadConfig(configUrlOrObj) {
+      let newConfig = {};
+      if (typeof configUrlOrObj === 'string') {
+        try {
+          const resp = await fetch(cb(configUrlOrObj));
+          if (resp.ok) newConfig = await resp.json();
+        } catch (e) {
+          console.warn("[WARN] Failed to load config", e);
+        }
+      } else {
+        newConfig = configUrlOrObj;
+      }
+
+      // Merge config
+      if (!this.config) {
+          this.config = newConfig;
+      } else {
+          // Deep merge or shallow merge?
+          // Shallow merge of top keys, deeper for assembly/components
+          this.config = {
+              ...this.config,
+              ...newConfig,
+              assembly: { ...this.config.assembly, ...newConfig.assembly },
+              components: { ...this.config.components, ...newConfig.components }
+          };
+      }
+
+      // Apply Assembly Offsets
+      if (this.config && this.config.assembly) {
+        const tracks = this.config.assembly.tracks;
+        if (tracks) {
+          if (tracks.spread !== undefined) this.trackParams.spread = tracks.spread;
+          if (tracks.verticalOffset !== undefined) this.trackParams.verticalOffset = tracks.verticalOffset;
+          if (tracks.rotZ !== undefined) this.trackParams.rotZ = tracks.rotZ;
+        }
+        const plow = this.config.assembly.plow;
+        if (plow) {
+          if (plow.segmentCount !== undefined) this.plowParams.segmentCount = plow.segmentCount;
+          if (plow.segmentWidth !== undefined) this.plowParams.segmentWidth = plow.segmentWidth;
+        }
+      }
+  }
+
+  async processGenericNodes(nodes) {
+        for (const node of nodes) {
             // Special handling for instantiable segments
             if (node.name.includes("Plow_Segment")) {
                  console.log(`[DEBUG] Converting ${node.name} to InstancedMesh`);
@@ -223,7 +268,6 @@ export class BulldozerRenderer {
                      await this.applyMaterial(instancedMesh);
 
                      this.plowParams.mesh = instancedMesh;
-                     this.updatePlow();
                      continue;
                  }
             }
@@ -248,7 +292,6 @@ export class BulldozerRenderer {
                      await this.applyMaterial(instancedMesh);
 
                      this.plowParams.teethMesh = instancedMesh;
-                     this.updatePlow();
                      continue;
                  }
             }
@@ -259,7 +302,6 @@ export class BulldozerRenderer {
                 this.group.add(clone);
                 this.plowParams.wingL = clone;
                 await this.applyGenericMaterials(clone, node);
-                this.updatePlow();
                 continue;
             }
             if (node.name.includes("Plow_Wing_R")) {
@@ -267,7 +309,6 @@ export class BulldozerRenderer {
                 this.group.add(clone);
                 this.plowParams.wingR = clone;
                 await this.applyGenericMaterials(clone, node);
-                this.updatePlow();
                 continue;
             }
 
@@ -276,11 +317,6 @@ export class BulldozerRenderer {
             this.group.add(clone);
             await this.applyGenericMaterials(clone, node);
         }
-
-        this.isLoaded = true;
-        resolve();
-      }, undefined, reject);
-    });
   }
 
   async applyGenericMaterials(clone, sourceRoot) {
@@ -301,6 +337,9 @@ export class BulldozerRenderer {
 
   async applyMaterial(mesh, overrideName = null) {
       // Delegate to the specialized manager
+      // Silencing noisy logs (optional refactor: pass a logLevel to manager)
+      // For now, we rely on the manager not to spam if we don't want it,
+      // but the user asked to clean up logs.
       await this.materialManager.applyMaterial(mesh, this.config, overrideName);
   }
 
@@ -319,14 +358,19 @@ export class BulldozerRenderer {
       }
   }
 
-  setPlowWings(enabled) {
-      this.plowParams.hasWings = enabled;
-      this.updatePlow();
+  setPlowWings(enabled, scale = 1.0) {
+      if (this.plowParams.hasWings !== enabled || Math.abs(this.plowParams.wingScale - scale) > 0.001) {
+          this.plowParams.hasWings = enabled;
+          this.plowParams.wingScale = scale;
+          this.updatePlow();
+      }
   }
 
   setPlowTeeth(enabled) {
-      this.plowParams.hasTeeth = enabled;
-      this.updatePlow();
+      if (this.plowParams.hasTeeth !== enabled) {
+          this.plowParams.hasTeeth = enabled;
+          this.updatePlow();
+      }
   }
 
   updatePlow() {
@@ -336,14 +380,28 @@ export class BulldozerRenderer {
       const width = this.plowParams.segmentWidth;
       const totalWidth = count * width;
       const startX = -totalWidth / 2 + width / 2;
+      
+      // Z-Offset to push plow forward relative to chassis center
+      // Chassis is approx 40-60 deep. We need ~50 units offset?
+      // Since renderer scale is 10.0, and units here are local to group.
+      // Z-Offset to push plow forward relative to chassis center
+      // Chassis is approx 40-60 deep. We need ~50 units offset?
+      // Since renderer scale is 10.0, and units here are local to group.
+      // 1 unit here = 10 units in world.
+      // We need ~50 units world offset => 5.0 units local.
+      // Trying -4.2 to be close but safe.
+      const zOffset = -4.2; 
+
+      console.log(`[DEBUG] updatePlow: count=${count} width=${totalWidth.toFixed(2)} offsetZ=${zOffset}`);
 
       this.dummy.scale.set(1, 1, 1);
       this.dummy.rotation.set(0, 0, 0);
 
       // Update Segments
       this.plowParams.mesh.count = count;
+      this.plowParams.mesh.frustumCulled = false; // Fix visibility
       for (let i = 0; i < count; i++) {
-          this.dummy.position.set(startX + i * width, 0, 0);
+          this.dummy.position.set(startX + i * width, 0, zOffset);
           this.dummy.updateMatrix();
           this.plowParams.mesh.setMatrixAt(i, this.dummy.matrix);
       }
@@ -351,11 +409,12 @@ export class BulldozerRenderer {
 
       // Update Teeth
       if (this.plowParams.teethMesh) {
+          this.plowParams.teethMesh.frustumCulled = false;
           this.plowParams.teethMesh.count = this.plowParams.hasTeeth ? count : 0;
           this.plowParams.teethMesh.visible = this.plowParams.hasTeeth;
           if (this.plowParams.hasTeeth) {
              for (let i = 0; i < count; i++) {
-                this.dummy.position.set(startX + i * width, 0, 0);
+                this.dummy.position.set(startX + i * width, 0, zOffset);
                 this.dummy.updateMatrix();
                 this.plowParams.teethMesh.setMatrixAt(i, this.dummy.matrix);
             }
@@ -365,13 +424,17 @@ export class BulldozerRenderer {
 
       // Update Wings
       const wingOffset = totalWidth / 2;
+      const wingScale = this.plowParams.wingScale || 1.0;
+      
       if (this.plowParams.wingL) {
           this.plowParams.wingL.visible = this.plowParams.hasWings;
-          this.plowParams.wingL.position.set(-wingOffset, 0, 0);
+          this.plowParams.wingL.scale.setScalar(wingScale);
+          this.plowParams.wingL.position.set(-wingOffset, 0, zOffset);
       }
       if (this.plowParams.wingR) {
           this.plowParams.wingR.visible = this.plowParams.hasWings;
-          this.plowParams.wingR.position.set(wingOffset, 0, 0);
+          this.plowParams.wingR.scale.setScalar(wingScale);
+          this.plowParams.wingR.position.set(wingOffset, 0, zOffset);
       }
   }
 
