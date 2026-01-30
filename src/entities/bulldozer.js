@@ -22,23 +22,28 @@ export function createBulldozer() {
         Composite.remove(world, bulldozer);
     }
 
-    const bodySize = 40 + (state.dozerLevel * 5);
-    // Adjusted Scaling: Increase plow width growth to +8 (was +5 implicitly in previous logic, now explicit)
-    // Previous: bodySize * 1.2 + (Lvl * 40)? No, wait.
-    // Old logic: 45 + (Lvl * 5).
-    // Current logic (above): bodySize * 1.2 + (Lvl * 40). That seems huge already?
-    // Let's re-read the plan: "Increase width scaling to +8 per level".
-    // If we use the formula `Base + (Level * 8) * Scale`.
+    // New Scaling Logic: Match the visual scaling of BulldozerRenderer
+    // Visual Scale = 1.0 + (state.dozerLevel - 1) * 0.15
+    const visualScale = 1.0 + (state.dozerLevel - 1) * 0.15;
 
-    // Let's stick to the visual "Massive" look.
-    // Width = Base (26) + (Level * 14) * 1.5.
-    // Lvl 1: 60 (6 segments)
-    // Lvl 2: 81 (8 segments) -> +2.1 segments/level
-    const plowWidth = (26 + (state.plowLevel * 14)) * 1.5;
-    const plowHeight = 22;
+    // Chassis Size
+    // Base 45 approximates Level 1 of previous formula (40 + 5)
+    const bodySize = 45 * visualScale;
+
+    // Plow Dimensions
+    // Base Width Logic: 26 + (Lvl * 14) * 1.5. Lvl 1 ~ 60.
+    // We multiply by visualScale to ensure the plow grows with the chassis size visually
+    const basePlowWidth = (26 + (state.plowLevel * 14)) * 1.5;
+    const plowWidth = basePlowWidth * visualScale;
+
+    // Height also scales
+    const plowHeight = 22 * visualScale;
+
+    // Plow Offset
+    // Matches the renderer's local zOffset of -4.2 scaled by the global scale 10.0 => -42.0 base world units.
+    const plowOffset = -42 * visualScale;
 
     const chassis = Bodies.rectangle(0, 0, bodySize, bodySize, { label: 'chassis' });
-    const plowOffset = -(bodySize/2 + plowHeight/2 + 15);
     const plow = Bodies.rectangle(0, plowOffset, plowWidth, plowHeight, { label: 'plow' });
 
     let parts = [chassis, plow];
@@ -47,8 +52,10 @@ export function createBulldozer() {
     if (state.plowLevel >= 3) {
         // Wings also scale with plow level to look proportional
         const scaleFactor = 1.0 + (state.plowLevel - 3) * 0.1;
-        const wingLength = 40 * scaleFactor;
-        const wingWidth = 15 * scaleFactor;
+
+        // Apply BOTH scale factors (Plow Level scaling + Dozer Visual scaling)
+        const wingLength = 40 * scaleFactor * visualScale;
+        const wingWidth = 15 * scaleFactor * visualScale;
         const wingAngle = Math.PI / 8; // 22.5 degrees flare
 
         // Left Wing
@@ -57,8 +64,8 @@ export function createBulldozer() {
         const angleLeft = -Math.PI/2 - wingAngle;
         
         // Calculate Center Position
-        // Overlap by 10 units to ensure visual/physical continuity and seal the gap
-        const overlap = 10;
+        // Overlap by 10 units scaled to ensure visual/physical continuity
+        const overlap = 10 * visualScale;
         const lx = (-plowWidth / 2 + overlap) + (wingLength / 2) * Math.cos(angleLeft);
         const ly = plowOffset + (wingLength / 2) * Math.sin(angleLeft);
 
