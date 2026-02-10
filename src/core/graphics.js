@@ -776,7 +776,7 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
     parts.forEach(part => {
       // Skip chassis/plow mesh creation if handled by BulldozerRenderer
       if (part.label === 'chassis') return;
-      if (part.label === 'plow' && bulldozerRenderer && bulldozerRenderer.isLoaded) return;
+      if ((part.label === 'plow' || part.label === 'plow_wing') && bulldozerRenderer && bulldozerRenderer.isLoaded) return;
 
       if (part.label === 'gem') {
         const color = part.gemColorHex;

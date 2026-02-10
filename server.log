@@ -1,0 +1,47 @@
+Resolving dependencies
+Resolved, downloaded and extracted [192]
+Saved lockfile
+Starting up http-server, serving ./
+
+http-server version: 14.1.1
+
+http-server settings:
+CORS: disabled
+Cache: -1 seconds
+Connection Timeout: 120 seconds
+Directory Listings: visible
+AutoIndex: visible
+Serve GZIP Files: false
+Serve Brotli Files: false
+Default File Extension: none
+
+Available on:
+  http://127.0.0.1:3000
+  http://192.168.0.2:3000
+Hit CTRL-C to stop the server
+
+[2026-01-30T13:58:25.774Z]  "GET /" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+(node:2482) [DEP0066] DeprecationWarning: OutgoingMessage.prototype._headers is deprecated
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2026-01-30T13:58:25.968Z]  "GET /style.css" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:25.971Z]  "GET /src/core/game.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.513Z]  "GET /src/core/physics.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.525Z]  "GET /src/core/graphics.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.567Z]  "GET /src/entities/map.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.575Z]  "GET /src/entities/bulldozer.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.578Z]  "GET /src/entities/collector.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.580Z]  "GET /src/entities/gem.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.581Z]  "GET /src/core/ui.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.582Z]  "GET /src/entities/shop.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.582Z]  "GET /src/core/input.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.583Z]  "GET /src/core/console.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.604Z]  "GET /src/entities/bulldozer_render.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.605Z]  "GET /src/entities/conveyor.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.605Z]  "GET /src/core/state.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.628Z]  "GET /src/core/material-manager.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:26.628Z]  "GET /src/utils/graphics-utils.js" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:27.585Z]  "GET /assets/configs/bulldozer_mapping.json?cb=1769781507581" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:27.692Z]  "GET /VERSION" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:34.645Z]  "GET /assets/models/bulldozer_components.glb?cb=1769781514635" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.7339.16 Safari/537.36"
+[2026-01-30T13:58:34.647Z]  "GET /assets/models/bulldozer_components.glb?cb=1769781514635" Error (404): "Not found"
+http-server stopped.
