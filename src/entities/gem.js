@@ -74,6 +74,14 @@ export function collectGem(gem) {
   gem.isCollected = true;
   state.money += gem.value;
   state.session.gemCollectionCount++;
+  
+  // Log the collection event for performance analysis
+  state.session.collectionLog.push({
+      frame: state.session.frameCounter,
+      money: state.money,
+      totalCollected: state.session.gemCollectionCount,
+      gemValue: gem.value
+  });
 
   // Update Progress
   if (gem.zoneId && state.zoneProgress[gem.zoneId]) {

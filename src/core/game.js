@@ -152,6 +152,7 @@ function animate(currentTime = performance.now()) {
     while (accumulator >= timeStep) {
         Matter.Engine.update(engine, timeStep);
         accumulator -= timeStep;
+        state.session.frameCounter++;
     }
 
     const alpha = accumulator / timeStep;
@@ -192,7 +193,9 @@ window.telemetry = {
             collisionCount: state.session.collisionCount,
             distanceTraveled: Math.floor(state.session.distanceTraveled),
             averageSpeed: durationSeconds > 0 ? (state.session.distanceTraveled / durationSeconds).toFixed(2) : 0,
-            durationSeconds: Math.floor(durationSeconds)
+            durationSeconds: Math.floor(durationSeconds),
+            frameCounter: state.session.frameCounter,
+            collectionLog: state.session.collectionLog
         };
     },
     getSensors: () => {
