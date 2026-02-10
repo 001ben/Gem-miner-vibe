@@ -64,33 +64,43 @@
     </script>
 
     <script src="https://unpkg.com/matter-js@0.19.0/build/matter.min.js"></script>
-    <script src="tools/playtest/simple_bot.js"></script>
     <script type="module">
         import './src/core/game.js';
         
-        // Conditional UI for PR previews / non-main builds
-        // In a real environment we'd use an env var, here we check the URL or just enable it for dev
-        if (window.location.hostname === 'localhost' || window.location.href.includes('pr-preview')) {
-            const btn = document.getElementById('btn-bot-toggle');
-            if (btn) {
-                btn.style.display = 'inline-block';
-                btn.onclick = () => {
-                    if (window.botController && window.botController.isActive()) {
-                        window.botController.stop();
-                        btn.innerText = 'Auto-Play: OFF';
-                        btn.style.color = '#0f0';
-                        btn.style.borderColor = '#0f0';
-                    } else if (window.botController) {
-                        window.botController.start();
-                        btn.innerText = 'Auto-Play: ON';
-                        btn.style.color = '#f0f';
-                        btn.style.borderColor = '#f0f';
-                    } else {
-                        console.error('Bot controller not loaded yet.');
-                    }
-                };
+        async function initBotUI() {
+            // Load bot script as a module or wait for it
+            const script = document.createElement('script');
+            script.src = 'tools/playtest/simple_bot.js';
+            document.body.appendChild(script);
+
+            // Wait for botController to be attached to window
+            let attempts = 0;
+            while (!window.botController && attempts < 50) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+
+            if (window.location.hostname === 'localhost' || window.location.href.includes('pr-preview')) {
+                const btn = document.getElementById('btn-bot-toggle');
+                if (btn) {
+                    btn.style.display = 'inline-block';
+                    btn.onclick = () => {
+                        if (window.botController && window.botController.isActive()) {
+                            window.botController.stop();
+                            btn.innerText = 'Auto-Play: OFF';
+                            btn.style.color = '#0f0';
+                            btn.style.borderColor = '#0f0';
+                        } else if (window.botController) {
+                            window.botController.start();
+                            btn.innerText = 'Auto-Play: ON';
+                            btn.style.color = '#f0f';
+                            btn.style.borderColor = '#f0f';
+                        }
+                    };
+                }
             }
         }
+        initBotUI();
     </script>
 </body>
 </html>
