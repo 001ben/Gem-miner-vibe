@@ -738,6 +738,34 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
         const visualScale = 1.0 + (state.dozerLevel - 1) * 0.15;
         bulldozerRenderer.setScale(visualScale * 10.0);
 
+        // Sync Plow Upgrades
+        // Width: Base 3 + (Level * 1)? Need to check physical match.
+        // Physical: (60 + (plowLevel * 16)) * 1.5 = 114 (Lvl1) to ~240 (Lvl10)
+        // Renderer Scale = 10.0. Segment Width = 1.0.
+        // Visual Width = Segments * 1.0 * 10.0 = Segments * 10.
+        // To match Physics: Segments = PhysicsWidth / 10.
+        // Lvl 1: 60 / 10 = 6 segments
+        const physicsWidth = (26 + (state.plowLevel * 14)) * 1.5;
+        const plowSegs = Math.ceil(physicsWidth / 10.0);
+        bulldozerRenderer.setPlowWidth(plowSegs);
+
+        // Wings: Active >= Level 3.
+        const wingsActive = state.plowLevel >= 3;
+        // Wing Scale: 1.0 + (Level - 3) * 0.1
+        let wingScale = 1.0;
+        if (state.plowLevel > 3) {
+            wingScale = 1.0 + (state.plowLevel - 3) * 0.1;
+        }
+        bulldozerRenderer.setPlowWings(wingsActive, wingScale);
+
+        // Teeth: Toggleable? Or High Level?
+        // User: "I don't want the teeth to always be enabled."
+        // Logic: Enable if explicitly toggled (debug/future UI) OR maybe very high level?
+        // For now, respect a state flag if it exists, else false.
+        const teethActive = state.plowTeethEnabled || false;
+        bulldozerRenderer.setPlowTeeth(teethActive);
+
+
         bulldozerRenderer.setSpeeds(speed, speed);
         bulldozerRenderer.update(1 / 60);
       }
@@ -746,8 +774,9 @@ export function updateGraphics(bulldozer, bulldozerRenderer, alpha = 1.0) {
     // 2. Handle Other Bodies (Parts or Single)
     const parts = (body.parts && body.parts.length > 1) ? body.parts.slice(1) : [body];
     parts.forEach(part => {
-      // Skip chassis mesh creation as it's handled by BulldozerRenderer
+      // Skip chassis/plow mesh creation if handled by BulldozerRenderer
       if (part.label === 'chassis') return;
+      if ((part.label === 'plow' || part.label === 'plow_wing') && bulldozerRenderer && bulldozerRenderer.isLoaded) return;
 
       if (part.label === 'gem') {
         const color = part.gemColorHex;
