@@ -23,5 +23,5 @@ The **Distributed Asset & Material Pipeline (DAMP)** is the core of our asset ge
 ## 🗓 Planning
 
 - **[:material-roadmap: Roadmap](planning/roadmap.md)**: High-level goals and backlog.
-- **[:material-clipboard-check: Current Task](planning/task_scaling_rebalance.md)**: Status of the current active work.
+- **[:material-clipboard-check: Current Task](planning/2024-05-23_plow_integration.md)**: Status of the current active work.
 - **[:material-clock-time-four-outline: History](history/GEMINI_2025_12.md)**: Past session logs and decision records.
