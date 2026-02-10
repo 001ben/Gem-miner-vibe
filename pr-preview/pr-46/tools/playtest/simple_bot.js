@@ -39,9 +39,7 @@ console.log("simple_bot.js: Script started loading...");
         const metrics = window.telemetry.getMetrics();
         if (!sensors || !metrics) return;
 
-        // Anti-stuck logic: If speed is very low but throttle is high, we might be stuck
-        const isStuck = metrics.averageSpeed < 0.2 && metrics.durationSeconds > 5;
-        
+        // Decision Engine: Gem vs Collector
         if (sensors.nearestGems.length === 0) {
             window.agentInput.set(0, 0);
             return;
@@ -53,10 +51,36 @@ console.log("simple_bot.js: Script started loading...");
         let targetVector = nearestGem.vector;
         let throttlePower = BOT_CONFIG.throttlePower;
 
-        // Pushing Logic: If near gem, target the collector
-        if (nearestGem.distance < 60 && collector) {
-            targetVector = collector.vector;
-            throttlePower = 1.0; 
+        // LOGIC REFINEMENT: 
+        // 1. If we are near a gem, check if the gem is "between" us and the collector.
+        // 2. If it is, target the collector to push it through.
+        // 3. If not, we need to "flank" the gem to get behind it.
+        
+        if (nearestGem.distance < 80 && collector) {
+            // Vector from dozer to collector
+            const toCollector = collector.vector;
+            // Vector from dozer to gem
+            const toGem = nearestGem.vector;
+            
+            // Dot product to see if gem is in same general direction as collector
+            const dot = (toCollector.x * toGem.x + toCollector.y * toGem.y) / 
+                        (Vector.magnitude(toCollector) * Vector.magnitude(toGem));
+            
+            // If dot product is high (> 0.8), gem is roughly between us and collector
+            if (dot > 0.8) {
+                targetVector = toCollector;
+                throttlePower = 1.0;
+            } else {
+                // FLANKING: We need to get behind the gem.
+                // Target a point slightly "behind" the gem relative to the collector
+                const gemToCollector = Vector.sub(collector.vector, nearestGem.vector);
+                const gemToCollectorUnit = Vector.div(gemToCollector, Vector.magnitude(gemToCollector));
+                
+                // Point behind gem = gemPosition - (unitVector * offset)
+                // Since everything is relative to dozer, target = toGem - (unit * 60)
+                const flankPoint = Vector.sub(toGem, Vector.mult(gemToCollectorUnit, 60));
+                targetVector = flankPoint;
+            }
         }
 
         const angleToTarget = getAngleTo(targetVector);
@@ -64,27 +88,20 @@ console.log("simple_bot.js: Script started loading...");
         let throttle = 0;
         let turn = 0;
 
-        // If stuck, reverse and turn sharply to reposition
-        if (isStuck) {
-            throttle = -0.5;
-            turn = 1.0;
-        } else {
-            // Steering logic
-            if (Math.abs(angleToTarget) > BOT_CONFIG.turnPrecision) {
-                turn = angleToTarget > 0 ? 1 : -1;
-            }
+        // Steering logic
+        if (Math.abs(angleToTarget) > BOT_CONFIG.turnPrecision) {
+            turn = angleToTarget > 0 ? 1 : -1;
+        }
 
-            // Throttle logic
-            if (Math.abs(angleToTarget) < Math.PI / 2) {
-                throttle = throttlePower;
-                // Slower for tight turns
-                if (Math.abs(angleToTarget) > Math.PI / 4) {
-                    throttle *= 0.4;
-                }
-            } else {
-                // If target is behind us, slow turn in place
-                throttle = -0.2;
+        // Throttle logic
+        if (Math.abs(angleToTarget) < Math.PI / 2) {
+            throttle = throttlePower;
+            if (Math.abs(angleToTarget) > Math.PI / 4) {
+                throttle *= 0.4;
             }
+        } else {
+            // If target is behind us, slow turn in place (back up slightly)
+            throttle = -0.2;
         }
 
         window.agentInput.set(throttle, turn);
