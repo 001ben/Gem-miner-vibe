@@ -36,7 +36,13 @@ const { chromium } = require('playwright');
   }
 
   const final = await page.evaluate(() => window.telemetry.getMetrics());
-  console.log(`Final Collection Total: $${final.money}`);
+  console.log("--- Playtest Efficiency Report ---");
+  console.log(`Final Money: $${final.money}`);
+  console.log(`Gems Collected: ${final.gemCollectionCount}`);
+  console.log(`Efficiency: ${(final.gemCollectionCount / (final.durationSeconds / 60)).toFixed(2)} gems/min`);
+  console.log(`Collisions: ${final.collisionCount}`);
+  console.log(`Avg Speed: ${final.averageSpeed} px/s`);
+  console.log("----------------------------------");
 
   await browser.close();
   process.exit(final.money >= 40 ? 0 : 1);
