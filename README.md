@@ -1,5 +1,7 @@
 # Gem Miner Bulldozer
 
+![Build and Deploy](https://github.com/001ben/Gem-miner-vibe/actions/workflows/deploy.yml/badge.svg)
+
 A browser-based gem mining game using Matter.js physics.
 
 ## How to Play
