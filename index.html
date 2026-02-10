@@ -65,8 +65,9 @@
 
     <script src="https://unpkg.com/matter-js@0.19.0/build/matter.min.js"></script>
     <script src="tools/playtest/simple_bot.js"></script>
-    <script type="module" src="src/core/game.js"></script>
-    <script>
+    <script type="module">
+        import './src/core/game.js';
+        
         // Conditional UI for PR previews / non-main builds
         // In a real environment we'd use an env var, here we check the URL or just enable it for dev
         if (window.location.hostname === 'localhost' || window.location.href.includes('pr-preview')) {
@@ -74,16 +75,18 @@
             if (btn) {
                 btn.style.display = 'inline-block';
                 btn.onclick = () => {
-                    if (window.botController.isActive()) {
+                    if (window.botController && window.botController.isActive()) {
                         window.botController.stop();
                         btn.innerText = 'Auto-Play: OFF';
                         btn.style.color = '#0f0';
                         btn.style.borderColor = '#0f0';
-                    } else {
+                    } else if (window.botController) {
                         window.botController.start();
                         btn.innerText = 'Auto-Play: ON';
                         btn.style.color = '#f0f';
                         btn.style.borderColor = '#f0f';
+                    } else {
+                        console.error('Bot controller not loaded yet.');
                     }
                 };
             }
