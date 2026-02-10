@@ -73,6 +73,7 @@ export function collectGem(gem) {
 
   gem.isCollected = true;
   state.money += gem.value;
+  state.session.gemCollectionCount++;
 
   // Update Progress
   if (gem.zoneId && state.zoneProgress[gem.zoneId]) {

@@ -1,4 +1,4 @@
-import { engine, runner, Runner, Events, Body, Matter } from './physics.js';
+import { engine, runner, Runner, Events, Body, Matter, Vector } from './physics.js';
 import { initThree, updateGraphics, scene, camera, renderer, bodyMeshMap } from './graphics.js';
 import * as THREE from 'three'; 
 import { createMap } from '../entities/map.js';
@@ -25,6 +25,25 @@ let lastAfterUpdateTime = 0;
 // Check collisions
 Events.on(engine, 'afterUpdate', () => {
     checkShopCollisions(getBulldozer());
+    
+    // Telemetry updates
+    const dozer = getBulldozer();
+    if (dozer) {
+        if (state.session.lastPosition.x !== 0 || state.session.lastPosition.y !== 0) {
+            const dist = Vector.magnitude(Vector.sub(dozer.position, state.session.lastPosition));
+            state.session.distanceTraveled += dist;
+        }
+        state.session.lastPosition.x = dozer.position.x;
+        state.session.lastPosition.y = dozer.position.y;
+    }
+});
+
+Events.on(engine, 'collisionStart', (event) => {
+    event.pairs.forEach(pair => {
+        if (pair.bodyA.label === 'bulldozer' || pair.bodyB.label === 'bulldozer') {
+            state.session.collisionCount++;
+        }
+    });
 });
 
 // Start
@@ -161,6 +180,55 @@ function animate(currentTime = performance.now()) {
     window.bodyMeshMap = bodyMeshMap; 
 }
 animate();
+
+// Telemetry API
+window.telemetry = {
+    getMetrics: () => {
+        const now = Date.now();
+        const durationSeconds = (now - state.session.startTime) / 1000;
+        return {
+            money: state.money,
+            gemCollectionCount: state.session.gemCollectionCount,
+            collisionCount: state.session.collisionCount,
+            distanceTraveled: Math.floor(state.session.distanceTraveled),
+            averageSpeed: durationSeconds > 0 ? (state.session.distanceTraveled / durationSeconds).toFixed(2) : 0,
+            durationSeconds: Math.floor(durationSeconds)
+        };
+    },
+    getSensors: () => {
+        const dozer = getBulldozer();
+        if (!dozer) return null;
+
+        // Get all gems
+        const gems = Matter.Composite.allBodies(engine.world).filter(b => b.label === 'gem');
+        const collector = Matter.Composite.allBodies(engine.world).find(b => b.label === 'collector');
+
+        const sensors = {
+            nearestGems: gems
+                .map(g => {
+                    const diff = Vector.sub(g.position, dozer.position);
+                    return {
+                        distance: Vector.magnitude(diff),
+                        vector: { x: diff.x, y: diff.y },
+                        value: g.value
+                    };
+                })
+                .sort((a, b) => a.distance - b.distance)
+                .slice(0, 5),
+            collector: null
+        };
+
+        if (collector) {
+            const diff = Vector.sub(collector.position, dozer.position);
+            sensors.collector = {
+                distance: Vector.magnitude(diff),
+                vector: { x: diff.x, y: diff.y }
+            };
+        }
+
+        return sensors;
+    }
+};
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
