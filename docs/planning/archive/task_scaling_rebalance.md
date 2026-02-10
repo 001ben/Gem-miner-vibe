@@ -1,7 +1,7 @@
 # Task: Scaling Rebalance & Progression Tuning
 
 !!! info ":material-clock-time-four-outline: Metadata"
-    -   **Status:** In Progress
+    -   **Status:** Completed
     -   **Type:** Rebalance / Feature
     -   **Dependencies:** `docs/guide/progression_analysis.md`
 

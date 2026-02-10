@@ -92,7 +92,7 @@ export function createBulldozer() {
     // This is the canonical way to ensure rigidity in Matter.js
     bulldozer = Body.create({
         label: 'bulldozer',
-        frictionAir: 0.15,
+        frictionAir: 0.02,
         restitution: 0.0,
         collisionFilter: {
             category: CATEGORIES.DOZER,
