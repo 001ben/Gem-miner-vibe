@@ -4,6 +4,23 @@ import { getBulldozer } from '../entities/bulldozer.js';
 
 export const keys = {};
 
+// Agent override hook
+window.agentInput = {
+    active: false,
+    throttle: 0,
+    turn: 0,
+    set: (throttle, turn) => {
+        window.agentInput.active = true;
+        window.agentInput.throttle = throttle;
+        window.agentInput.turn = turn;
+    },
+    reset: () => {
+        window.agentInput.active = false;
+        window.agentInput.throttle = 0;
+        window.agentInput.turn = 0;
+    }
+};
+
 const joystick = { active: false, x: 0, y: 0, originX: 0, originY: 0, isReversing: false, knob: null };
 
 export function initInput() {
@@ -25,6 +42,12 @@ export function initInput() {
         if (keys['ArrowDown'] || keys['KeyS']) throttle -= 1;
         if (keys['ArrowLeft'] || keys['KeyA']) turn -= 1;
         if (keys['ArrowRight'] || keys['KeyD']) turn += 1;
+
+        // Agent override
+        if (window.agentInput.active) {
+            throttle = window.agentInput.throttle;
+            turn = window.agentInput.turn;
+        }
 
         // Increase base speed impact significantly per level
         // Power calculation for "juicier" upgrades: Force needs to scale faster than Mass

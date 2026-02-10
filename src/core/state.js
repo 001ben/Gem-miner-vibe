@@ -9,6 +9,14 @@ export const state = {
         1: { total: 0, collected: 0 },
         2: { total: 0, collected: 0 },
         3: { total: 0, collected: 0 }
+    },
+    // Session Telemetry
+    session: {
+        startTime: Date.now(),
+        gemCollectionCount: 0,
+        collisionCount: 0,
+        distanceTraveled: 0,
+        lastPosition: { x: 0, y: 0 }
     }
 };
 
