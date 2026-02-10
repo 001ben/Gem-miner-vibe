@@ -1995,15 +1995,21 @@
 <h2 id="status-planning">Status: <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6 2h12v6l-4 4 4 4v6H6v-6l4-4-4-4zm10 14.5-4-4-4 4V20h8zm-4-5 4-4V4H8v3.5zM10 6h4v.75l-2 2-2-2z"/></svg></span> Planning<a class="headerlink" href="#status-planning" title="Permanent link">&para;</a></h2>
 <h2 id="required-infrastructure">Required Infrastructure<a class="headerlink" href="#required-infrastructure" title="Permanent link">&para;</a></h2>
 <h3 id="1-telemetry-interface">1. Telemetry Interface<a class="headerlink" href="#1-telemetry-interface" title="Permanent link">&para;</a></h3>
-<p>We need to expose a consistent set of metrics to the <code>window</code> object so that an agent (via Playwright or simple browser scripting) can scrape them.
-- <strong><code>window.telemetry.getMetrics()</code></strong>: Should return:
-    - <code>money</code>: Current balance.
-    - <code>gemCollectionCount</code>: Total gems collected in session.
-    - <code>averageSpeed</code>: Average speed over the last 10 seconds.
-    - <code>collisionCount</code>: Total number of physical collisions.</p>
+<p>We need to expose a consistent set of metrics to the <code>window</code> object so that an agent (via Playwright or simple browser scripting) can scrape them.</p>
+<ul>
+<li><strong><code>window.telemetry.getMetrics()</code></strong>: Should return:<ul>
+<li><code>money</code>: Current balance.</li>
+<li><code>gemCollectionCount</code>: Total gems collected in session.</li>
+<li><code>averageSpeed</code>: Average speed over the last 10 seconds.</li>
+<li><code>collisionCount</code>: Total number of physical collisions.</li>
+</ul>
+</li>
+</ul>
 <h3 id="2-input-simulation-api">2. Input Simulation API<a class="headerlink" href="#2-input-simulation-api" title="Permanent link">&para;</a></h3>
-<p>Currently, inputs are tied to keyboard listeners. We need a way to programmatically trigger inputs without actual key events.
-- <strong><code>window.agentInput.set(direction, value)</code></strong>: e.g., <code>set('up', true)</code>.</p>
+<p>Currently, inputs are tied to keyboard listeners. We need a way to programmatically trigger inputs without actual key events.</p>
+<ul>
+<li><strong><code>window.agentInput.set(direction, value)</code></strong>: e.g., <code>set('up', true)</code>.</li>
+</ul>
 <h3 id="3-session-recording">3. Session Recording<a class="headerlink" href="#3-session-recording" title="Permanent link">&para;</a></h3>
 <p>A way to export the session metrics as a JSON blob at the end of a run for comparison against a baseline.</p>
 <h2 id="implementation-steps">Implementation Steps<a class="headerlink" href="#implementation-steps" title="Permanent link">&para;</a></h2>

@@ -1996,22 +1996,30 @@
 <p>Agent playtesting uses an automated "headless" environment or a scripted game session to simulate player behavior and collect metrics. This allows us to verify how changes (like physics tuning or gem value adjustments) affect the "vibe" and progression without requiring a human to manually play through every build.</p>
 <h2 id="playtesting-methods">Playtesting Methods<a class="headerlink" href="#playtesting-methods" title="Permanent link">&para;</a></h2>
 <h3 id="1-headless-physics-verification">1. Headless Physics Verification<a class="headerlink" href="#1-headless-physics-verification" title="Permanent link">&para;</a></h3>
-<p>Use the <code>verification/measure_scaling.py</code> script (and associated HTML harness) to simulate bulldozer movement and gem collection in a controlled environment.
-- <strong>Purpose:</strong> Verifies collision boxes, pushing power, and movement curves.
-- <strong>How to run:</strong>
-  <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>verification/measure_scaling.py
-</code></pre></div></p>
+<p>Use the <code>verification/measure_scaling.py</code> script (and associated HTML harness) to simulate bulldozer movement and gem collection in a controlled environment.</p>
+<ul>
+<li><strong>Purpose:</strong> Verifies collision boxes, pushing power, and movement curves.</li>
+<li><strong>How to run:</strong>
+    <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>verification/measure_scaling.py
+</code></pre></div></li>
+</ul>
 <h3 id="2-scripted-gameplay-simulation">2. Scripted Gameplay Simulation<a class="headerlink" href="#2-scripted-gameplay-simulation" title="Permanent link">&para;</a></h3>
-<p>By hooking into the <code>window.state</code> and <code>window.bulldozer</code> objects in the browser environment, an agent can "play" the game by simulating input commands.
-- <strong>Key Objects:</strong>
-  - <code>window.bulldozer</code>: Current position, speed, and physics properties.
-  - <code>window.state</code>: Current money, upgrades, and progression.
-  - <code>initInput()</code>: The input listener can be triggered via keyboard event simulations.</p>
+<p>By hooking into the <code>window.state</code> and <code>window.bulldozer</code> objects in the browser environment, an agent can "play" the game by simulating input commands.</p>
+<ul>
+<li><strong>Key Objects:</strong><ul>
+<li><code>window.bulldozer</code>: Current position, speed, and physics properties.</li>
+<li><code>window.state</code>: Current money, upgrades, and progression.</li>
+<li><code>initInput()</code>: The input listener can be triggered via keyboard event simulations.</li>
+</ul>
+</li>
+</ul>
 <h3 id="3-metric-collection">3. Metric Collection<a class="headerlink" href="#3-metric-collection" title="Permanent link">&para;</a></h3>
-<p>When running a playtest, focus on the following metrics to determine if a change is successful:
-- <strong>Time to Goal:</strong> How long it takes to collect $X$ amount of gems.
-- <strong>Movement Fluidity:</strong> Number of collisions or "stuck" events per minute.
-- <strong>Upgrade ROI:</strong> How much the "Time to Goal" decreases after a specific upgrade.</p>
+<p>When running a playtest, focus on the following metrics to determine if a change is successful:</p>
+<ul>
+<li><strong>Time to Goal:</strong> How long it takes to collect $X$ amount of gems.</li>
+<li><strong>Movement Fluidity:</strong> Number of collisions or "stuck" events per minute.</li>
+<li><strong>Upgrade ROI:</strong> How much the "Time to Goal" decreases after a specific upgrade.</li>
+</ul>
 <h2 id="playtesting-workflow-for-agents">Playtesting Workflow for Agents<a class="headerlink" href="#playtesting-workflow-for-agents" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>Checkout Branch:</strong> Create a feature branch for the change.</li>
