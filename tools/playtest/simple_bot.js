@@ -37,14 +37,33 @@
         const sensors = window.telemetry.getSensors();
         if (!sensors) return;
 
-        // Priority 1: Nearest Gem
-        const target = sensors.nearestGems[0];
-        if (!target) {
+        // Decision Engine: Gem vs Collector
+        // If we have no gems, stop.
+        if (sensors.nearestGems.length === 0) {
             window.agentInput.set(0, 0);
             return;
         }
 
-        const angleToTarget = getAngleTo(target.vector);
+        // Logic: If we are "behind" the nearest gem relative to the collector, push it.
+        // For this simple heuristic, we'll just alternate: 
+        // 1. If not near a gem, go to nearest gem.
+        // 2. If we are touching/very near a gem, head toward the collector.
+        
+        const nearestGem = sensors.nearestGems[0];
+        const collector = sensors.collector;
+
+        let targetVector = nearestGem.vector;
+        let throttlePower = BOT_CONFIG.throttlePower;
+
+        // If we are very close to a gem (< 40px), and we know where the collector is,
+        // switch target to the collector to "push" the gem toward it.
+        if (nearestGem.distance < 40 && collector) {
+            targetVector = collector.vector;
+            // Full power when pushing!
+            throttlePower = 1.0; 
+        }
+
+        const angleToTarget = getAngleTo(targetVector);
         
         let throttle = 0;
         let turn = 0;
@@ -54,9 +73,9 @@
             turn = angleToTarget > 0 ? 1 : -1;
         }
 
-        // Throttle logic (slow down as we get closer or if we need to turn sharply)
+        // Throttle logic (slow down for sharp turns)
         if (Math.abs(angleToTarget) < Math.PI / 2) {
-            throttle = BOT_CONFIG.throttlePower;
+            throttle = throttlePower;
             if (Math.abs(angleToTarget) > Math.PI / 4) {
                 throttle *= 0.5;
             }
