@@ -36,31 +36,26 @@ console.log("simple_bot.js: Script started loading...");
         if (!window.telemetry || !window.bulldozer) return;
 
         const sensors = window.telemetry.getSensors();
-        if (!sensors) return;
+        const metrics = window.telemetry.getMetrics();
+        if (!sensors || !metrics) return;
 
-        // Decision Engine: Gem vs Collector
-        // If we have no gems, stop.
+        // Anti-stuck logic: If speed is very low but throttle is high, we might be stuck
+        const isStuck = metrics.averageSpeed < 0.2 && metrics.durationSeconds > 5;
+        
         if (sensors.nearestGems.length === 0) {
             window.agentInput.set(0, 0);
             return;
         }
 
-        // Logic: If we are "behind" the nearest gem relative to the collector, push it.
-        // For this simple heuristic, we'll just alternate: 
-        // 1. If not near a gem, go to nearest gem.
-        // 2. If we are touching/very near a gem, head toward the collector.
-        
         const nearestGem = sensors.nearestGems[0];
         const collector = sensors.collector;
 
         let targetVector = nearestGem.vector;
         let throttlePower = BOT_CONFIG.throttlePower;
 
-        // If we are very close to a gem (< 40px), and we know where the collector is,
-        // switch target to the collector to "push" the gem toward it.
-        if (nearestGem.distance < 40 && collector) {
+        // Pushing Logic: If near gem, target the collector
+        if (nearestGem.distance < 60 && collector) {
             targetVector = collector.vector;
-            // Full power when pushing!
             throttlePower = 1.0; 
         }
 
@@ -69,16 +64,26 @@ console.log("simple_bot.js: Script started loading...");
         let throttle = 0;
         let turn = 0;
 
-        // Steering logic
-        if (Math.abs(angleToTarget) > BOT_CONFIG.turnPrecision) {
-            turn = angleToTarget > 0 ? 1 : -1;
-        }
+        // If stuck, reverse and turn sharply to reposition
+        if (isStuck) {
+            throttle = -0.5;
+            turn = 1.0;
+        } else {
+            // Steering logic
+            if (Math.abs(angleToTarget) > BOT_CONFIG.turnPrecision) {
+                turn = angleToTarget > 0 ? 1 : -1;
+            }
 
-        // Throttle logic (slow down for sharp turns)
-        if (Math.abs(angleToTarget) < Math.PI / 2) {
-            throttle = throttlePower;
-            if (Math.abs(angleToTarget) > Math.PI / 4) {
-                throttle *= 0.5;
+            // Throttle logic
+            if (Math.abs(angleToTarget) < Math.PI / 2) {
+                throttle = throttlePower;
+                // Slower for tight turns
+                if (Math.abs(angleToTarget) > Math.PI / 4) {
+                    throttle *= 0.4;
+                }
+            } else {
+                // If target is behind us, slow turn in place
+                throttle = -0.2;
             }
         }
 
