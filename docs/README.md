@@ -2,10 +2,9 @@
 
 Welcome to the Gem Miner technical documentation.
 
-## 📚 Guides & Reference
+## 📚 Guides & Reference (Living)
 
 - **[:material-folder-open: Project Structure](living/guide/PROJECT_STRUCTURE.md)**: Overview of the codebase layout, including source, pipeline, and tools.
-- **[:material-robot-confused: Agent Playtesting](living/guide/AGENT_PLAYTESTING.md)**: Guide for AI agents performing automated testing and verification.
 - **[:material-console: Taskfile Commands](living/guide/PROJECT_STRUCTURE.md#key-workflows)**: How to build, run, and verify the project.
 
 ## 🏗 Architecture (DAMP)
@@ -16,13 +15,17 @@ The **Distributed Asset & Material Pipeline (DAMP)** is the core of our asset ge
 - **[:material-history: Pipeline Review](living/architecture/DAMP_PIPELINE_REVIEW.md)**: Context on the transition to DAMP.
 - **[:material-blender-software: Blender Pipeline](living/architecture/BLENDER_PIPELINE.md)**: How to create assets using our Python API.
 
+## 🗓 Planning & Proposals
+
+- **[:material-roadmap: Roadmap](planning/roadmap.md)**: High-level goals and backlog.
+- **[:material-clipboard-play: Active Task: Agent Playtesting](planning/task_agent_playtesting.md)**: Planning and implementation tracker for automated testing.
+- **[:material-lightbulb-outline: Proposal: Agent Playtesting](planning/proposals/agent_playtesting.md)**: The original conceptual proposal for agent playtesting.
+
 ## 🔧 Troubleshooting
 
 - **[:material-alert-circle: Common Errors](knowledge/troubleshooting/COMMON_ERRORS.md)**: Setup and runtime issues.
 - **[:material-image-broken-variant: Graphics Troubleshooting](knowledge/troubleshooting/GRAPHICS_TROUBLESHOOTING.md)**: Visual artifacts and rendering fixes.
 
-## 🗓 Planning & History
+## 🕰 History
 
-- **[:material-roadmap: Roadmap](planning/roadmap.md)**: High-level goals and backlog.
-- **[:material-clipboard-check: Current Task](planning/2024-05-23_plow_integration.md)**: Status of the current active work.
 - **[:material-clock-time-four-outline: History](knowledge/history/GEMINI_2025_12.md)**: Past session logs and decision records.

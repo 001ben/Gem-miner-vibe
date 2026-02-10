@@ -20,7 +20,6 @@ nav:
           - Project Structure: living/guide/PROJECT_STRUCTURE.md
           - Design Principles: living/guide/game_design_principles.md
           - Progression Analysis: living/guide/progression_analysis.md
-          - Agent Playtesting: living/guide/AGENT_PLAYTESTING.md
       - Architecture:
           - Pipeline Review: living/architecture/DAMP_PIPELINE_REVIEW.md
           - Maintainability: living/architecture/DAMP_MAINTAINABILITY.md
@@ -28,7 +27,10 @@ nav:
   - Planning:
       - Roadmap: planning/roadmap.md
       - Current Task: planning/2024-05-23_plow_integration.md
+      - Agent Playtesting: planning/task_agent_playtesting.md
       - Scaling Analysis: planning/scaling_analysis.md
+      - Proposals:
+          - Agent Playtesting: planning/proposals/agent_playtesting.md
       - Archive:
           - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
           - Task Scaling Rebalance: planning/archive/task_scaling_rebalance.md
