@@ -1,42 +1,36 @@
 # Task: Implement Agent Playtesting Framework
 
-This task involves building the necessary infrastructure to allow AI agents to perform automated, measurable playtests of the Gem Miner game.
+!!! info ":material-clock-time-four-outline: Metadata"
 
-## Status: :material-timer-sand: Planning
+    - **Status:** :material-timer-sand: Planning
+    - **Type:** Infrastructure / DevOps
+    - **Dependencies:** None
 
-## Required Infrastructure
+!!! abstract ":material-text-box-search-outline: Context"
 
-### 1. Telemetry Interface
+    Build the necessary infrastructure to allow AI agents to perform automated, measurable playtests of the Gem Miner game. This will enable regression testing for physics, mechanics, and game balance without manual human intervention.
 
-We need to expose a consistent set of metrics to the `window` object so that an agent (via Playwright or simple browser scripting) can scrape them.
+!!! quote ":material-clipboard-list-outline: Plan"
 
-- **`window.telemetry.getMetrics()`**: Should return:
-    - `money`: Current balance.
-    - `gemCollectionCount`: Total gems collected in session.
-    - `averageSpeed`: Average speed over the last 10 seconds.
-    - `collisionCount`: Total number of physical collisions.
+    1. **Telemetry Interface (Data Extraction)**
+        - Expose a consistent set of metrics to the `window.telemetry` object.
+        - Return values: `money`, `gemCollectionCount`, `averageSpeed`, and `collisionCount`.
+    1. **Input Simulation API (Control)**
+        - Refactor input listeners to allow programmatic triggering via `window.agentInput.set(direction, value)`.
+    1. **Session Recording (Reporting)**
+        - Create a mechanism to export session metrics as a JSON blob for baseline comparison.
 
-### 2. Input Simulation API
+!!! example ":material-console: Execution Log"
 
-Currently, inputs are tied to keyboard listeners. We need a way to programmatically trigger inputs without actual key events.
+    - [ ] **Phase 1: Telemetry (Core)**
+        - Modify `src/core/state.js` to track session-based metrics.
+        - Add `window.telemetry` exposure in `src/core/game.js`.
+    - [ ] **Phase 2: Input Hook**
+        - Refactor `src/core/input.js` to allow external overrides.
+    - [ ] **Phase 3: Reporting**
+        - Add a "Playtest Summary" modal/console log that appears when a session ends.
 
-- **`window.agentInput.set(direction, value)`**: e.g., `set('up', true)`.
+!!! success ":material-check-circle-outline: Definition of Done"
 
-### 3. Session Recording
-
-A way to export the session metrics as a JSON blob at the end of a run for comparison against a baseline.
-
-## Implementation Steps
-
-1. **[ ] Phase 1: Telemetry (Core)**
-    - Modify `src/core/state.js` to track session-based metrics.
-    - Add `window.telemetry` exposure in `src/core/game.js`.
-1. **[ ] Phase 2: Input Hook**
-    - Refactor `src/core/input.js` to allow external overrides.
-1. **[ ] Phase 3: Reporting**
-    - Add a "Playtest Summary" modal/console log that appears when a session ends.
-
-## Definition of Done
-
-- An agent can successfully move the bulldozer via a script.
-- A JSON report can be generated showing "Time to $1000".
+    - An agent can successfully move the bulldozer via a script.
+    - A JSON report can be generated showing "Time to $1000".
