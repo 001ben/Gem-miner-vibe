@@ -65,7 +65,7 @@
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/planning/task_scaling_rebalance/</loc>
+         <loc>https://example.com/planning/speed_and_acceleration_tuning/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
@@ -78,6 +78,10 @@
     </url>
     <url>
          <loc>https://example.com/planning/archive/doc_rewrite/</loc>
+         <lastmod>2026-02-10</lastmod>
+    </url>
+    <url>
+         <loc>https://example.com/planning/archive/task_scaling_rebalance/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
