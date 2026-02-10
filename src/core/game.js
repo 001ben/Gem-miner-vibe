@@ -201,7 +201,11 @@ window.telemetry = {
 
         // Get all gems
         const gems = Matter.Composite.allBodies(engine.world).filter(b => b.label === 'gem');
-        const collector = Matter.Composite.allBodies(engine.world).find(b => b.label === 'collector');
+        
+        // Fix: Collector is a compound body, look for parts or the compound label
+        const allBodies = Matter.Composite.allBodies(engine.world);
+        const collector = allBodies.find(b => b.label === 'collector') || 
+                          allBodies.find(b => b.label === 'collector_compound');
 
         const sensors = {
             nearestGems: gems
