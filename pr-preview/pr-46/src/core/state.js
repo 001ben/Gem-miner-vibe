@@ -16,7 +16,9 @@ export const state = {
         gemCollectionCount: 0,
         collisionCount: 0,
         distanceTraveled: 0,
-        lastPosition: { x: 0, y: 0 }
+        lastPosition: { x: 0, y: 0 },
+        collectionLog: [], // Array of { frame, money, totalCollected }
+        frameCounter: 0
     }
 };
 
