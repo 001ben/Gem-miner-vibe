@@ -1,7 +1,10 @@
 // Heuristic Bot for Gem Miner
 // Uses the telemetry sensors to navigate the dozer.
 
+console.log("simple_bot.js: Script started loading...");
+
 (function() {
+    console.log("simple_bot.js: IIFE executing...");
     const BOT_CONFIG = {
         targetThreshold: 50,
         turnPrecision: 0.1,
@@ -96,4 +99,5 @@
         },
         isActive: () => !!botInterval
     };
+    console.log("simple_bot.js: window.botController assigned.", window.botController);
 })();

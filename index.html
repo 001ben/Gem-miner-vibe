@@ -69,11 +69,19 @@
         import './src/core/game.js';
         
         async function initBotUI() {
+            console.log("initBotUI: Checking for botController...");
             // Wait for botController to be attached to window (it's loaded via script tag above)
             let attempts = 0;
             while (!window.botController && attempts < 100) {
+                if (attempts % 10 === 0) console.log(`initBotUI: Attempt ${attempts}, botController:`, window.botController);
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
+            }
+
+            if (window.botController) {
+                console.log("initBotUI: botController found!");
+            } else {
+                console.error("initBotUI: botController NOT found after 10 seconds.");
             }
 
             if (window.location.hostname === 'localhost' || window.location.href.includes('pr-preview')) {
