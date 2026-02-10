@@ -18,8 +18,8 @@ The **Distributed Asset & Material Pipeline (DAMP)** is the core of our asset ge
 ## 🗓 Planning & Proposals
 
 - **[:material-roadmap: Roadmap](planning/roadmap.md)**: High-level goals and backlog.
-- **[:material-clipboard-play: Active Task: Agent Playtesting](planning/task_agent_playtesting.md)**: Planning and implementation tracker for automated testing.
-- **[:material-lightbulb-outline: Proposal: Agent Playtesting](planning/proposals/agent_playtesting.md)**: The original conceptual proposal for agent playtesting.
+- **[:material-clipboard-play: Active Tasks](planning/tasks/task_agent_playtesting.md)**: Implementation trackers for current work (e.g., Agent Playtesting).
+- **[:material-lightbulb-outline: Proposals](planning/proposals/agent_playtesting.md)**: Conceptual designs and requests for future features.
 
 ## 🔧 Troubleshooting
 

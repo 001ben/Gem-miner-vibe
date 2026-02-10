@@ -26,14 +26,19 @@ nav:
           - Blender Pipeline: living/architecture/BLENDER_PIPELINE.md
   - Planning:
       - Roadmap: planning/roadmap.md
-      - Current Task: planning/2024-05-23_plow_integration.md
-      - Agent Playtesting: planning/task_agent_playtesting.md
-      - Scaling Analysis: planning/scaling_analysis.md
+      - Active Tasks:
+          - Agent Playtesting: planning/tasks/task_agent_playtesting.md
+          - Plow Integration: planning/tasks/2024-05-23_plow_integration.md
+      - Analysis:
+          - Scaling Analysis: planning/scaling_analysis.md
+          - Speed & Accel Tuning: planning/speed_and_acceleration_tuning.md
       - Proposals:
           - Agent Playtesting: planning/proposals/agent_playtesting.md
       - Archive:
           - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
           - Task Scaling Rebalance: planning/archive/task_scaling_rebalance.md
+          - Doc Rewrite: planning/archive/doc_rewrite.md
+          - UI & Gameplay Polish: planning/archive/2026-01-07_ui_gameplay_polish.md
   - Knowledge Base:
       - Troubleshooting:
           - Common Errors: knowledge/troubleshooting/COMMON_ERRORS.md
