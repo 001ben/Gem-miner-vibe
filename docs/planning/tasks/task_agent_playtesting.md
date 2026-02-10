@@ -20,6 +20,7 @@
         - Refactor input listeners to allow programmatic triggering via `window.agentInput.set(direction, value)`.
     1. **Heuristic "Bot" Controller (Playtester)**
         - Implement a simple heuristic script (non-LLM) that uses the Spatial Signals to navigate toward gems.
+        - **Visual Observation:** Add an "Auto-Play" toggle button to the UI (enabled only in non-production/preview builds) so developers can observe the AI behavior in real-time.
         - **Rationale:** Using an LLM to "play" the game frame-by-frame is too slow and expensive. A local script performs the playtest; the LLM only analyzes the *summary* report.
     1. **Signal Distillation (Noise Reduction)**
         - **Event-Based Logging:** Instead of frame-by-frame logs, record only significant events (Gem Collected, Upgrade Purchased, Collision > Force X).
@@ -39,6 +40,7 @@
     - [ ] **Phase 2: Input Hook & Heuristic Bot**
         - Refactor `src/core/input.js` to allow external overrides.
         - Create `tools/playtest/simple_bot.js` to demonstrate basic navigation.
+        - Add "Auto-Play" UI toggle (conditional on build environment).
     - [ ] **Phase 3: Signal Distiller & Reporting**
         - Implement the event-based logger to filter out "idle" frames.
         - Add a summary generator that outputs LLM-friendly markdown reports.
@@ -51,3 +53,4 @@
     - An agent/script can navigate the bulldozer to a gem using telemetry sensors.
     - A distilled markdown report (under 2KB) is generated for a 60-second session.
     - The CI suite runs a playtest on every Pull Request and flags significant regressions.
+    - Developers can toggle "Auto-Play" in PR previews to watch the bot session.
