@@ -19,6 +19,12 @@
         - Refactor input listeners to allow programmatic triggering via `window.agentInput.set(direction, value)`.
     1. **Session Recording (Reporting)**
         - Create a mechanism to export session metrics as a JSON blob for baseline comparison.
+    1. **Baseline Generation Suite**
+        - Implement a script to capture "Gold Master" metrics from the current `main` branch.
+        - This ensures we can detect if a change makes the game "too hard" or "too easy" compared to the current version.
+    1. **Environment Automation (CI/CD)**
+        - Integrate the playtesting script into GitHub Actions.
+        - Ideally, every PR should run a 60-second "Bot Play" and report if it failed to collect any gems (detecting "Broken Builds").
 
 !!! example ":material-console: Execution Log"
 
@@ -29,8 +35,12 @@
         - Refactor `src/core/input.js` to allow external overrides.
     - [ ] **Phase 3: Reporting**
         - Add a "Playtest Summary" modal/console log that appears when a session ends.
+    - [ ] **Phase 4: Baseline & CI**
+        - Add baseline capture scripts to `verification/`.
+        - Add a `.github/workflows/playtest.yml` workflow.
 
 !!! success ":material-check-circle-outline: Definition of Done"
 
     - An agent can successfully move the bulldozer via a script.
     - A JSON report can be generated showing "Time to $1000".
+    - The CI suite runs a playtest on every Pull Request.
