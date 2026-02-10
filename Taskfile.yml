@@ -61,11 +61,12 @@ tasks:
     deps: [build:assets]
     cmds:
       - rm -rf dist
-      - mkdir -p dist/tools
+      - mkdir -p dist/tools/playtest
       - cp index.html dist/
       - cp style.css dist/
       - cp -r src dist/
       - cp -r tools/viewer dist/tools/
+      - cp -r tools/playtest dist/tools/
       - cp VERSION dist/
       - cp -r assets dist/
       - touch dist/.nojekyll
