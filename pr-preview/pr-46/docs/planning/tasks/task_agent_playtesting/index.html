@@ -1808,6 +1808,16 @@
 <li>Create a mechanism to export session metrics as a JSON blob for baseline comparison.</li>
 </ul>
 </li>
+<li><strong>Baseline Generation Suite</strong><ul>
+<li>Implement a script to capture "Gold Master" metrics from the current <code>main</code> branch.</li>
+<li>This ensures we can detect if a change makes the game "too hard" or "too easy" compared to the current version.</li>
+</ul>
+</li>
+<li><strong>Environment Automation (CI/CD)</strong><ul>
+<li>Integrate the playtesting script into GitHub Actions.</li>
+<li>Ideally, every PR should run a 60-second "Bot Play" and report if it failed to collect any gems (detecting "Broken Builds").</li>
+</ul>
+</li>
 </ol>
 </div>
 <div class="admonition example">
@@ -1826,6 +1836,11 @@
 <li>Add a "Playtest Summary" modal/console log that appears when a session ends.</li>
 </ul>
 </li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Phase 4: Baseline &amp; CI</strong><ul>
+<li>Add baseline capture scripts to <code>verification/</code>.</li>
+<li>Add a <code>.github/workflows/playtest.yml</code> workflow.</li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="admonition success">
@@ -1833,6 +1848,7 @@
 <ul>
 <li>An agent can successfully move the bulldozer via a script.</li>
 <li>A JSON report can be generated showing "Time to $1000".</li>
+<li>The CI suite runs a playtest on every Pull Request.</li>
 </ul>
 </div>
 
