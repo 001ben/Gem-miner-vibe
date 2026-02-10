@@ -15,24 +15,39 @@ theme:
 
 nav:
   - Home: README.md
-  - Guide:
-      - Project Structure: guide/PROJECT_STRUCTURE.md
-      - Design Principles: guide/game_design_principles.md
-      - Progression Analysis: guide/progression_analysis.md
+  - Living Documentation:
+      - Guide:
+          - Project Structure: living/guide/PROJECT_STRUCTURE.md
+          - Design Principles: living/guide/game_design_principles.md
+          - Progression Analysis: living/guide/progression_analysis.md
+      - Architecture:
+          - Pipeline Review: living/architecture/DAMP_PIPELINE_REVIEW.md
+          - Maintainability: living/architecture/DAMP_MAINTAINABILITY.md
+          - Blender Pipeline: living/architecture/BLENDER_PIPELINE.md
   - Planning:
       - Roadmap: planning/roadmap.md
-      - Current Task: planning/task_scaling_rebalance.md
+      - Active Tasks:
+          - Agent Playtesting: planning/tasks/task_agent_playtesting.md
+          - Plow Integration: planning/tasks/2024-05-23_plow_integration.md
+      - Analysis:
+          - Scaling Analysis: planning/scaling_analysis.md
+          - Speed & Accel Tuning: planning/speed_and_acceleration_tuning.md
+      - Proposals:
+          - Agent Playtesting: planning/proposals/agent_playtesting.md
       - Archive:
           - Refactoring (May 2025): planning/archive/2025-05-18_refactoring.md
-  - Architecture:
-      - Pipeline Review: architecture/DAMP_PIPELINE_REVIEW.md
-      - Maintainability: architecture/DAMP_MAINTAINABILITY.md
-      - Blender Pipeline: architecture/BLENDER_PIPELINE.md
-  - Troubleshooting:
-      - Common Errors: troubleshooting/COMMON_ERRORS.md
-      - Graphics: troubleshooting/GRAPHICS_TROUBLESHOOTING.md
-  - History:
-      - Gemini Session (Dec 2025): history/GEMINI_2025_12.md
+          - Task Scaling Rebalance: planning/archive/task_scaling_rebalance.md
+          - Doc Rewrite: planning/archive/doc_rewrite.md
+          - UI & Gameplay Polish: planning/archive/2026-01-07_ui_gameplay_polish.md
+  - Knowledge Base:
+      - Troubleshooting:
+          - Common Errors: knowledge/troubleshooting/COMMON_ERRORS.md
+          - Graphics: knowledge/troubleshooting/GRAPHICS_TROUBLESHOOTING.md
+      - History:
+          - Gemini Session (Dec 2025): knowledge/history/GEMINI_2025_12.md
+      - Legacy:
+          - Asset Pipeline: knowledge/legacy/ASSET_PIPELINE.md
+          - Scad vs Blender: knowledge/legacy/SCAD_VS_BLENDER.md
 
 extra_javascript:
   - js/nav-overlay.js
