@@ -5,6 +5,16 @@ console.log("simple_bot.js: Script started loading...");
 
 (function() {
     console.log("simple_bot.js: IIFE executing...");
+    
+    // Matter.js Vector helper (local alias if window.Matter is loaded)
+    const Vector = window.Matter ? window.Matter.Vector : {
+        sub: (a, b) => ({ x: a.x - b.x, y: a.y - b.y }),
+        add: (a, b) => ({ x: a.x + b.x, y: a.y + b.y }),
+        mult: (v, s) => ({ x: v.x * s, y: v.y * s }),
+        div: (v, s) => ({ x: v.x / s, y: v.y / s }),
+        magnitude: (v) => Math.sqrt(v.x * v.x + v.y * v.y)
+    };
+
     const BOT_CONFIG = {
         targetThreshold: 50,
         turnPrecision: 0.1,
