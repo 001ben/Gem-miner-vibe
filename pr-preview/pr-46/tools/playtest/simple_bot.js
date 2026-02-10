@@ -48,38 +48,40 @@ console.log("simple_bot.js: Script started loading...");
         const nearestGem = sensors.nearestGems[0];
         const collector = sensors.collector;
 
-        let targetVector = nearestGem.vector;
+        // Vector to gem and vector from gem to collector
+        const toGem = nearestGem.vector;
+        const toCollector = collector ? collector.vector : { x: 0, y: 500 }; // Default south if no collector
+        
+        // 1. Calculate the ideal "Push Vector"
+        // We want to be at a position P such that P -> Gem -> Collector is a straight line.
+        const gemToCollector = Vector.sub(toCollector, toGem);
+        const gemToCollectorUnit = Vector.div(gemToCollector, Vector.magnitude(gemToCollector));
+        
+        // Target point is slightly behind the gem (relative to collector)
+        const approachOffset = 80; // Distance to stay behind gem
+        const behindGemPoint = Vector.sub(toGem, Vector.mult(gemToCollectorUnit, approachOffset));
+        
+        let targetVector;
         let throttlePower = BOT_CONFIG.throttlePower;
 
-        // LOGIC REFINEMENT: 
-        // 1. If we are near a gem, check if the gem is "between" us and the collector.
-        // 2. If it is, target the collector to push it through.
-        // 3. If not, we need to "flank" the gem to get behind it.
+        // 2. State Machine: Approach vs Push
+        // If we are already behind the gem (dot product check), push through.
+        // Otherwise, navigate to the behindGemPoint.
         
-        if (nearestGem.distance < 80 && collector) {
-            // Vector from dozer to collector
-            const toCollector = collector.vector;
-            // Vector from dozer to gem
-            const toGem = nearestGem.vector;
+        const dozerToGemUnit = Vector.div(toGem, Vector.magnitude(toGem));
+        const pushAlignment = (dozerToGemUnit.x * gemToCollectorUnit.x + dozerToGemUnit.y * gemToCollectorUnit.y);
+
+        if (pushAlignment > 0.85 && nearestGem.distance < approachOffset + 20) {
+            // WE ARE LINED UP: Drive toward collector
+            targetVector = toCollector;
+            throttlePower = 1.0;
+        } else {
+            // NEED TO REPOSITION: Drive to the point behind the gem
+            targetVector = behindGemPoint;
             
-            // Dot product to see if gem is in same general direction as collector
-            const dot = (toCollector.x * toGem.x + toCollector.y * toGem.y) / 
-                        (Vector.magnitude(toCollector) * Vector.magnitude(toGem));
-            
-            // If dot product is high (> 0.8), gem is roughly between us and collector
-            if (dot > 0.8) {
-                targetVector = toCollector;
-                throttlePower = 1.0;
-            } else {
-                // FLANKING: We need to get behind the gem.
-                // Target a point slightly "behind" the gem relative to the collector
-                const gemToCollector = Vector.sub(collector.vector, nearestGem.vector);
-                const gemToCollectorUnit = Vector.div(gemToCollector, Vector.magnitude(gemToCollector));
-                
-                // Point behind gem = gemPosition - (unitVector * offset)
-                // Since everything is relative to dozer, target = toGem - (unit * 60)
-                const flankPoint = Vector.sub(toGem, Vector.mult(gemToCollectorUnit, 60));
-                targetVector = flankPoint;
+            // If the point is very close, just face the gem
+            if (Vector.magnitude(behindGemPoint) < 20) {
+                targetVector = toGem;
             }
         }
 
@@ -88,20 +90,30 @@ console.log("simple_bot.js: Script started loading...");
         let throttle = 0;
         let turn = 0;
 
-        // Steering logic
-        if (Math.abs(angleToTarget) > BOT_CONFIG.turnPrecision) {
-            turn = angleToTarget > 0 ? 1 : -1;
-        }
+        // Anti-stuck: If throttled but not moving
+        const isStuck = metrics.durationSeconds > 2 && metrics.averageSpeed < 0.5;
 
-        // Throttle logic
-        if (Math.abs(angleToTarget) < Math.PI / 2) {
-            throttle = throttlePower;
-            if (Math.abs(angleToTarget) > Math.PI / 4) {
-                throttle *= 0.4;
-            }
+        if (isStuck) {
+            throttle = -0.6;
+            turn = 1.0; // Hard turn out
         } else {
-            // If target is behind us, slow turn in place (back up slightly)
-            throttle = -0.2;
+            // Steering logic: Proportional turning
+            if (Math.abs(angleToTarget) > BOT_CONFIG.turnPrecision) {
+                turn = Math.max(-1, Math.min(1, angleToTarget * 2));
+            }
+
+            // Throttle logic
+            if (Math.abs(angleToTarget) < Math.PI / 2) {
+                throttle = throttlePower;
+                // Slow down for tight turns to avoid orbiting
+                if (Math.abs(angleToTarget) > Math.PI / 4) {
+                    throttle *= 0.3;
+                }
+            } else {
+                // If target is behind us, back up and turn
+                throttle = -0.3;
+                turn = angleToTarget > 0 ? 1 : -1;
+            }
         }
 
         window.agentInput.set(throttle, turn);
