@@ -109,11 +109,20 @@ document.getElementById('btn-debug-pos')?.addEventListener('click', () => {
 const timeStep = 1000 / 60; // 16.66ms
 let accumulator = 0;
 let lastTime = performance.now();
+const frameInterval = 1000 / 60; // 60 FPS cap
+let lastFrameTime = 0;
 
 function animate(currentTime = performance.now()) {
-    const frameStartTime = performance.now();
     requestAnimationFrame(animate);
     
+    // FPS Capping
+    const deltaTime = currentTime - lastFrameTime;
+    if (deltaTime < frameInterval) {
+        return;
+    }
+    // Adjust lastFrameTime to handle drift
+    lastFrameTime = currentTime - (deltaTime % frameInterval);
+
     const frameTime = currentTime - lastTime;
     lastTime = currentTime;
     
