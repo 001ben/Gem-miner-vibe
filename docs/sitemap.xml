@@ -5,47 +5,55 @@
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/architecture/BLENDER_PIPELINE/</loc>
+         <loc>https://example.com/knowledge/history/GEMINI_2025_12/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/architecture/DAMP_MAINTAINABILITY/</loc>
+         <loc>https://example.com/knowledge/legacy/ASSET_PIPELINE/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/architecture/DAMP_PIPELINE_REVIEW/</loc>
+         <loc>https://example.com/knowledge/legacy/BULLDOZER_RENDER_FRAMEWORKS_TUTORIAL/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/archive/ASSET_PIPELINE/</loc>
+         <loc>https://example.com/knowledge/legacy/GRAPHICS_DESIGN/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/archive/BULLDOZER_RENDER_FRAMEWORKS_TUTORIAL/</loc>
+         <loc>https://example.com/knowledge/legacy/SCAD_VS_BLENDER/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/archive/GRAPHICS_DESIGN/</loc>
+         <loc>https://example.com/knowledge/troubleshooting/COMMON_ERRORS/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/archive/SCAD_VS_BLENDER/</loc>
+         <loc>https://example.com/knowledge/troubleshooting/GRAPHICS_TROUBLESHOOTING/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/guide/PROJECT_STRUCTURE/</loc>
+         <loc>https://example.com/living/architecture/BLENDER_PIPELINE/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/guide/game_design_principles/</loc>
+         <loc>https://example.com/living/architecture/DAMP_MAINTAINABILITY/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/guide/progression_analysis/</loc>
+         <loc>https://example.com/living/architecture/DAMP_PIPELINE_REVIEW/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
-         <loc>https://example.com/history/GEMINI_2025_12/</loc>
+         <loc>https://example.com/living/guide/PROJECT_STRUCTURE/</loc>
+         <lastmod>2026-02-10</lastmod>
+    </url>
+    <url>
+         <loc>https://example.com/living/guide/game_design_principles/</loc>
+         <lastmod>2026-02-10</lastmod>
+    </url>
+    <url>
+         <loc>https://example.com/living/guide/progression_analysis/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
     <url>
@@ -82,14 +90,6 @@
     </url>
     <url>
          <loc>https://example.com/planning/archive/task_scaling_rebalance/</loc>
-         <lastmod>2026-02-10</lastmod>
-    </url>
-    <url>
-         <loc>https://example.com/troubleshooting/COMMON_ERRORS/</loc>
-         <lastmod>2026-02-10</lastmod>
-    </url>
-    <url>
-         <loc>https://example.com/troubleshooting/GRAPHICS_TROUBLESHOOTING/</loc>
          <lastmod>2026-02-10</lastmod>
     </url>
 </urlset>
