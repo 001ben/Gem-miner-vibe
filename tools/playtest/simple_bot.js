@@ -63,7 +63,15 @@ console.log("simple_bot.js: Script started loading...");
         const gemToCollector = Vector.sub(toCollector, toGem);
         const gemToCollectorUnit = Vector.div(gemToCollector, Vector.magnitude(gemToCollector));
         
-        const approachOffset = 80; 
+        // REFINEMENT: Dynamic approach distance based on wall proximity
+        // Map bounds approx: -600 to 600 X, -3000 to 500 Y (based on map.js)
+        const dozerPos = window.bulldozer.position;
+        const distToWallX = 600 - Math.abs(dozerPos.x);
+        const distToWallY = Math.min(Math.abs(dozerPos.y - 500), Math.abs(dozerPos.y + 3000));
+        const nearWall = distToWallX < 100 || distToWallY < 100;
+
+        // If near wall, use tighter approach to avoid backing into it
+        const approachOffset = nearWall ? 50 : 100; 
         const behindGemPoint = Vector.sub(toGem, Vector.mult(gemToCollectorUnit, approachOffset));
         
         let targetVector;
@@ -73,42 +81,49 @@ console.log("simple_bot.js: Script started loading...");
         const dozerToGemUnit = Vector.div(toGem, Vector.magnitude(toGem));
         const pushAlignment = (dozerToGemUnit.x * gemToCollectorUnit.x + dozerToGemUnit.y * gemToCollectorUnit.y);
 
-        if (pushAlignment > 0.85 && nearestGem.distance < approachOffset + 20) {
+        // STUCK LOGIC: If we've been in same mode with low speed
+        if (!window.botStuckTimer) window.botStuckTimer = 0;
+        if (parseFloat(metrics.averageSpeed) < 0.3) {
+            window.botStuckTimer++;
+        } else {
+            window.botStuckTimer = 0;
+        }
+
+        const isStuck = window.botStuckTimer > 30; // ~3 seconds of no movement
+
+        if (isStuck) {
+            targetVector = { x: -toGem.x, y: -toGem.y }; // Target opposite of gem to back away
+            throttlePower = -0.6;
+            mode = "STUCK_RECOVERY";
+        } else if (pushAlignment > 0.85 && nearestGem.distance < approachOffset + 20) {
             targetVector = toCollector;
             throttlePower = 1.0;
             mode = "PUSH";
         } else {
             targetVector = behindGemPoint;
-            if (Vector.magnitude(behindGemPoint) < 20) {
+            // If the flank point is unreachable or we are over it, target the gem but slow
+            if (Vector.magnitude(behindGemPoint) < 30) {
                 targetVector = toGem;
+                throttlePower *= 0.5;
             }
         }
 
         const angleToTarget = getAngleTo(targetVector);
-        
         let throttle = 0;
         let turn = 0;
 
-        const isStuck = metrics.durationSeconds > 2 && metrics.averageSpeed < 0.5;
+        // Steering: More aggressive turn if far off
+        turn = Math.max(-1, Math.min(1, angleToTarget * 2.5));
 
-        if (isStuck) {
-            throttle = -0.6;
-            turn = 1.0;
-            mode = "STUCK_RECOVERY";
+        if (Math.abs(angleToTarget) < Math.PI / 2) {
+            throttle = throttlePower;
+            if (Math.abs(angleToTarget) > Math.PI / 4) {
+                throttle *= 0.3; // Brake hard for turns
+            }
         } else {
-            if (Math.abs(angleToTarget) > BOT_CONFIG.turnPrecision) {
-                turn = Math.max(-1, Math.min(1, angleToTarget * 2));
-            }
-
-            if (Math.abs(angleToTarget) < Math.PI / 2) {
-                throttle = throttlePower;
-                if (Math.abs(angleToTarget) > Math.PI / 4) {
-                    throttle *= 0.3;
-                }
-            } else {
-                throttle = -0.3;
-                turn = angleToTarget > 0 ? 1 : -1;
-            }
+            // Target is behind us
+            throttle = -0.4;
+            turn = -turn; // Reverse steering
         }
 
         // Log bot state every 10 ticks (~1 second)
@@ -116,7 +131,7 @@ console.log("simple_bot.js: Script started loading...");
         window.botLogCounter++;
         
         if (window.botLogCounter % 10 === 0) {
-            console.log(`[Bot] Mode: ${mode} | Target: ${mode === "PUSH" ? "Collector" : "Gem"} | Dist: ${nearestGem.distance.toFixed(1)} | Align: ${pushAlignment.toFixed(2)} | Turn: ${turn.toFixed(2)}`);
+            console.log(`[Bot] Mode: ${mode} | Target: ${mode === "PUSH" ? "Collector" : "Gem"} | Dist: ${nearestGem.distance.toFixed(1)} | Align: ${pushAlignment.toFixed(2)} | StuckTimer: ${window.botStuckTimer}`);
         }
 
         window.agentInput.set(throttle, turn);
