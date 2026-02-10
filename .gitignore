@@ -6,3 +6,4 @@ viewer/assets/
 *.obj
 *.glb
 .DS_Store
+node_modules/

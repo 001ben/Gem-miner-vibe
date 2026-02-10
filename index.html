@@ -64,18 +64,14 @@
     </script>
 
     <script src="https://unpkg.com/matter-js@0.19.0/build/matter.min.js"></script>
+    <script src="tools/playtest/simple_bot.js"></script>
     <script type="module">
         import './src/core/game.js';
         
         async function initBotUI() {
-            // Load bot script as a module or wait for it
-            const script = document.createElement('script');
-            script.src = 'tools/playtest/simple_bot.js';
-            document.body.appendChild(script);
-
-            // Wait for botController to be attached to window
+            // Wait for botController to be attached to window (it's loaded via script tag above)
             let attempts = 0;
-            while (!window.botController && attempts < 50) {
+            while (!window.botController && attempts < 100) {
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
             }
@@ -84,7 +80,9 @@
                 const btn = document.getElementById('btn-bot-toggle');
                 if (btn) {
                     btn.style.display = 'inline-block';
+                    console.log("Bot UI Initialized.");
                     btn.onclick = () => {
+                        console.log("Auto-Play Toggle Clicked.");
                         if (window.botController && window.botController.isActive()) {
                             window.botController.stop();
                             btn.innerText = 'Auto-Play: OFF';
@@ -95,6 +93,8 @@
                             btn.innerText = 'Auto-Play: ON';
                             btn.style.color = '#f0f';
                             btn.style.borderColor = '#f0f';
+                        } else {
+                            console.error("Bot controller still not available.");
                         }
                     };
                 }

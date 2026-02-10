@@ -11,18 +11,16 @@
     let botInterval = null;
 
     function getAngleTo(vector) {
-        // Telemetry vector is relative to dozer position
-        // Dozer heading is (angle - PI/2)
-        // Vector angle is atan2(y, x)
-        const targetAngle = Math.atan2(vector.y, vector.x);
-        
-        // We need the relative angle to the dozer's front (heading)
-        // Matter.js dozer.angle is 0 when pointing Down (positive Y)
-        // Subtract PI/2 because our model is rotated
         const dozer = window.bulldozer;
         if (!dozer) return 0;
 
-        const currentHeading = dozer.angle + Math.PI/2; 
+        // targetAngle is absolute world angle of the vector
+        const targetAngle = Math.atan2(vector.y, vector.x);
+        
+        // currentHeading is absolute world angle the dozer is facing
+        // In input.js, force is applied at (angle - PI/2)
+        const currentHeading = dozer.angle - Math.PI/2; 
+        
         let delta = targetAngle - currentHeading;
 
         while (delta <= -Math.PI) delta += 2 * Math.PI;
