@@ -111,8 +111,11 @@ console.log("simple_bot.js: Script started loading...");
             }
         }
 
-        // Log bot state every second (roughly)
-        if (state.session.frameCounter % 60 === 0) {
+        // Log bot state every 10 ticks (~1 second)
+        if (!window.botLogCounter) window.botLogCounter = 0;
+        window.botLogCounter++;
+        
+        if (window.botLogCounter % 10 === 0) {
             console.log(`[Bot] Mode: ${mode} | Target: ${mode === "PUSH" ? "Collector" : "Gem"} | Dist: ${nearestGem.distance.toFixed(1)} | Align: ${pushAlignment.toFixed(2)} | Turn: ${turn.toFixed(2)}`);
         }
 
